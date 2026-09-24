@@ -1,6 +1,6 @@
 <?php
 
-require_once '/var/www/classes/PDO.class.php';
+require_once __DIR__.'/PDO.class.php';
 
 class Clan {
     
@@ -83,7 +83,7 @@ class Clan {
                         $system->handleError('Missing information.', $redirect);
                     }
 
-                    require '/var/www/classes/Purifier.class.php';
+                    require __DIR__.'/Purifier.class.php';
                     $purifier = new Purifier();
                     $purifier->set_config('text');
                     
@@ -106,7 +106,7 @@ class Clan {
                     
                     if(isset($_POST['text'])){
                         
-                        require '/var/www/classes/Purifier.class.php';
+                        require __DIR__.'/Purifier.class.php';
                         $purifier = new Purifier();
                         $purifier->set_config('text');
                         
@@ -180,7 +180,7 @@ class Clan {
                     
                     if(isset($_POST['text'])){
                         
-                        require '/var/www/classes/Purifier.class.php';
+                        require __DIR__.'/Purifier.class.php';
                         $purifier = new Purifier();
                         $purifier->set_config('text');
                         
@@ -211,7 +211,7 @@ class Clan {
                         $system->handleError('Missing information.', $redirect);
                     }
                     
-                    require '/var/www/classes/Purifier.class.php';
+                    require __DIR__.'/Purifier.class.php';
                     $purifier = new Purifier();
                     $purifier->set_config('clan-desc');
 
@@ -272,11 +272,11 @@ class Clan {
                 
                 $this->session->addMsg('The user has been added to your clan. Welcome him to the other members!', 'success');
                 
-                require '/var/www/classes/Mail.class.php';
+                require __DIR__.'/Mail.class.php';
                 $mail = new Mail();
 
                 $this->session->newQuery();
-                $sqlSelect = "SELECT lang FROM users_language WHERE userID = ".$requestData['USER_ID']." LIMIT 1";
+                $sqlSelect = SqlQuery::make('SELECT lang FROM users_language WHERE userID = ? LIMIT 1', [SqlQuery::num($requestData['USER_ID'])]);
                 $userLang = $this->pdo->query($sqlSelect)->fetch(PDO::FETCH_OBJ)->lang;
 
                 if($userLang == 'en'){
@@ -318,10 +318,10 @@ class Clan {
                 $this->session->addMsg('Request denied.', 'success');
                 
                 $this->session->newQuery();
-                $sqlSelect = "SELECT lang FROM users_language WHERE userID = ".$requestData['USER_ID']." LIMIT 1";
+                $sqlSelect = SqlQuery::make('SELECT lang FROM users_language WHERE userID = ? LIMIT 1', [SqlQuery::num($requestData['USER_ID'])]);
                 $userLang = $this->pdo->query($sqlSelect)->fetch(PDO::FETCH_OBJ)->lang;
                 
-                require '/var/www/classes/Mail.class.php';
+                require __DIR__.'/Mail.class.php';
                 $mail = new Mail();
 
                 if($userLang == 'br'){
@@ -341,7 +341,7 @@ class Clan {
                     $system->handleError('You do not have the permission to edit clan image', 'clan');
                 }                
                 
-                require 'uploadImage.php';
+                require __DIR__.'/../uploadImage.php';
                 
                 $this->session->addMsg('Clan photo updated.', 'success');
                 
@@ -355,10 +355,9 @@ class Clan {
                 $stmt->execute(array(':id' => $_SESSION['id']));
                 $data = $stmt->fetch(PDO::FETCH_OBJ);
 
-                require '/var/www/classes/BCrypt.class.php';
-                $bcrypt = new BCrypt();     
-                
-                if($bcrypt->verify($pass, $data->password) || $data->password == '0' || $data->password == ''){
+                require_once __DIR__.'/Password.class.php';
+
+                if(Password::verify($pass, $data->password)){
 
                     if(!self::playerHaveClan()){
                         $system->handleError('What? Ahm? You do not have a clan...', $redirect);
@@ -385,7 +384,7 @@ class Clan {
                     $this->session->addMsg('User kicked.');
 
                     $this->session->newQuery();
-                    $sqlSelect = "SELECT lang FROM users_language WHERE userID = ".$id." LIMIT 1";
+                    $sqlSelect = SqlQuery::make('SELECT lang FROM users_language WHERE userID = ? LIMIT 1', [SqlQuery::num($id)]);
                     $userLang = $this->pdo->query($sqlSelect)->fetch(PDO::FETCH_OBJ)->lang;
                     
                     if($userLang == 'br'){
@@ -396,7 +395,7 @@ class Clan {
                         $text = 'Hello, this is a message informing that you were kicked from the clan. <br/><br/><strong>Reason:</strong> '.htmlspecialchars($txt);
                     }
                     
-                    require '/var/www/classes/Mail.class.php';
+                    require __DIR__.'/Mail.class.php';
                     $mail = new Mail();
 
                     $mail->newMail($id, $subject, $text, 4, -4);
@@ -437,7 +436,7 @@ class Clan {
                 
                 $price = self::createClanCost();
                 
-                require '/var/www/classes/Finances.class.php';
+                require __DIR__.'/Finances.class.php';
                 $finances = new Finances();
 
                 if($finances->totalMoney() < $price){
@@ -484,10 +483,9 @@ class Clan {
                 $stmt->execute(array(':id' => $_SESSION['id']));
                 $data = $stmt->fetch(PDO::FETCH_OBJ);
 
-                require '/var/www/classes/BCrypt.class.php';
-                $bcrypt = new BCrypt();
+                require_once __DIR__.'/Password.class.php';
 
-                if($bcrypt->verify($pass, $data->password) || $data->password == '' || $data->password == '0'){
+                if(Password::verify($pass, $data->password)){
                     
                     if(!self::playerHaveClan()){
                         $system->handleError('You are not part of any clan, how can you leave?', $postRedirect);
@@ -500,7 +498,7 @@ class Clan {
                         $clanOwnerID = self::getClanOwnerID(self::getPlayerClan())->userid;
                         
                         $this->session->newQuery();
-                        $sqlSelect = "SELECT lang FROM users_language WHERE userID = ".$clanOwnerID." LIMIT 1";
+                        $sqlSelect = SqlQuery::make('SELECT lang FROM users_language WHERE userID = ? LIMIT 1', [SqlQuery::num($clanOwnerID)]);
                         $userLang = $this->pdo->query($sqlSelect)->fetch(PDO::FETCH_OBJ)->lang;
 
                         $player = new Player();
@@ -513,7 +511,7 @@ class Clan {
                             $text = 'Hello, this is a notice to inform you that player '. $player->getPlayerInfo($_SESSION['id'])->login .' left the clan. <br/><br/><strong>Reason:</strong> '.$txt;
                         }
                         
-                        require '/var/www/classes/Mail.class.php';
+                        require __DIR__.'/Mail.class.php';
                         $mail = new Mail();
 
                         
@@ -877,12 +875,12 @@ window.onload = function(){
     public function war_recordDDoS($victimID, $victimClan){
         
         $this->session->newQuery();
-        $sql = "SELECT id FROM round_ddos WHERE vicID = '".$victimID."' AND attID = '".$_SESSION['id']."' ORDER BY date DESC";
+        $sql = SqlQuery::make('SELECT id FROM round_ddos WHERE vicID = ? AND attID = ? ORDER BY date DESC', [$victimID, $_SESSION['id']]);
         $id = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->id;
         
         $this->session->newQuery();
-        $sql = "INSERT INTO clan_ddos (attackerClan, victimClan, ddosID)
-                VALUES ('".self::getPlayerClan()."', '".$victimClan."', '".$id."')";
+        $sql = SqlQuery::make('INSERT INTO clan_ddos (attackerClan, victimClan, ddosID)
+                VALUES (?, ?, ?)', [self::getPlayerClan(), $victimClan, $id]);
         $this->pdo->query($sql);
         
     }
@@ -890,7 +888,7 @@ window.onload = function(){
     public function clan_inWar($cid){
         
         $this->session->newQuery();
-        $sql = "SELECT clanID1 FROM clan_war WHERE clanID1 = '".$cid."' OR clanID2 = '".$cid."' LIMIT 1";
+        $sql = SqlQuery::make('SELECT clanID1 FROM clan_war WHERE clanID1 = ? OR clanID2 = ? LIMIT 1', [$cid, $cid]);
         $data = $this->pdo->query($sql)->fetchAll();
         
         if(sizeof($data) == 1){
@@ -904,7 +902,7 @@ window.onload = function(){
     public function issetWar($clan1, $clan2){
         
         $this->session->newQuery();
-        $sql = "SELECT clanID1 FROM clan_war WHERE (clanID1 = '".$clan1."' AND clanID2 = '".$clan2."') OR (clanID1 = '".$clan2."' AND clanID2 = '".$clan1."') LIMIT 1";
+        $sql = SqlQuery::make('SELECT clanID1 FROM clan_war WHERE (clanID1 = ? AND clanID2 = ?) OR (clanID1 = ? AND clanID2 = ?) LIMIT 1', [$clan1, $clan2, $clan2, $clan1]);
         $data = $this->pdo->query($sql)->fetchAll();
                 
         if(sizeof($data) == 1){
@@ -947,7 +945,7 @@ window.onload = function(){
             
             
             $this->session->newQuery();
-            $sql = "SELECT clanID1, clanID2, score1, score2, bounty, startDate, TIMESTAMPDIFF(HOUR, NOW(), endDate) AS ending FROM clan_war WHERE clanID1 = '".$clanID."' OR clanID2 = '".$clanID."'";
+            $sql = SqlQuery::make('SELECT clanID1, clanID2, score1, score2, bounty, startDate, TIMESTAMPDIFF(HOUR, NOW(), endDate) AS ending FROM clan_war WHERE clanID1 = ? OR clanID2 = ?', [$clanID, $clanID]);
             $data = $this->pdo->query($sql)->fetchAll();
             
             for($i=0;$i<sizeof($data);$i++){
@@ -1128,10 +1126,10 @@ window.onload = function(){
         $clanID = $this->myClan;
 
         $this->session->newQuery();
-        $sql = 'SELECT id, idWinner, idLoser, scoreWinner, scoreLoser
+        $sql = SqlQuery::make('SELECT id, idWinner, idLoser, scoreWinner, scoreLoser
                 FROM clan_war_history
-                WHERE (idWinner = '.$clanID.' OR idLoser = '.$clanID.') AND TIMESTAMPDIFF(DAY, endDate, NOW()) > 30
-                ORDER BY endDate DESC';
+                WHERE (idWinner = ? OR idLoser = ?) AND TIMESTAMPDIFF(DAY, endDate, NOW()) > 30
+                ORDER BY endDate DESC', [SqlQuery::num($clanID), SqlQuery::num($clanID)]);
         $data = $this->pdo->query($sql)->fetchAll();
                 
         if(sizeof($data) > 0){
@@ -1418,7 +1416,7 @@ function getWarHistory(wid){
         
         <?php
             
-        require '/var/www/classes/Storyline.class.php';
+        require __DIR__.'/Storyline.class.php';
         $storyline = new Storyline();            
         
         $system = new System();
@@ -1428,6 +1426,7 @@ function getWarHistory(wid){
         
         $table = 'hist_clans_war';
         $extra = ', round';
+        $whereParams = [];
 
         if($getRound == 'current'){
             
@@ -1439,7 +1438,8 @@ function getWarHistory(wid){
             
         } elseif($getRound != ''){
 
-            $where = 'AND ROUND = \''.$getRound.'\'';
+            $where = 'AND ROUND = ?';
+            $whereParams = [$getRound];
             
             if(!is_numeric($getRound)){
                 $system->handleError('Invalid round.', 'clan?action=war&show=history');
@@ -1454,10 +1454,10 @@ function getWarHistory(wid){
         }
         
         $this->session->newQuery();
-        $sql = "SELECT id, idWinner, idLoser, scoreWinner, scoreLoser, startDate, endDate, bounty".$extra."
-                FROM ".$table."
-                WHERE (idWinner = '".$clanID."' OR idLoser = '".$clanID."') ".$where."
-                ORDER BY endDate DESC";
+        $sql = SqlQuery::make('SELECT id, idWinner, idLoser, scoreWinner, scoreLoser, startDate, endDate, bounty'.$extra.'
+                FROM '.$table.'
+                WHERE (idWinner = ? OR idLoser = ?) '.$where.'
+                ORDER BY endDate DESC', array_merge([$clanID, $clanID], $whereParams));
         $data = $this->pdo->query($sql)->fetchAll();
         
         if(sizeof($data) > 0){
@@ -1644,10 +1644,11 @@ function getWarHistory(wid){
             
         <?php
         
-        $where = "(attackerClan = '".$this->myClan."' AND victimClan = '".$victimClan."') OR (attackerClan = '".$victimClan."' AND victimClan = '".$this->myClan."')";        
+        $where = '(attackerClan = ? AND victimClan = ?) OR (attackerClan = ? AND victimClan = ?)';
+        $whereParams = [$this->myClan, $victimClan, $victimClan, $this->myClan];        
         
         $this->session->newQuery();
-        $sql = "SELECT 
+        $sql = SqlQuery::make('SELECT 
                     d.attackerClan, d.ddosID, d.displayAttacker, d.displayVictim, r.attID, r.vicID, r.power, r.servers, r.vicNPC, r.date, 
                     att.login AS attacker, vicUser.login AS victimUser, att.gameIP AS attackerIP, vicUser.gameIP AS victimUserIP
                 FROM clan_ddos d
@@ -1657,8 +1658,8 @@ function getWarHistory(wid){
                 ON att.id = r.attID
                 LEFT JOIN users vicUser
                 ON vicUser.id = r.vicID
-                WHERE ".$where."
-                ORDER BY r.date DESC";
+                WHERE '.$where.'
+                ORDER BY r.date DESC', $whereParams);
         $data = $this->pdo->query($sql)->fetchAll();
 
         if(sizeof($data) > 0){
@@ -1669,11 +1670,11 @@ function getWarHistory(wid){
                 if($data[$i]['vicnpc'] == 0){
 
                     $this->session->newQuery();
-                    $sql = "SELECT clan_users.clanID
+                    $sql = SqlQuery::make('SELECT clan_users.clanID
                             FROM clan_users
                             LEFT JOIN clan
                             ON clan.clanID = clan_users.clanID
-                            WHERE clan_users.userID = '".$data[$i]['vicid']."'";
+                            WHERE clan_users.userID = ?', [$data[$i]['vicid']]);
                     $vicInfo = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
                     
                     if($vicInfo->clanid == $this->myClan){
@@ -1694,11 +1695,11 @@ function getWarHistory(wid){
                 } else {
                     
                     $this->session->newQuery();
-                    $sql = "SELECT clan.clanID, clan.clanIP, clan.name
+                    $sql = SqlQuery::make('SELECT clan.clanID, clan.clanIP, clan.name
                             FROM clan
                             LEFT JOIN npc
                             ON clan.clanIP = npc.npcIP
-                            WHERE npc.id = '".$data[$i]['vicid']."'";
+                            WHERE npc.id = ?', [$data[$i]['vicid']]);
                     $vicInfo = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
                                         
                     if($vicInfo->clanid == $this->myClan){
@@ -1796,7 +1797,7 @@ echo $prevSpanEnding;
             <?php
             
             $this->session->newQuery();
-            $sql = 'SELECT clanID1, clanID2, score1, score2, startDate, endDate, bounty, TIMESTAMPDIFF(HOUR, NOW(), endDate) AS ending FROM clan_war WHERE (clanID1 = \''.$this->myClan.'\' AND clanID2 = \''.$victimClan.'\') OR (clanID1 = \''.$victimClan.'\' AND clanID2 = \''.$this->myClan.'\') LIMIT 1';
+            $sql = SqlQuery::make('SELECT clanID1, clanID2, score1, score2, startDate, endDate, bounty, TIMESTAMPDIFF(HOUR, NOW(), endDate) AS ending FROM clan_war WHERE (clanID1 = ? AND clanID2 = ?) OR (clanID1 = ? AND clanID2 = ?) LIMIT 1', [$this->myClan, $victimClan, $victimClan, $this->myClan]);
             $warInfo = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
 
             $iWin = 1;
@@ -1865,9 +1866,10 @@ echo $prevSpanEnding;
       
             $this->warStartDate = $warInfo->startdate;
             
-            $where = "(attackerClan = '".$this->myClan."' AND victimClan = '".$victimClan."') OR (attackerClan = '".$victimClan."' AND victimClan = '".$this->myClan."')";
+            $where = '(attackerClan = ? AND victimClan = ?) OR (attackerClan = ? AND victimClan = ?)';
+        $whereParams = [$this->myClan, $victimClan, $victimClan, $this->myClan];
             $this->session->newQuery();
-            $sql = "SELECT 
+            $sql = SqlQuery::make('SELECT 
                         d.attackerClan, d.victimClan,
                         att.login AS attackerName, att.id AS attackerID,
                         vic.login AS victimName, vic.id AS victimID
@@ -1878,8 +1880,8 @@ echo $prevSpanEnding;
                     ON att.id = r.attID
                     INNER JOIN users vic
                     ON vic.id = r.vicID
-                    WHERE ".$where." AND r.vicNPC = 0
-                    ORDER BY r.date DESC";
+                    WHERE '.$where.' AND r.vicNPC = 0
+                    ORDER BY r.date DESC', $whereParams);
             $data = $this->pdo->query($sql)->fetchAll();
             
             $usedArr = Array();
@@ -1957,19 +1959,20 @@ echo $prevSpanEnding;
     
     public function show_warSideBar($victimClan){
         
-        $where = "(clanID1 = '".$this->myClan."' AND clanID2 = '".$victimClan."') OR (clanID1 = '".$victimClan."' AND clanID2 = '".$this->myClan."')";    
+        $where = '(clanID1 = ? AND clanID2 = ?) OR (clanID1 = ? AND clanID2 = ?)';
+        $whereParams = [$this->myClan, $victimClan, $victimClan, $this->myClan];    
         $this->session->newQuery();
-        $sql = "SELECT 
+        $sql = SqlQuery::make('SELECT 
                     startDate
                 FROM clan_war
-                WHERE ".$where."
-                LIMIT 10";
+                WHERE '.$where.'
+                LIMIT 10', $whereParams);
         $clanWarStart = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->startdate;
                 
         for($i = 0; $i < sizeof($this->warMembersInvolved); $i++){
             
             $this->session->newQuery();
-            $sql = 'SELECT 
+            $sql = SqlQuery::make('SELECT 
                         SUM(power) AS totalPower
                     FROM 
                     (
@@ -1979,16 +1982,16 @@ echo $prevSpanEnding;
                         INNER JOIN round_ddos r
                         ON r.id = d.ddosID
                         WHERE (
-                            (attackerClan = \''.$this->myClan.'\' AND victimClan = \''.$victimClan.'\') OR 
-                            (attackerClan = \''.$victimClan.'\' AND victimClan = \''.$this->myClan.'\')
+                            (attackerClan = ? AND victimClan = ?) OR 
+                            (attackerClan = ? AND victimClan = ?)
                         )
                         ORDER BY r.date DESC
                         LIMIT 10
                     ) a
                     WHERE 
-                        attID = \''.$this->warMembersInvolved[$i]['id'].'\' AND
-                        TIMESTAMPDIFF(SECOND, date, \''.$clanWarStart.'\') < 0
-                    ';
+                        attID = ? AND
+                        TIMESTAMPDIFF(SECOND, date, ?) < 0
+                    ', [$this->myClan, $victimClan, $victimClan, $this->myClan, $this->warMembersInvolved[$i]['id'], $clanWarStart]);
             $power = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->totalpower;
             
             $this->warMembersInvolved[$i]['power'] = (int)$power;
@@ -2115,7 +2118,7 @@ foreach($this->warMembersInvolved as $info){
         if(self::clan_inWar($this->clanID)){
             
             $this->session->newQuery();
-            $sql = "SELECT clanID1, clanID2, startDate, TIMESTAMPDIFF(HOUR, NOW(), endDate) AS ending FROM clan_war WHERE clanID1 = '".$this->clanID."' OR clanID2 = '".$this->clanID."'";
+            $sql = SqlQuery::make('SELECT clanID1, clanID2, startDate, TIMESTAMPDIFF(HOUR, NOW(), endDate) AS ending FROM clan_war WHERE clanID1 = ? OR clanID2 = ?', [$this->clanID, $this->clanID]);
             $data = $this->pdo->query($sql)->fetchAll();
 
             ?>
@@ -2447,7 +2450,7 @@ foreach($this->warMembersInvolved as $info){
                 <div class="row-fluid">
                     <div class="span12 badge-div">
                         <?php
-                        require '/var/www/classes/Social.class.php';
+                        require __DIR__.'/Social.class.php';
                         $social = new Social();
 
                         $social->badge_list($this->clanID);
@@ -2627,16 +2630,12 @@ var uid = <?php echo $this->clanID; ?>;
             
             $memberLink = '?action=list';
             
-            require '/var/www/classes/Forum.class.php';
+            require __DIR__.'/Forum.class.php';
             $forum = new Forum();
             
             $forumClanID = $forum->getForumClanID($cid);
             
-            if($_SERVER['SERVER_NAME'] == 'localhost'){
-                $forumLink = '/forum/viewforum?f='.$forumClanID['forum_id'];
-            } else {
-                $forumLink = 'https://forum.hackerexperience.com/viewforum.php?f='.$forumClanID['forum_id'];
-            }
+            $forumLink = $forum->isEnabled() ? Config::get('FORUM_URL') : '#';
             
             ?>
         
@@ -2649,7 +2648,7 @@ var uid = <?php echo $this->clanID; ?>;
                 </a>
             </li>
             <li>
-                <a href="<?php echo $forumLink; ?>">
+                <a href="<?php echo htmlspecialchars($forumLink, ENT_QUOTES); ?>">
                     <i class="icon- he32-forum"></i>
                     <?php echo _('Go to forum'); ?>
                 </a>
@@ -2714,7 +2713,7 @@ var uid = <?php echo $this->clanID; ?>;
     
     public function acceptRequest($requestID, $requestInfo){
         
-        require '/var/www/classes/Forum.class.php';
+        require __DIR__.'/Forum.class.php';
         $forum = new Forum();
 
         $forumID = $forum->getForumIDByGameID($requestInfo['USER_ID']);
@@ -2986,11 +2985,11 @@ var uid = <?php echo $this->clanID; ?>;
                                 </div>
                                 <div class="modal-footer">
                                         <input type="hidden" name="act" value="kick">
-                                        <input type="hidden" name="id" value="<?php echo $_POST['id']; ?>">
-                                        <input type="hidden" name="text" value="<?php echo $_POST['text']; ?>">
+                                        <input type="hidden" name="id" value="<?php echo esc($_POST['id']); ?>">
+                                        <input type="hidden" name="text" value="<?php echo esc($_POST['text']); ?>">
                                         <input type="hidden" name="kickConfirm" value="1">
                                         <input type="submit" class="btn btn-success" value="<?php echo _('Yes, kick'); ?>">
-                                        <a class="btn btn-danger" href="clan?action=admin&opt=manage&id=<?php echo $_POST['id']; ?>"><?php echo _('No, go back.'); ?></a>
+                                        <a class="btn btn-danger" href="clan?action=admin&opt=manage&id=<?php echo urlencode($_POST['id']); ?>"><?php echo _('No, go back.'); ?></a>
                                 </form>
                             </div>
                         </div> 
@@ -3167,7 +3166,7 @@ var uid = <?php echo $this->clanID; ?>;
         
         $clanCost = self::createClanCost();
 
-        require_once '/var/www/classes/Finances.class.php';
+        require_once __DIR__.'/Finances.class.php';
         $finances = new Finances();
 
         if($finances->totalMoney() >= $clanCost){
@@ -3211,9 +3210,9 @@ var uid = <?php echo $this->clanID; ?>;
         
             $clanCost = self::createClanCost();
             
-            $input = '<input type="hidden" name="acc" value="'.$_GET['acc'].'">
-                      <input type="hidden" name="ctag" value="'.$_GET['ctag'].'">'."\n".'
-                        <input type="hidden" name="cname" value="'.$_GET['cname'].'">'."\n";        
+            $input = '<input type="hidden" name="acc" value="'.esc($_GET['acc']).'">
+                      <input type="hidden" name="ctag" value="'.esc($_GET['ctag']).'">'."\n".'
+                        <input type="hidden" name="cname" value="'.esc($_GET['cname']).'">'."\n";        
 
             ?>
 
@@ -3231,7 +3230,7 @@ var uid = <?php echo $this->clanID; ?>;
                         </div>
                         <div class="modal-body">
                                 <p></p>
-                                <p><?php echo sprintf(_('Are you sure you want to create the clan %s for %s?'), '<strong>['.$_GET['ctag'].'] '.$_GET['cname'].'</strong>', '<span class="red">$'.number_format($clanCost).'</span>)'); ?></p>
+                                <p><?php echo sprintf(_('Are you sure you want to create the clan %s for %s?'), '<strong>['.esc($_GET['ctag']).'] '.esc($_GET['cname']).'</strong>', '<span class="red">$'.number_format($clanCost).'</span>)'); ?></p>
                         </div>
                         <div class="modal-footer">
                             <form action="#" method="POST">
@@ -3296,7 +3295,7 @@ var uid = <?php echo $this->clanID; ?>;
                     <input type="hidden" name="act" value="leave">
                     <p><span class="item"><?php echo _('Reason (optional)'); ?>: </span><br/></p>
                     <p><textarea name="text" id="styled" style="width:57%; height: 70px;" onfocus=" setbg('#F5F5F5');" onblur="setbg('white');"></textarea></p>
-                    <span class="item"><?php echo _('Password'); ?>: </span> <input type="password" name="pass"size="20"> (Not needed if you use facebook or twitter)
+                    <span class="item"><?php echo _('Password'); ?>: </span> <input type="password" name="pass"size="20">
                     <input type="submit" value="<?php echo _('Leave clan'); ?>">
 
                 </form>
@@ -3406,7 +3405,7 @@ var uid = <?php echo $this->clanID; ?>;
             
         }
         
-        require '/var/www/classes/Forum.class.php';
+        require __DIR__.'/Forum.class.php';
         $forum = new Forum();
         
         $forumUser = $forum->getForumIDByGameID($_SESSION['id']);
@@ -3854,7 +3853,7 @@ die("Deprecated"); //But I'm going to use it in the future, so do not delete it
     
     public function kick($id){
         
-        require '/var/www/classes/Forum.class.php';
+        require __DIR__.'/Forum.class.php';
         $forum = new Forum();
         
         $forumUser = $forum->getForumIDByGameID($id);
@@ -3980,7 +3979,7 @@ die("Deprecated"); //But I'm going to use it in the future, so do not delete it
         
         $finances->debtMoney($clanCost, $acc);
 
-        require '/var/www/classes/Forum.class.php';
+        require __DIR__.'/Forum.class.php';
         $forum = new Forum();
 
         $forum->createForum($clanName, $clanID);
@@ -4098,7 +4097,7 @@ die("Deprecated"); //But I'm going to use it in the future, so do not delete it
         $myClan = self::getPlayerClan();
         
         $this->session->newQuery();
-        $sql = "SELECT clanID1 FROM clan_war WHERE (clanID1 = '".$vicClan."' AND clanID2 = '".$myClan."') OR (clanID2 = '".$vicClan."' AND clanID1 = '".$myClan."') LIMIT 1";
+        $sql = SqlQuery::make('SELECT clanID1 FROM clan_war WHERE (clanID1 = ? AND clanID2 = ?) OR (clanID2 = ? AND clanID1 = ?) LIMIT 1', [$vicClan, $myClan, $vicClan, $myClan]);
         $data = $this->pdo->query($sql)->fetchAll();
         
         if($data['0']['clanid1'] == $myClan){
@@ -4109,7 +4108,7 @@ die("Deprecated"); //But I'm going to use it in the future, so do not delete it
         
         //, endDate = DATE_ADD(endDate, INTERVAL 1 HOUR)
         $this->session->newQuery();
-        $sql = "UPDATE clan_war SET ".$field." = ".$field." + '".$ddosPower."', bounty = bounty + '".$ddosPower / 10 ."' WHERE (clanID1 = '".$vicClan."' AND clanID2 = '".$myClan."') OR (clanID2 = '".$vicClan."' AND clanID1 = '".$myClan."')";
+        $sql = SqlQuery::make('UPDATE clan_war SET '.$field.' = '.$field.' + ?, bounty = bounty + ? WHERE (clanID1 = ? AND clanID2 = ?) OR (clanID2 = ? AND clanID1 = ?)', [$ddosPower, ($ddosPower/10), $vicClan, $myClan, $vicClan, $myClan]);
         $this->pdo->query($sql);
         
     }
@@ -4119,7 +4118,7 @@ die("Deprecated"); //But I'm going to use it in the future, so do not delete it
         $myClan = self::getPlayerClan();
         
         $this->session->newQuery();
-        $sql = "SELECT COUNT(*) AS total FROM clan_war_history WHERE id = '".$id."' AND (idWinner = '".$myClan."' OR idLoser = '".$myClan."') LIMIT 1";
+        $sql = SqlQuery::make('SELECT COUNT(*) AS total FROM clan_war_history WHERE id = ? AND (idWinner = ? OR idLoser = ?) LIMIT 1', [$id, $myClan, $myClan]);
         $data = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
         
         if($data->total == 1){
@@ -4133,11 +4132,11 @@ die("Deprecated"); //But I'm going to use it in the future, so do not delete it
     private function increaseMemberCount($cid){
         
         $this->session->newQuery();
-        $sql = "UPDATE clan_stats SET members = members + 1 WHERE cid = '".$cid."' LIMIT 1";
+        $sql = SqlQuery::make('UPDATE clan_stats SET members = members + 1 WHERE cid = ? LIMIT 1', [$cid]);
         $this->pdo->query($sql);
         
         $this->session->newQuery();
-        $sql = "UPDATE hist_clans_current SET members = members + 1 WHERE cid = '".$cid."' LIMIT 1";
+        $sql = SqlQuery::make('UPDATE hist_clans_current SET members = members + 1 WHERE cid = ? LIMIT 1', [$cid]);
         $this->pdo->query($sql);        
         
     }
@@ -4145,11 +4144,11 @@ die("Deprecated"); //But I'm going to use it in the future, so do not delete it
     private function decreaseMemberCount($cid){
         
         $this->session->newQuery();
-        $sql = "UPDATE clan_stats SET members = members - 1 WHERE cid = '".$cid."' LIMIT 1";
+        $sql = SqlQuery::make('UPDATE clan_stats SET members = members - 1 WHERE cid = ? LIMIT 1', [$cid]);
         $this->pdo->query($sql); 
         
         $this->session->newQuery();
-        $sql = "UPDATE hist_clans_current SET members = members - 1 WHERE cid = '".$cid."' LIMIT 1";
+        $sql = SqlQuery::make('UPDATE hist_clans_current SET members = members - 1 WHERE cid = ? LIMIT 1', [$cid]);
         $this->pdo->query($sql);         
         
     }

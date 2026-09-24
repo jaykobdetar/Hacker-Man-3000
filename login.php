@@ -1,6 +1,7 @@
 <?php
 
-require '/var/www/classes/Session.class.php';
+require_once __DIR__.'/bootstrap.php';
+require __DIR__.'/classes/Session.class.php';
 $session = new Session();
 
 if ($_SERVER['REQUEST_METHOD'] != 'POST' || $session->issetLogin()) {
@@ -8,10 +9,10 @@ if ($_SERVER['REQUEST_METHOD'] != 'POST' || $session->issetLogin()) {
     exit();
 }
 
-require '/var/www/classes/Database.class.php';
+require __DIR__.'/classes/Database.class.php';
 
-$user = htmlentities($_POST['username']);
-$pass = htmlentities($_POST['password']);
+$user = is_string($_POST['username'] ?? null) ? $_POST['username'] : '';
+$pass = is_string($_POST['password'] ?? null) ? $_POST['password'] : '';
 
 $db = new LRSys();
 

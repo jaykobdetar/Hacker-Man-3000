@@ -1,5 +1,6 @@
 <?php
 
+require_once __DIR__.'/../bootstrap.php';
 $uptimeString = '';
 // format the uptime in case the browser doesn't support dhtml/javascript
 // static uptime string
@@ -33,8 +34,8 @@ function format_uptime($seconds) {
   return $uptimeString;
 }
 
-// read in the uptime (using exec)
-$uptime = exec("cat /proc/uptime");
+// read in the uptime
+$uptime = is_readable("/proc/uptime") ? (string) file_get_contents("/proc/uptime") : "0 0";
 $uptime = explode(" ",$uptime);
 $uptimeSecs = $uptime[0];
 

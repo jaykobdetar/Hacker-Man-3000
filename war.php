@@ -1,12 +1,12 @@
 <?php
 
-
-require '/var/www/classes/Player.class.php';
+require_once __DIR__.'/bootstrap.php';
+require __DIR__.'/classes/Player.class.php';
 require 'config.php';
-require '/var/www/classes/Session.class.php';
-require '/var/www/classes/PC.class.php';
-require '/var/www/classes/System.class.php';
-require '/var/www/classes/Process.class.php';
+require __DIR__.'/classes/Session.class.php';
+require __DIR__.'/classes/PC.class.php';
+require __DIR__.'/classes/System.class.php';
+require __DIR__.'/classes/Process.class.php';
 
 $session = new Session();
 $system = new System();
@@ -22,7 +22,7 @@ require_once 'gameInfo.php';
 
 if($session->issetLogin()){
 
-    require_once '/var/www/classes/Storyline.class.php';
+    require_once __DIR__.'/classes/Storyline.class.php';
     $storyline = new Storyline();
     
     $storylineProgress = $storyline->returnStorylineProgress();
@@ -77,8 +77,8 @@ if($session->issetLogin()){
                                                     $endTime = $timeNow + $launchDuration;
 
                                                     $session->newQuery();
-                                                    $sql = "INSERT INTO storyline_launches (id, userID, status, startTime, endTime, region) VALUES 
-                                                            ('', '".$_SESSION['id']."', '1', '".$timeNow."', '".$endTime."', '".$regionInfo['GET_VALUE']."')";
+                                                    $sql = SqlQuery::make('INSERT INTO storyline_launches (id, userID, status, startTime, endTime, region) VALUES 
+                                                            (\'\', ?, \'1\', ?, ?, ?)', [$_SESSION['id'], $timeNow, $endTime, $regionInfo['GET_VALUE']]);
                                                     $pdo->query($sql);
 
                                                     $storyline->updateLauncherProgress('new');

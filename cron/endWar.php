@@ -1,11 +1,14 @@
 <?php
 
+require_once __DIR__.'/../bootstrap.php';
+// Cron/maintenance script: never reachable as a web page.
+if (PHP_SAPI !== 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) { http_response_code(404); exit; }
 //TODO: e se empatar?
 
 
 $start = microtime(true);
 
-require '/var/www/classes/PDO.class.php';
+require __DIR__.'/../classes/PDO.class.php';
 
 $pdo = PDO_DB::factory();
 
@@ -42,11 +45,11 @@ if(sizeof($data) > 0){
             
         }
         
-        $sql = "SELECT round_ddos.attID, round_ddos.power
+        $sql = SqlQuery::make('SELECT round_ddos.attID, round_ddos.power
                 FROM round_ddos
                 INNER JOIN clan_ddos
                 ON clan_ddos.ddosID = round_ddos.id
-                WHERE clan_ddos.attackerClan = '".$winnerID."' AND victimClan = '".$loserID."'";
+                WHERE clan_ddos.attackerClan = ? AND victimClan = ?', [$winnerID, $loserID]);
         $ddosList = $pdo->query($sql)->fetchAll();
         
         $ddoserArr = Array();
@@ -97,13 +100,13 @@ if(sizeof($data) > 0){
                 $mostInfluentID = $ddoserArr[$k]['userID'];
             }
                         
-            $sql = "SELECT bankAcc FROM bankAccounts WHERE bankUser = '".$ddoserArr[$k]['userID']."' ORDER BY cash ASC LIMIT 1";
+            $sql = SqlQuery::make('SELECT bankAcc FROM bankAccounts WHERE bankUser = ? ORDER BY cash ASC LIMIT 1', [$ddoserArr[$k]['userID']]);
             $bankInfo = $pdo->query($sql)->fetchAll();
             
-            $sql = "UPDATE bankAccounts SET cash = cash + '".$earned."' WHERE bankAcc = '".$bankInfo['0']['bankacc']."'";
+            $sql = SqlQuery::make('UPDATE bankAccounts SET cash = cash + ? WHERE bankAcc = ?', [$earned, $bankInfo['0']['bankacc']]);
             $pdo->query($sql);
             
-            $sql = "UPDATE users_stats SET moneyEarned = moneyEarned + '".$earned."' WHERE uid = '".$ddoserArr[$k]['userID']."'";
+            $sql = SqlQuery::make('UPDATE users_stats SET moneyEarned = moneyEarned + ? WHERE uid = ?', [$earned, $ddoserArr[$k]['userID']]);
             $pdo->query($sql);
             
             $split++;
@@ -112,7 +115,7 @@ if(sizeof($data) > 0){
         
         
 
-        $sql = "SELECT login FROM users WHERE id = '".$mostInfluentID."'";
+        $sql = SqlQuery::make('SELECT login FROM users WHERE id = ?', [$mostInfluentID]);
         $playerName = $pdo->query($sql)->fetch(PDO::FETCH_OBJ)->login;
         
         $title = $winnerName.' won clan battle against '.$loserName;
@@ -128,43 +131,43 @@ if(sizeof($data) > 0){
         $data2 = $pdo->prepare($sql);
         $data2->execute(array(':title' => $title, ':content' => $brief));
         
-        $sql = "UPDATE clan
+        $sql = SqlQuery::make('UPDATE clan
                 INNER JOIN clan_stats
                 ON clan.clanID = clan_stats.cid
-                SET clan_stats.won = clan_stats.won + 1, clan.power = clan.power + '". ($totalPower + $loserScore)/8 ."'
-                WHERE clan.clanID = '".$winnerID."'
-                ";
+                SET clan_stats.won = clan_stats.won + 1, clan.power = clan.power + ?
+                WHERE clan.clanID = ?
+                ', [(($totalPower+$loserScore)/8), $winnerID]);
         $pdo->query($sql);
         
-        $sql = "UPDATE clan_stats SET lost = lost + 1 WHERE cid = '".$loserID."'";
+        $sql = SqlQuery::make('UPDATE clan_stats SET lost = lost + 1 WHERE cid = ?', [$loserID]);
         $pdo->query($sql);
 
         
-        $sql = "DELETE FROM clan_war WHERE (clanID1 = '".$winnerID."' and clanID2 = '".$loserID."') OR (clanID2 = '".$winnerID."' and clanID1 = '".$loserID."')";
+        $sql = SqlQuery::make('DELETE FROM clan_war WHERE (clanID1 = ? and clanID2 = ?) OR (clanID2 = ? and clanID1 = ?)', [$winnerID, $loserID, $winnerID, $loserID]);
         //$pdo->query($sql);
         
         //Add to clan war history
-        $sql = "INSERT INTO clan_war_history (id, idWinner, idLoser, scoreWinner, scoreLoser, startDate, endDate, bounty)
-                VALUES ('', '".$winnerID."', '".$loserID."', '".$winnerScore."', '".$loserScore."', '".$startDate."', NOW(), '".$bounty."')";
+        $sql = SqlQuery::make('INSERT INTO clan_war_history (id, idWinner, idLoser, scoreWinner, scoreLoser, startDate, endDate, bounty)
+                VALUES (\'\', ?, ?, ?, ?, ?, NOW(), ?)', [$winnerID, $loserID, $winnerScore, $loserScore, $startDate, $bounty]);
         $pdo->query($sql);
         $warID = $pdo->lastInsertId();
         
-        $sql = "SELECT attackerClan, victimClan, ddosID FROM clan_ddos WHERE (attackerClan = '".$winnerID."' AND victimClan = '".$loserID."') OR (attackerClan = '".$loserID."' AND victimClan = '".$winnerID."')";
+        $sql = SqlQuery::make('SELECT attackerClan, victimClan, ddosID FROM clan_ddos WHERE (attackerClan = ? AND victimClan = ?) OR (attackerClan = ? AND victimClan = ?)', [$winnerID, $loserID, $loserID, $winnerID]);
         $data2 = $pdo->query($sql)->fetchAll();
         
         if(sizeof($data2) > 0){
             
             for($j=0; $j<sizeof($data2); $j++){
                 
-                $sql = "INSERT INTO clan_ddos_history (attackerClan, victimClan, ddosID, warID) 
-                        VALUES ('".$data2[$j]['attackerclan']."', '".$data2[$j]['victimclan']."', '".$data2[$j]['ddosid']."', '".$warID."')";
+                $sql = SqlQuery::make('INSERT INTO clan_ddos_history (attackerClan, victimClan, ddosID, warID) 
+                        VALUES (?, ?, ?, ?)', [$data2[$j]['attackerclan'], $data2[$j]['victimclan'], $data2[$j]['ddosid'], $warID]);
                 $pdo->query($sql);
                 
             }
             
         }
         
-        $sql = "DELETE FROM clan_ddos WHERE (attackerClan = '".$winnerID."' AND victimClan = '".$loserID."') OR (attackerClan = '".$loserID."' AND victimClan = '".$winnerID."')";
+        $sql = SqlQuery::make('DELETE FROM clan_ddos WHERE (attackerClan = ? AND victimClan = ?) OR (attackerClan = ? AND victimClan = ?)', [$winnerID, $loserID, $loserID, $winnerID]);
         //$pdo->query($sql);        
 
     }

@@ -296,7 +296,7 @@ var EasyPieChart = function(el, opts) {
 
 
     var element = document.querySelector('.chartpie');
-    new EasyPieChart(element, {
+    if (element) new EasyPieChart(element, {
         animate:2000,
         onStep: function(from, to, percent) {
           document.getElementById('percentpie').innerHTML = Math.round(percent);

@@ -1,12 +1,13 @@
 import sys
+import gamedb
 
 def add(total):
 
 	queryToAdd = total
 
-	print "adding "+str(total)
+	print("adding "+str(total))
 
-	f = open('/var/www/status/queries.txt', 'r+')
+	f = open(gamedb.path('status/queries.txt'), 'r+')
 
 	totalQuery = f.read()
 

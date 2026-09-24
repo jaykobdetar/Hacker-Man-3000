@@ -1,0 +1,58 @@
+# Local / small-server setup: game (Apache + PHP 8.4), scheduled jobs and MariaDB.
+#
+#   cp .env.example .env   # set DB_PASSWORD, DB_ROOT_PASSWORD and APP_KEY
+#   docker compose up -d --build
+#   open http://localhost:8080
+#
+# The database is created from game.sql on first start, and round 1 starts about a minute later.
+
+x-game: &game
+  build: .
+  image: hackerexperience-legacy:latest
+  env_file: .env
+  environment:
+    DB_HOST: db
+    DB_PORT: "3306"
+  depends_on:
+    db:
+      condition: service_healthy
+  volumes:
+    - generated:/var/www/html/html
+    - profile_images:/var/www/html/images/profile
+    - clan_images:/var/www/html/images/clan
+  restart: unless-stopped
+
+services:
+  web:
+    <<: *game
+    ports:
+      - "${HTTP_PORT:-8080}:80"
+
+  cron:
+    <<: *game
+    command: ["game-cron"]
+
+  db:
+    image: mariadb:11.4
+    environment:
+      MARIADB_DATABASE: ${DB_NAME:-game}
+      MARIADB_USER: ${DB_USER:-he}
+      MARIADB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Set DB_ROOT_PASSWORD in .env}
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci", "--sql-mode=NO_ENGINE_SUBSTITUTION"]
+    volumes:
+      - db:/var/lib/mysql
+      - ./game.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./docker/db/10-first-round.sql:/docker-entrypoint-initdb.d/10-first-round.sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+
+volumes:
+  db:
+  generated:
+  profile_images:
+  clan_images:

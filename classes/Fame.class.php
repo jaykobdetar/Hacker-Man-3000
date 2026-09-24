@@ -1,6 +1,6 @@
 <?php
 
-require '/var/www/classes/Storyline.class.php';
+require __DIR__.'/Storyline.class.php';
 
 class Fame {
     
@@ -134,7 +134,7 @@ class Fame {
                     $round = $curRound - $j + 2;
 
                     $this->session->newQuery();
-                    $sql = "SELECT name, startDate, endDate FROM round WHERE id = '".$round."' LIMIT 1";
+                    $sql = SqlQuery::make('SELECT name, startDate, endDate FROM round WHERE id = ? LIMIT 1', [$round]);
                     $roundInfo = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
 
                     $title = 'Round #'.$round.' - '.$roundInfo->name;
@@ -175,7 +175,7 @@ foreach($th as $thName){
                             </thead>
                             <tbody>
 <?php
-require $require;
+GeneratedPage::output($require);
 ?>
                             </tbody>
                         </table>
@@ -188,7 +188,7 @@ require $require;
 
             $page .= 'round='.$roundGet.'&page';
             
-            require_once '/var/www/classes/Pagination.class.php';
+            require_once __DIR__.'/Pagination.class.php';
             $pagination = new Pagination();
 
             $pagination->paginate($top, 'fame', 50, $page, 1);

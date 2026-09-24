@@ -1,9 +1,11 @@
 <?php
+
+require_once __DIR__.'/bootstrap.php';
 require 'config.php';
-require '/var/www/classes/Mail.class.php';
-require '/var/www/classes/Session.class.php';
-require '/var/www/classes/System.class.php';
-require_once '/var/www/classes/Player.class.php';
+require __DIR__.'/classes/Mail.class.php';
+require __DIR__.'/classes/Session.class.php';
+require __DIR__.'/classes/System.class.php';
+require_once __DIR__.'/classes/Player.class.php';
 
 
 $session = new Session();

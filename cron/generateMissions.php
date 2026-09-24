@@ -1,5 +1,8 @@
 <?php
 
+require_once __DIR__.'/../bootstrap.php';
+// Cron/maintenance script: never reachable as a web page.
+if (PHP_SAPI !== 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) { http_response_code(404); exit; }
 if(php_sapi_name() != 'cli') exit();
 function randString($length, $charset='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'){
 
@@ -12,7 +15,7 @@ function randString($length, $charset='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmno
 
 }
 
-require '/var/www/classes/PDO.class.php';
+require __DIR__.'/../classes/PDO.class.php';
 
 $pdo = PDO_DB::factory();
 
@@ -43,16 +46,16 @@ function generateMissions($level, $total, $pdo){
     }
     
     //pega o total de missoes disponiveis por ora
-    $sqlQuery = "   SELECT missions.id 
+    $sqlQuery = SqlQuery::make('   SELECT missions.id 
                     FROM missions
-                    WHERE missions.status = 1 AND level = '".$level."'";
+                    WHERE missions.status = 1 AND level = ?', [$level]);
     $tmp = $pdo->query($sqlQuery)->fetchAll();
     $availableMissions = count($tmp);
     
     //coloca todos os npcs contratantes num array
-    $sqlQuery = "   SELECT id, npcIP 
+    $sqlQuery = SqlQuery::make('   SELECT id, npcIP 
                     FROM npc 
-                    WHERE npcType = ".$npcType;
+                    WHERE npcType = ?', [SqlQuery::num($npcType)]);
     $tmp = $pdo->query($sqlQuery);
     $npcArr = Array();
     $count=0;
@@ -143,7 +146,7 @@ function generateMissions($level, $total, $pdo){
             case 1:
             case 2:
                 $id = $npcArr['id'][$victimID];
-                $sqlQuery = "SELECT id FROM software_original WHERE npcID = $id AND softType < 7";
+                $sqlQuery = SqlQuery::make('SELECT id FROM software_original WHERE npcID = ? AND softType < 7', [SqlQuery::num($id)]);
                 $tmp = $pdo->query($sqlQuery);
 
                 $softArr = Array();
@@ -183,7 +186,7 @@ function generateMissions($level, $total, $pdo){
 
                     $bankAcc = rand(111111111, 999999999);
 
-                    $sqlBankSearch = "SELECT id FROM bankAccounts WHERE bankAcc = $bankAcc";
+                    $sqlBankSearch = SqlQuery::make('SELECT id FROM bankAccounts WHERE bankAcc = ?', [SqlQuery::num($bankAcc)]);
                     $info = $pdo->query($sqlBankSearch)->fetchAll();
 
                 } while(count($info) != 0);
@@ -202,7 +205,7 @@ function generateMissions($level, $total, $pdo){
 
                         $bankAcc = rand(111111, 999999);
 
-                        $sqlBankSearch = "SELECT id FROM bankAccounts WHERE bankAcc = $bankAcc";
+                        $sqlBankSearch = SqlQuery::make('SELECT id FROM bankAccounts WHERE bankAcc = ?', [SqlQuery::num($bankAcc)]);
                         $tmp = $pdo->query($sqlBankSearch)->fetchAll();
 
                     } while(count($tmp) != 0);
@@ -223,21 +226,21 @@ function generateMissions($level, $total, $pdo){
                 break;
             case 5: //ddos
 
-                $sql = "SELECT npc.npcIP
+                $sql = SqlQuery::make('SELECT npc.npcIP
                         FROM hardware
                         INNER JOIN npc
                         ON hardware.userID = npc.id
                         WHERE 
                             (
-                                hardware.cpu <> '500' OR
-                                hardware.hdd <> '1000' OR
-                                hardware.ram <> '256' OR
-                                hardware.net <> '1'
+                                hardware.cpu <> \'500\' OR
+                                hardware.hdd <> \'1000\' OR
+                                hardware.ram <> \'256\' OR
+                                hardware.net <> \'1\'
                             ) AND
-                            hardware.isNPC = '1' AND 
-                            npc.npcType = '4' AND 
-                            npc.npcIP <> '".$hirer."'
-                        LIMIT 1";
+                            hardware.isNPC = \'1\' AND 
+                            npc.npcType = \'4\' AND 
+                            npc.npcIP <> ?
+                        LIMIT 1', [$hirer]);
                 $query = $pdo->query($sql)->fetchAll();
 
                 if(count($query) > '0'){

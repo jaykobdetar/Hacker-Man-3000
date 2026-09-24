@@ -1,6 +1,6 @@
 <?php
 
-require_once '/var/www/classes/Player.class.php';
+require_once __DIR__.'/Player.class.php';
 
 class News {
 
@@ -91,7 +91,7 @@ class News {
     public function newsIsset($id){
         
         $this->session->newQuery();
-        $sql = "SELECT COUNT(*) AS total, author, title, content, date, type FROM news WHERE id = '".$id."' LIMIT 1";
+        $sql = SqlQuery::make('SELECT COUNT(*) AS total, author, title, content, date, type FROM news WHERE id = ? LIMIT 1', [$id]);
         $newsInfo = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
 
         if($newsInfo->total == 0){
@@ -141,7 +141,7 @@ class News {
         
         $this->authorIP = self::getAuthorIP();
         
-        require '/var/www/classes/Purifier.class.php';
+        require __DIR__.'/Purifier.class.php';
         $purifier = new Purifier();
         $purifier->set_config('news');
 
@@ -272,7 +272,7 @@ self::getAuthorSpecifics();
                 
                 if(sizeof($newsHistory > 0)){
 
-                    require '/var/www/classes/Clan.class.php';
+                    require __DIR__.'/Clan.class.php';
                     $clan = new Clan();
                     
                     if(!$clan->issetClan($newsHistory['0']['info1'])){
@@ -318,7 +318,7 @@ self::getAuthorSpecifics();
     private function news_history(){
         
         $this->session->newQuery();
-        $sql = "SELECT infoDate, info1, info2 FROM news_history WHERE newsID = '".$this->id."' LIMIT 1";
+        $sql = SqlQuery::make('SELECT infoDate, info1, info2 FROM news_history WHERE newsID = ? LIMIT 1', [$this->id]);
         return $this->pdo->query($sql)->fetchAll();  
         
     }
@@ -327,7 +327,7 @@ self::getAuthorSpecifics();
                 
         if(self::totalNews() > 0){
 
-            require_once '/var/www/classes/Pagination.class.php';
+            require_once __DIR__.'/Pagination.class.php';
             $pagination = new Pagination();
 
             $pagination->paginate($_SESSION['id'], 'news', '15', 'page', '1', '0');
@@ -344,7 +344,7 @@ self::getAuthorSpecifics();
     public function listIndex($total){
 
                 $this->session->newQuery();
-                $sqlQuery = "SELECT id, title, date FROM news ORDER BY date DESC LIMIT $total";
+                $sqlQuery = SqlQuery::make('SELECT id, title, date FROM news ORDER BY date DESC LIMIT ?', [SqlQuery::num($total)]);
                 $newsInfo = $this->pdo->query($sqlQuery)->fetchAll();
 
 
@@ -380,8 +380,8 @@ self::getAuthorSpecifics();
         $data->execute(array(':author' => $author, ':title' => $title, ':content' => $content));
 
         $this->session->newQuery();
-        $sql = "INSERT INTO news_history (newsID, info1, info2, infoDate) 
-                VALUES ('".$this->pdo->lastInsertId()."', '".$infoArray[0]."', '".$infoArray[1]."', '".$infoArray[2]."')";
+        $sql = SqlQuery::make('INSERT INTO news_history (newsID, info1, info2, infoDate) 
+                VALUES (?, ?, ?, ?)', [$this->pdo->lastInsertId(), $infoArray[0], $infoArray[1], $infoArray[2]]);
         $this->pdo->query($sql);
         
     }

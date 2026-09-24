@@ -1,5 +1,9 @@
 <?php
 
+require_once __DIR__.'/../bootstrap.php';
+// Cron/maintenance script: never reachable as a web page.
+if (PHP_SAPI !== 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) { http_response_code(404); exit; }
+require_once __DIR__.'/../classes/Python.class.php';
 // 2019: Why there are 2 defcon files? No idea. But the crontab uses `defcon2` and so should you.
 
 // 2019 Bad translation:
@@ -20,7 +24,7 @@
 
 $start = microtime(true);
 
-require '/var/www/classes/PDO.class.php';
+require __DIR__.'/../classes/PDO.class.php';
 
 $pdo = PDO_DB::factory();
 
@@ -37,11 +41,11 @@ while($total > 0){
 
     $victimArr = $starterArr = Array();
     
-    $sql = 'SELECT id, attackerID, attackerClanID, victimID, victimClanID, attackDate, clanServer FROM clan_defcon LIMIT 1 OFFSET '.$offset;
+    $sql = SqlQuery::make('SELECT id, attackerID, attackerClanID, victimID, victimClanID, attackDate, clanServer FROM clan_defcon LIMIT 1 OFFSET ?', [SqlQuery::num($offset)]);
     $curAttackInfo = $pdo->query($sql)->fetch(PDO::FETCH_OBJ);
     $attackerClanID = $curAttackInfo->attackerclanid;
 
-    $sql = 'SELECT victimClanID FROM clan_defcon WHERE attackerClanID = '.$attackerClanID.' GROUP BY victimClanID';
+    $sql = SqlQuery::make('SELECT victimClanID FROM clan_defcon WHERE attackerClanID = ? GROUP BY victimClanID', [SqlQuery::num($attackerClanID)]);
     $data = $pdo->query($sql);
     
     while($defconInfo = $data->fetch(PDO::FETCH_OBJ)){
@@ -50,7 +54,7 @@ while($total > 0){
         
         $victimClanID = $defconInfo->victimclanid; 
         
-        $sql = 'SELECT attackerID, victimID, clanServer FROM clan_defcon WHERE attackerClanID = '.$attackerClanID.' AND victimClanID = '.$victimClanID;
+        $sql = SqlQuery::make('SELECT attackerID, victimID, clanServer FROM clan_defcon WHERE attackerClanID = ? AND victimClanID = ?', [SqlQuery::num($attackerClanID), SqlQuery::num($victimClanID)]);
         $data2 = $pdo->query($sql);
         
         $k = 0;
@@ -87,7 +91,7 @@ while($total > 0){
                         
             $victimGrant = FALSE;
             
-            $sql = 'SELECT COUNT(*) AS total FROM clan_defcon WHERE attackerClanID = '.$victimClanID.' AND victimClanID = '.$attackerClanID.' LIMIT 1';
+            $sql = SqlQuery::make('SELECT COUNT(*) AS total FROM clan_defcon WHERE attackerClanID = ? AND victimClanID = ? LIMIT 1', [SqlQuery::num($victimClanID), SqlQuery::num($attackerClanID)]);
             
             if($pdo->query($sql)->fetch(PDO::FETCH_OBJ)->total == 1){
                 $victimGrant = TRUE;
@@ -96,20 +100,20 @@ while($total > 0){
             if($victimGrant){
          
                 for($i = 0; $i < sizeof($starterArr); $i++){
-                    exec('/usr/bin/env python /var/www/python/badge_add.py user '.$starterArr[$i].' 62');
+                    Python::run('badge_add.py', ['user', $starterArr[$i], '62']);
                 }
 
                 $duration = 2;
                 $score1 = $score2 = 0;
                 
-                $sql = "INSERT INTO clan_war (clanID1, clanID2, startDate, endDate, score1, score2)
-                        VALUES ('".$attackerClanID."', '".$victimClanID."', NOW(), DATE_ADD(NOW(), INTERVAL '".$duration."' DAY), '".$score1."', '".$score2."')";
+                $sql = SqlQuery::make('INSERT INTO clan_war (clanID1, clanID2, startDate, endDate, score1, score2)
+                        VALUES (?, ?, NOW(), DATE_ADD(NOW(), INTERVAL ? DAY), ?, ?)', [$attackerClanID, $victimClanID, $duration, $score1, $score2]);
                 $pdo->query($sql);                
                 
-                $sql = 'DELETE FROM clan_defcon 
+                $sql = SqlQuery::make('DELETE FROM clan_defcon 
                         WHERE 
-                            (attackerClanID = '.$victimClanID.' AND victimClanID = '.$attackerClanID.') OR 
-                            (attackerClanID = '.$attackerClanID.' AND victimClanID = '.$victimClanID.')';
+                            (attackerClanID = ? AND victimClanID = ?) OR 
+                            (attackerClanID = ? AND victimClanID = ?)', [SqlQuery::num($victimClanID), SqlQuery::num($attackerClanID), SqlQuery::num($attackerClanID), SqlQuery::num($victimClanID)]);
                 $pdo->query($sql);
                 
                 $sql = 'SELECT COUNT(*) AS total FROM clan_defcon';

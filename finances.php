@@ -1,8 +1,9 @@
 <?php
 
+require_once __DIR__.'/bootstrap.php';
 require 'config.php';
-require '/var/www/classes/Session.class.php';
-require '/var/www/classes/Finances.class.php';
+require __DIR__.'/classes/Session.class.php';
+require __DIR__.'/classes/Finances.class.php';
 
 $session = new Session();
 

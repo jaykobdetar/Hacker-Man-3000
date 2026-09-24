@@ -1,4 +1,4 @@
-import MySQLdb
+import gamedb
 import sys
 
 extensionDict = {
@@ -53,9 +53,7 @@ def save(html, rank, page, curRound):
 	else:
 		string = 'preview'
 
-	f = open('/var/www/html/fame/'+curRound+'_'+rank+'_'+string+'.html', 'w')
-	f.write(html)
-	f.close()
+	gamedb.write_file(gamedb.path('html/fame/')+curRound+'_'+rank+'_'+string+'.html', html)
 
 def createRankUsers(curRound, preview):
 
@@ -297,10 +295,10 @@ def createRankDDoS(curRound, preview):
 		save(html, 'ddos', page, curRound)	
 
 
-db = MySQLdb.connect(host="localhost",user="he",passwd="REDADCTED",db="game")
+db = gamedb.connect()
 cur = db.cursor()
 
-curRound = str(sys.argv[1])
+curRound = str(int(sys.argv[1]))
 
 try:
 	preview = sys.argv[2]

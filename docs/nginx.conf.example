@@ -1,0 +1,37 @@
+# nginx + PHP-FPM equivalent of the repository's .htaccess.
+# Replace /opt/hackerexperience with the repository path and adjust the PHP-FPM socket.
+
+server {
+    listen 80;
+    server_name game.example.com;
+    root /opt/hackerexperience;
+    index index.php;
+
+    server_tokens off;
+    client_max_body_size 8m;
+
+    # Code, data and tooling that must never be served.
+    location ~ ^/(classes|cron|cron2|python|scripts|template|info|json|locale|vendor|mail_templates|wiki|backups|docker|docs|tests)(/|$) { return 404; }
+    location ~ /\. { return 404; }
+    location ~* \.(sql|sql\.gz|po|mo|py|sh|dia|md|lock|ini|log|example|yml|yaml)$ { return 404; }
+    location ~ ^/(composer\.json|crontab|Dockerfile|LICENSE)$ { return 404; }
+    # Uploaded images are data, never code.
+    location ~* ^/images/.*\.(php|phtml|phar|pht|php\d)$ { return 404; }
+
+    # Pages are linked without the .php extension (e.g. /software?id=1).
+    location / {
+        try_files $uri $uri/ $uri.php$is_args$args;
+    }
+
+    location ~ \.php$ {
+        try_files $uri =404;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_pass unix:/run/php/php8.4-fpm.sock;
+    }
+
+    location ~* \.(css|js|png|jpg|jpeg|gif|ico|svg|woff2?|ttf|eot|otf)$ {
+        add_header X-Content-Type-Options nosniff always;
+        expires 7d;
+    }
+}

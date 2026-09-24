@@ -1,3 +1,6 @@
+2026: The authoritative schedule is the `crontab` file in the repository root (scripts now run
+with python3 and read .env). The notes below are the original planning notes.
+
 
 Execution times / frequency:
 
@@ -10,7 +13,6 @@ removedExpiredLogins -> every 15 minutes. Every :20, :35, :50, :05
 removedExpiredHTMLPages -> every hour. Every :40
 removeExpiredAccs -> every hour. Every :09
 removeExpiredNPC -> every hour. Every :09
-removeExpiredPremium -> every hour. Every :09
 
 generateMissions -> every hour. Every xx:00
 safenetUpdate -> every half hour. Every xx:00, xx:30
@@ -51,7 +53,6 @@ Stack:
 * -> doomUpdater, newRoundUpdater
 00 -> updateCurStats > updateRanking > rank_generator, generateMissions, safenetUpdater
 05 -> war_finder, warEnder, removeExpiredLogins
-09 -> removeExpiredAccs, removeExpiredNPC, removeExpiredPremium
 10 -> updateServerStats, [avNPC:*/3], [restoreNPC:4]
 15 -> war_finder, war_ender
 19 -> badge_hunter, badge_hunter_all

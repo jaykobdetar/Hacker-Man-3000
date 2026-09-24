@@ -1,6 +1,6 @@
 <?php
 
-require_once '/var/www/classes/Player.class.php';
+require_once __DIR__.'/Player.class.php';
 
 class Social {
 
@@ -44,7 +44,7 @@ class Social {
         }
         
         $generate = FALSE;
-        if(file_exists('/var/www/html/profile/'.$id.'_'.$l.'.html')){
+        if(GeneratedPage::exists('html/profile/'.(int)$id.'_'.$l.'.html')){
             
             if(!self::isProfileValid()){
                 $generate = TRUE;
@@ -56,7 +56,7 @@ class Social {
 
         if($generate){
 
-            require '/var/www/classes/Python.class.php';
+            require __DIR__.'/Python.class.php';
             $python = new Python();
 
             $python->generateProfile($id, $l);
@@ -70,7 +70,7 @@ class Social {
     
     public function profile_show($l){
 
-        require 'html/profile/'.$this->profileID.'_'.$l.'.html';
+        GeneratedPage::output('html/profile/'.(int)$this->profileID.'_'.$l.'.html');
   
         $friends = 1;
         if($this->profileID != $_SESSION['id']){
@@ -91,9 +91,9 @@ var uid = <?php echo $this->profileID; ?>;
     public function isProfileValid(){
 
         $this->session->newQuery();
-        $sql = 'SELECT TIMESTAMPDIFF(SECOND, expireDate, NOW()) AS timeSinceGenerated
+        $sql = SqlQuery::make('SELECT TIMESTAMPDIFF(SECOND, expireDate, NOW()) AS timeSinceGenerated
                 FROM cache_profile
-                WHERE userID = \''. $this->profileID .'\'';
+                WHERE userID = ?', [$this->profileID]);
         $profileInfo = $this->pdo->query($sql)->fetchAll();
         
         if(sizeof($profileInfo) > 0){
@@ -111,7 +111,7 @@ var uid = <?php echo $this->profileID; ?>;
     public function clickProfile($id){
                 
         $this->session->newQuery();
-        $sql = "UPDATE users_stats SET profileViews = profileViews + 1 WHERE uid = '".$id."'";
+        $sql = SqlQuery::make('UPDATE users_stats SET profileViews = profileViews + 1 WHERE uid = ?', [$id]);
         $this->pdo->query($sql);
                 
     }
@@ -233,7 +233,7 @@ var uid = <?php echo $this->profileID; ?>;
 
     public function badge_add($badgeID, $user, $clan = ''){
 
-        require_once '/var/www/classes/Python.class.php';
+        require_once __DIR__.'/Python.class.php';
         $python = new Python();
 
         $python->add_badge($user, $badgeID, $clan);
@@ -243,15 +243,15 @@ var uid = <?php echo $this->profileID; ?>;
     public function badge_list($clanID){
         
         $this->session->newQuery();
-        $sql = 'SELECT
+        $sql = SqlQuery::make('SELECT
                         clan_badge.badgeID,
                         COUNT(clan_badge.badgeID) AS total
                 FROM clan_badge
                 JOIN badges_clans
                 ON badges_clans.badgeID = clan_badge.badgeID
-                WHERE clan_badge.clanID = \''.$clanID.'\'
+                WHERE clan_badge.clanID = ?
                 GROUP BY clan_badge.badgeID
-                ORDER BY badges_clans.priority, badges_clans.badgeID';
+                ORDER BY badges_clans.priority, badges_clans.badgeID', [$clanID]);
         $badgeInfo = $this->pdo->query($sql)->fetchAll();
         
         $system = new System();
@@ -290,7 +290,7 @@ var uid = <?php echo $this->profileID; ?>;
     public function profile_friends($uid){
         
         $this->session->newQuery();
-        $sql = "SELECT userID, friendID, dateAdd FROM users_friends WHERE userID = '".$uid."' OR friendID = '".$uid."' ORDER BY dateAdd ASC";
+        $sql = SqlQuery::make('SELECT userID, friendID, dateAdd FROM users_friends WHERE userID = ? OR friendID = ? ORDER BY dateAdd ASC', [$uid, $uid]);
         $friendInfo = $this->pdo->query($sql)->fetchAll();
                 
         if(sizeof($friendInfo) > 0){
@@ -352,8 +352,8 @@ var uid = <?php echo $this->profileID; ?>;
     
     public function friend_display($friendInfo){
         
-        require_once '/var/www/classes/Clan.class.php';
-        require_once '/var/www/classes/Ranking.class.php';
+        require_once __DIR__.'/Clan.class.php';
+        require_once __DIR__.'/Ranking.class.php';
         
         $this->clan = new Clan();
         $this->ranking = new Ranking();
@@ -423,7 +423,7 @@ if($clanDisplay){
     public function friend_isset($friendID){
         
         $this->session->newQuery();
-        $sql = "SELECT userID from users_friends WHERE ( userID = '".$friendID."' AND friendID = '".$_SESSION['id']."' ) OR ( userID = '".$_SESSION['id']."' AND friendID = '".$friendID."' ) LIMIT 1";
+        $sql = SqlQuery::make('SELECT userID from users_friends WHERE ( userID = ? AND friendID = ? ) OR ( userID = ? AND friendID = ? ) LIMIT 1', [$friendID, $_SESSION['id'], $_SESSION['id'], $friendID]);
         $data = $this->pdo->query($sql)->fetchAll();
         
         if(sizeof($data) == 1){
@@ -437,7 +437,7 @@ if($clanDisplay){
     public function friend_issetRequest($friendID){
         
         $this->session->newQuery();
-        $sql = "SELECT id FROM friend_requests WHERE userID = '".$friendID."' AND requestedBy = '".$_SESSION['id']."'";
+        $sql = SqlQuery::make('SELECT id FROM friend_requests WHERE userID = ? AND requestedBy = ?', [$friendID, $_SESSION['id']]);
         $data = $this->pdo->query($sql)->fetchAll();
         
         if(sizeof($data) == 1){
@@ -451,20 +451,20 @@ if($clanDisplay){
     public function friend_request($friendID){
         
         $this->session->newQuery();
-        $sql = "INSERT INTO friend_requests (id, userID, requestedBy) 
-                VALUES ('', '".$friendID."', '".$_SESSION['id']."')";
+        $sql = SqlQuery::make('INSERT INTO friend_requests (id, userID, requestedBy) 
+                VALUES (\'\', ?, ?)', [$friendID, $_SESSION['id']]);
         $this->pdo->query($sql);
         
         $requestID = $this->pdo->lastInsertID();
         
-        require_once '/var/www/classes/Mail.class.php';
+        require_once __DIR__.'/Mail.class.php';
         
         $mail = new Mail();
         
         $to = $friendID;
         
         $this->session->newQuery();
-        $sqlSelect = "SELECT lang FROM users_language WHERE userID = ".$to." LIMIT 1";
+        $sqlSelect = SqlQuery::make('SELECT lang FROM users_language WHERE userID = ? LIMIT 1', [SqlQuery::num($to)]);
         $userLang = $this->pdo->query($sqlSelect)->fetch(PDO::FETCH_OBJ)->lang;
 
         $userInfo = $this->player->getPlayerInfo($_SESSION['id']);
@@ -484,7 +484,7 @@ if($clanDisplay){
     public function friend_validRequest($requestID, $requestedBy){
         
         $this->session->newQuery();
-        $sql = "SELECT id FROM friend_requests WHERE id = '".$requestID."' AND userID = '".$_SESSION['id']."' AND requestedBy = '".$requestedBy."'";
+        $sql = SqlQuery::make('SELECT id FROM friend_requests WHERE id = ? AND userID = ? AND requestedBy = ?', [$requestID, $_SESSION['id'], $requestedBy]);
         $data = $this->pdo->query($sql)->fetchAll();
         
         if(sizeof($data) == 1){
@@ -498,12 +498,12 @@ if($clanDisplay){
     public function friend_add($requestID, $friendID){
         
         $this->session->newQuery();
-        $sql = "DELETE FROM friend_requests WHERE id = '".$requestID."'";
+        $sql = SqlQuery::make('DELETE FROM friend_requests WHERE id = ?', [$requestID]);
         $this->pdo->query($sql);
         
         $this->session->newQuery();
-        $sql = "INSERT INTO users_friends (userID, friendID, dateAdd)
-                VALUES ('".$_SESSION['id']."', '".$friendID."', NOW())";
+        $sql = SqlQuery::make('INSERT INTO users_friends (userID, friendID, dateAdd)
+                VALUES (?, ?, NOW())', [$_SESSION['id'], $friendID]);
         $this->pdo->query($sql);
         
         $myFriends = self::friend_count($_SESSION['id']);
@@ -511,24 +511,24 @@ if($clanDisplay){
         $social = FALSE;
         
         if($myFriends == 10){
-            require '/var/www/classes/Social.class.php';
+            require __DIR__.'/Social.class.php';
             $social = new Social();
             $social->badge_add(48, $_SESSION['id']);
         } elseif($myFriends == 50){
-            require '/var/www/classes/Social.class.php';
+            require __DIR__.'/Social.class.php';
             $social = new Social();
             $social->badge_add(49, $_SESSION['id']);
         }
         
         if($hisFriends == 10){
             if(!$social){
-                require '/var/www/classes/Social.class.php';
+                require __DIR__.'/Social.class.php';
                 $social = new Social();
             }
             $social->badge_add(48, $friendID);
         } elseif($hisFriends == 50){
             if(!$social){
-                require_once '/var/www/classes/Social.class.php';
+                require_once __DIR__.'/Social.class.php';
                 $social = new Social();
             }
             $social->badge_add(49, $friendID);
@@ -538,7 +538,7 @@ if($clanDisplay){
     
     private function friend_count($userID){
         $this->session->newQuery();
-        $sql = "SELECT COUNT(*) AS total FROM users_friends WHERE userID = '".$userID."' OR friendID = '".$userID."'";
+        $sql = SqlQuery::make('SELECT COUNT(*) AS total FROM users_friends WHERE userID = ? OR friendID = ?', [$userID, $userID]);
         return $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->total;
     }
 

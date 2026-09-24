@@ -1,9 +1,10 @@
 <?php
 
-require '/var/www/classes/Session.class.php';
-require '/var/www/classes/System.class.php';
-require '/var/www/classes/Storyline.class.php';
-require '/var/www/classes/Process.class.php';
+require_once __DIR__.'/bootstrap.php';
+require __DIR__.'/classes/Session.class.php';
+require __DIR__.'/classes/System.class.php';
+require __DIR__.'/classes/Storyline.class.php';
+require __DIR__.'/classes/Process.class.php';
 
 $session = new Session();
 $system = new System();

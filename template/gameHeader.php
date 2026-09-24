@@ -17,7 +17,7 @@ if(isset($_SESSION['id'])){
         exit('Invalid session id.');
     }
     
-    require_once '/var/www/classes/Ranking.class.php';
+    require_once __DIR__.'/../classes/Ranking.class.php';
     
     $ranking = new Ranking();
     $session = new Session();
@@ -25,10 +25,10 @@ if(isset($_SESSION['id'])){
     $pdo = PDO_DB::factory();
     
     $session->newQuery();
-    $sql = "SELECT lang FROM users_language WHERE userID = '".$_SESSION['id']."' LIMIT 1";
+    $sql = SqlQuery::make('SELECT lang FROM users_language WHERE userID = ? LIMIT 1', [$_SESSION['id']]);
     $lang = $pdo->query($sql)->fetch(PDO::FETCH_OBJ)->lang;    
     
-//    require '/var/www/classes/EmailVerification.class.php';
+//    require __DIR__.'/../classes/EmailVerification.class.php';
 //    $emailVerification = new EmailVerification();
 //    
 //    if(!$emailVerification->isVerified($_SESSION['id'])){

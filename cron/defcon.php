@@ -1,5 +1,8 @@
 <?php
 
+require_once __DIR__.'/../bootstrap.php';
+// Cron/maintenance script: never reachable as a web page.
+if (PHP_SAPI !== 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) { http_response_code(404); exit; }
 // 2019 Bad translation:
 // Objective: detect if there exists a (clan) war. A clan war exists if:
 // - Member of clan1 attacked at least 2 members of clan2 AND at least 1 member of clan2 countered the attack onto any member of clan1
@@ -16,7 +19,7 @@
 
 $start = microtime(true);
 
-require '/var/www/classes/PDO.class.php';
+require __DIR__.'/../classes/PDO.class.php';
 
 $pdo = PDO_DB::factory();
 
@@ -156,8 +159,8 @@ if($info['0']['id'] > 0){
 
         for($i=1;$i<sizeof($sqlArr)+1;$i++){
 
-            $sql = "INSERT INTO clan_defcon (id, attackerID, attackerClanID, victimID, victimClanID, attackDate, groupServer)
-                    VALUES ('', '".$sqlArr[$i]['ATTACKER_ID']."', '".$sqlArr[$i]['CLAN_ID']."', '".$sqlArr[$i]['ATTACKER_VIC']."', '".$sqlArr[$i]['CLAN_VIC']."', '".$sqlArr[$i]['ATTACK_DATE']."', '".$sqlArr[$i]['CLAN_SERVER']."')";
+            $sql = SqlQuery::make('INSERT INTO clan_defcon (id, attackerID, attackerClanID, victimID, victimClanID, attackDate, groupServer)
+                    VALUES (\'\', ?, ?, ?, ?, ?, ?)', [$sqlArr[$i]['ATTACKER_ID'], $sqlArr[$i]['CLAN_ID'], $sqlArr[$i]['ATTACKER_VIC'], $sqlArr[$i]['CLAN_VIC'], $sqlArr[$i]['ATTACK_DATE'], $sqlArr[$i]['CLAN_SERVER']]);
             $pdo->query($sql);
 
         }
@@ -166,18 +169,19 @@ if($info['0']['id'] > 0){
     
 }
 
+$war = $war ?? Array();
 for($a=1;$a<sizeof($war);$a++){
 
     list($id1, $id2) = explode('x', $war[$a]['CLANS']);
 
-    $sql = "SELECT endDate FROM clan_war WHERE (clanID1 = '".$id1."' AND clanID2 = '".$id2."') OR (clanID1 = '".$id2."' AND clanID2 = '".$id1."') LIMIT 1";
+    $sql = SqlQuery::make('SELECT endDate FROM clan_war WHERE (clanID1 = ? AND clanID2 = ?) OR (clanID1 = ? AND clanID2 = ?) LIMIT 1', [$id1, $id2, $id2, $id1]);
     $data = $pdo->query($sql)->fetchAll();
     
     if(sizeof($data) == 1){
 
         $interval = 1; //add 1 day
 
-        $sql = "UPDATE clan_war SET endDate = DATE_ADD(endDate, INTERVAL '".$interval."' DAY) WHERE (clanID1 = '".$id1."' AND clanID2 = '".$id2."') OR (clanID1 = '".$id2."' AND clanID2 = '".$id1."') LIMIT 1";
+        $sql = SqlQuery::make('UPDATE clan_war SET endDate = DATE_ADD(endDate, INTERVAL ? DAY) WHERE (clanID1 = ? AND clanID2 = ?) OR (clanID1 = ? AND clanID2 = ?) LIMIT 1', [$interval, $id1, $id2, $id2, $id1]);
         $pdo->query($sql);
         
     } else {
@@ -185,11 +189,11 @@ for($a=1;$a<sizeof($war);$a++){
         $score1 = 0;
         $score2 = 0;        
         
-        $sql = "SELECT clan_ddos.attackerClan, round_ddos.power
+        $sql = SqlQuery::make('SELECT clan_ddos.attackerClan, round_ddos.power
                 FROM clan_ddos
                 INNER JOIN round_ddos
                 ON round_ddos.id = clan_ddos.ddosID
-                WHERE (attackerClan = '".$id1."' AND victimClan = '".$id2."') OR (attackerClan = '".$id2."' AND victimClan = '".$id1."')";
+                WHERE (attackerClan = ? AND victimClan = ?) OR (attackerClan = ? AND victimClan = ?)', [$id1, $id2, $id2, $id1]);
         $data = $pdo->query($sql)->fetchAll();
 
         if(sizeof($data) > 0){
@@ -212,8 +216,8 @@ for($a=1;$a<sizeof($war);$a++){
 
         $duration = 2; //duration
 
-        $sql = "INSERT INTO clan_war (clanID1, clanID2, startDate, endDate, score1, score2)
-                VALUES ('".$id1."', '".$id2."', NOW(), DATE_ADD(NOW(), INTERVAL '".$duration."' DAY), '".$score1."', '".$score2."')";
+        $sql = SqlQuery::make('INSERT INTO clan_war (clanID1, clanID2, startDate, endDate, score1, score2)
+                VALUES (?, ?, NOW(), DATE_ADD(NOW(), INTERVAL ? DAY), ?, ?)', [$id1, $id2, $duration, $score1, $score2]);
         $pdo->query($sql);
         
     }

@@ -14,8 +14,8 @@ class Player {
     
     public function __construct($id = ''){
 
-        require_once '/var/www/classes/Session.class.php';
-        require_once '/var/www/classes/NPC.class.php';
+        require_once __DIR__.'/Session.class.php';
+        require_once __DIR__.'/NPC.class.php';
         $this->session = new Session();
         $this->pdo = PDO_DB::factory();
         $this->npc = new NPC();
@@ -59,7 +59,7 @@ class Player {
                         $system->handleError('Invalid bank account.', $postRedirect);
                     }
                     
-                    require '/var/www/classes/Finances.class.php';
+                    require __DIR__.'/Finances.class.php';
                     $finances = new Finances();
 
                     if($finances->totalMoney() < $pwdInfo['PRICE']){
@@ -80,7 +80,7 @@ class Player {
                                         
                 }
 
-                require '/var/www/classes/Process.class.php';
+                require __DIR__.'/Process.class.php';
                 $process = new Process();
                 
                 if($process->newProcess($_SESSION['id'], 'RESET_PWD', '', 'local', '', $acc, '', 0)){
@@ -137,7 +137,7 @@ class Player {
             }
             
             $this->session->newQuery();
-            $sqlSelect = "SELECT COUNT(*) AS total FROM users WHERE id = $uid LIMIT 1";
+            $sqlSelect = SqlQuery::make('SELECT COUNT(*) AS total FROM users WHERE id = ? LIMIT 1', [SqlQuery::num($uid)]);
             $total = $this->pdo->query($sqlSelect)->fetch(PDO::FETCH_OBJ)->total;
 
             if ($total == '1') {
@@ -153,7 +153,7 @@ class Player {
     public function getPlayerInfo($uid){
 
         $this->session->newQuery();
-        $sqlSelect = "SELECT COUNT(*) AS total, login, gameIP, homeIP, gamePass, email FROM users WHERE id = $uid LIMIT 1";
+        $sqlSelect = SqlQuery::make('SELECT COUNT(*) AS total, login, gameIP, homeIP, gamePass, email FROM users WHERE id = ? LIMIT 1', [SqlQuery::num($uid)]);
         $data = $this->pdo->query($sqlSelect)->fetch(PDO::FETCH_OBJ);
 
         if($data->total == 0){
@@ -168,7 +168,7 @@ class Player {
 
         $uid = $_SESSION['id'];
         
-        $sql = "DELETE FROM users_learning WHERE userID = $uid";
+        $sql = SqlQuery::make('DELETE FROM users_learning WHERE userID = ?', [SqlQuery::num($uid)]);
         $this->pdo->query($sql);
         
     }
@@ -177,7 +177,7 @@ class Player {
         
         $uid = $_SESSION['id'];
         
-        $sql = "INSERT INTO users_learning (userID, learning) VALUES ('".$uid."', '".$cid."')";
+        $sql = SqlQuery::make('INSERT INTO users_learning (userID, learning) VALUES (?, ?)', [$uid, $cid]);
         $this->pdo->query($sql);
         
     }
@@ -187,7 +187,7 @@ class Player {
         $uid = $_SESSION['id'];
         
         $this->session->newQuery();
-        $sql = "SELECT COUNT(*) AS total, learning FROM users_learning WHERE userID = $uid LIMIT 1";
+        $sql = SqlQuery::make('SELECT COUNT(*) AS total, learning FROM users_learning WHERE userID = ? LIMIT 1', [SqlQuery::num($uid)]);
         $learningInfo = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
         
         if($learningInfo->total == 1){
@@ -204,7 +204,7 @@ class Player {
         if($pcType != 'VPC' && $pcType != 'NPC'){
 
             $this->session->newQuery();
-            $sqlSelect = "SELECT id FROM npc WHERE npcIP = '".$ip."' LIMIT 1";
+            $sqlSelect = SqlQuery::make('SELECT id FROM npc WHERE npcIP = ? LIMIT 1', [$ip]);
             $data = $this->pdo->query($sqlSelect)->fetchAll();
 
             $pcType = 'NPC';
@@ -212,7 +212,7 @@ class Player {
             if(count($data) == '0'){
 
                 $this->session->newQuery();
-                $sqlSelect = "SELECT id FROM users WHERE gameIP = '".$ip."' LIMIT 1";
+                $sqlSelect = SqlQuery::make('SELECT id FROM users WHERE gameIP = ? LIMIT 1', [$ip]);
                 $data = $this->pdo->query($sqlSelect)->fetchAll();
 
                 if(count($data) == '0'){
@@ -227,9 +227,9 @@ class Player {
         } else {
 
             if($pcType == 'VPC'){
-                $sql = 'SELECT id FROM users WHERE gameIP = '.$ip.' LIMIT 1';
+                $sql = SqlQuery::make('SELECT id FROM users WHERE gameIP = ? LIMIT 1', [SqlQuery::num($ip)]);
             } else {
-                $sql = 'SELECT id FROM npc WHERE npcIP = '.$ip.' LIMIT 1';
+                $sql = SqlQuery::make('SELECT id FROM npc WHERE npcIP = ? LIMIT 1', [SqlQuery::num($ip)]);
             }
             
             $this->session->newQuery();
@@ -268,7 +268,7 @@ class Player {
     public  function issetBankAccount($uid, $bankID){
 
 	$this->session->newQuery();
-        $sqlSelect = "SELECT id FROM bankAccounts WHERE bankID = $bankID AND bankUser = $uid LIMIT 1";
+        $sqlSelect = SqlQuery::make('SELECT id FROM bankAccounts WHERE bankID = ? AND bankUser = ? LIMIT 1', [SqlQuery::num($bankID), SqlQuery::num($uid)]);
         $data = $this->pdo->query($sqlSelect)->fetchAll();
 
         if(count($data) == '1'){
@@ -286,7 +286,7 @@ class Player {
     public function getBankInfo($uid, $bankID){
 
 	$this->session->newQuery();
-        $sqlSelect = "SELECT bankAcc, bankPass, cash FROM bankAccounts WHERE bankID = $bankID AND bankUser = $uid LIMIT 1";
+        $sqlSelect = SqlQuery::make('SELECT bankAcc, bankPass, cash FROM bankAccounts WHERE bankID = ? AND bankUser = ? LIMIT 1', [SqlQuery::num($bankID), SqlQuery::num($uid)]);
         $data = $this->pdo->query($sqlSelect)->fetchAll();
 
         if(count($data) == '1'){
@@ -361,15 +361,15 @@ class Player {
             
             case 'myinfo':
                 
-                $sql = "SELECT COUNT(*) AS total, rank, user, reputation, clanName, bestSoft, bestSoftVersion, hackCount, ddosCount
+                $sql = SqlQuery::make('SELECT COUNT(*) AS total, rank, user, reputation, clanName, bestSoft, bestSoftVersion, hackCount, ddosCount
                         FROM hist_users
-                        WHERE userID = '".$_SESSION['id']."' AND round = '". ($this->curRound - 1) ."'";
+                        WHERE userID = ? AND round = ?', [$_SESSION['id'], (($this->curRound-1))]);
                 $userInfo = $this->pdo->query($sql)->fetchAll();
                 
                 if(sizeof($userInfo) > 0){
                 
-                    require '/var/www/classes/PC.class.php';
-                    require '/var/www/classes/Clan.class.php';
+                    require __DIR__.'/PC.class.php';
+                    require __DIR__.'/Clan.class.php';
                     
                     $software = new SoftwareVPC();
                     $clan = new Clan();
@@ -549,7 +549,7 @@ foreach($th as $thName){
                                                 </thead>
                                                 <tbody>
 <?php
-require 'html/fame/'. ($this->curRound - 1) .'_'.$pathName.'_preview.html';
+GeneratedPage::output('html/fame/'. ($this->curRound - 1) .'_'.$pathName.'_preview.html');
 ?>
                                                 </tbody>
                                             </table>
@@ -564,7 +564,7 @@ require 'html/fame/'. ($this->curRound - 1) .'_'.$pathName.'_preview.html';
     
     public function showGameOver(){
         
-        require '/var/www/classes/Storyline.class.php';
+        require __DIR__.'/Storyline.class.php';
         $storyline = new Storyline();
         
         $this->curRound = $storyline->round_current();        
@@ -663,10 +663,10 @@ require 'html/fame/'. ($this->curRound - 1) .'_'.$pathName.'_preview.html';
         <?php
         
         $this->session->newQuery();
-        $sql = "SELECT users.gameIP, users.gamePass
+        $sql = SqlQuery::make('SELECT users.gameIP, users.gamePass
                 FROM users
-                WHERE users.id = '".$_SESSION['id']."'
-                LIMIT 1";
+                WHERE users.id = ?
+                LIMIT 1', [$_SESSION['id']]);
         $data = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
 
         ?>
@@ -687,10 +687,10 @@ require 'html/fame/'. ($this->curRound - 1) .'_'.$pathName.'_preview.html';
     
     public function showIndex(){
 
-        //require '/var/www/classes/Forum.class.php';
+        //require __DIR__.'/Forum.class.php';
         //$this->forum = new Forum();
 
-        require_once '/var/www/classes/Storyline.class.php';
+        require_once __DIR__.'/Storyline.class.php';
         $this->storyline = new Storyline();     
         
         ?>
@@ -801,10 +801,10 @@ require 'html/fame/'. ($this->curRound - 1) .'_'.$pathName.'_preview.html';
         <?php
 
         $this->session->newQuery();
-        $sql = "SELECT users.gameIP, users.gamePass
+        $sql = SqlQuery::make('SELECT users.gameIP, users.gamePass
                 FROM users
-                WHERE users.id = '".$_SESSION['id']."'
-                LIMIT 1";
+                WHERE users.id = ?
+                LIMIT 1', [$_SESSION['id']]);
         $data = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
 
         ?>
@@ -829,7 +829,7 @@ require 'html/fame/'. ($this->curRound - 1) .'_'.$pathName.'_preview.html';
     public function forum_show($page){
         
         if(!$this->forum){
-            require_once '/var/www/classes/Forum.class.php';
+            require_once __DIR__.'/Forum.class.php';
             $this->forum = new Forum();
         }
         
@@ -922,7 +922,7 @@ require 'html/fame/'. ($this->curRound - 1) .'_'.$pathName.'_preview.html';
         }
         
         $this->session->newQuery();
-        $sql = "SELECT COUNT(*) AS total FROM users_admin WHERE userID = '".$uid."' LIMIT 1";
+        $sql = SqlQuery::make('SELECT COUNT(*) AS total FROM users_admin WHERE userID = ? LIMIT 1', [$uid]);
         $total = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->total;
         
         if($total > 0){
@@ -939,7 +939,7 @@ require 'html/fame/'. ($this->curRound - 1) .'_'.$pathName.'_preview.html';
             
             case 'hardware':
                 
-                    require_once '/var/www/classes/PC.class.php';
+                    require_once __DIR__.'/PC.class.php';
                     $hardware = new HardwareVPC();
                     
                     $hardwareInfo = $hardware->getHardwareInfo($_SESSION['id'], '');
@@ -1016,8 +1016,8 @@ require 'html/fame/'. ($this->curRound - 1) .'_'.$pathName.'_preview.html';
                 break;
             case 'userinfo':
 
-                        require_once '/var/www/classes/Clan.class.php';
-                        require_once '/var/www/classes/Process.class.php';
+                        require_once __DIR__.'/Clan.class.php';
+                        require_once __DIR__.'/Process.class.php';
                 
                         $clan = new Clan();
                         $process = new Process();
@@ -1094,10 +1094,7 @@ require 'html/fame/'. ($this->curRound - 1) .'_'.$pathName.'_preview.html';
                             $clanName = _('Not a member');
                         }
                         
-                        if(self::isPremium()){
-                            $labelcolor = 'label-warning';
-                            $membership = 'Premium';
-                        } elseif(self::isAdmin()){
+                        if(self::isAdmin()){
                             $labelcolor = 'label-important';
                             $membership = _('Staff');
                         } else {
@@ -1262,7 +1259,7 @@ require 'html/fame/'. ($this->curRound - 1) .'_'.$pathName.'_preview.html';
                 break;
             case 'news':
                 
-                require '/var/www/classes/News.class.php';
+                require __DIR__.'/News.class.php';
                 $news = new News();
                 
                 
@@ -1327,7 +1324,7 @@ $news->listIndex(3);
     public function ip_uptime(){
         
         $this->session->newQuery();
-        $sql = "SELECT TIMESTAMPDIFF(SECOND, lastIpReset, NOW()) AS uptime FROM users_stats WHERE uid = '".$_SESSION['id']."' LIMIT 1";
+        $sql = SqlQuery::make('SELECT TIMESTAMPDIFF(SECOND, lastIpReset, NOW()) AS uptime FROM users_stats WHERE uid = ? LIMIT 1', [$_SESSION['id']]);
         $data = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
   
         $reset = new DateTime('now');
@@ -1376,7 +1373,7 @@ $news->listIndex(3);
         $return = Array();
         
         $this->session->newQuery();
-        $sql = "SELECT ipResets, TIMESTAMPDIFF(SECOND, lastIpReset, NOW()) AS uptime FROM users_stats WHERE uid = '".$_SESSION['id']."' LIMIT 1";
+        $sql = SqlQuery::make('SELECT ipResets, TIMESTAMPDIFF(SECOND, lastIpReset, NOW()) AS uptime FROM users_stats WHERE uid = ? LIMIT 1', [$_SESSION['id']]);
         $data = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
     
         $ipInfo = self::ip_studyPrice($data->ipresets, $data->uptime);
@@ -1489,7 +1486,7 @@ $news->listIndex(3);
         $return = Array();
         
         $this->session->newQuery();
-        $sql = "SELECT pwdResets, TIMESTAMPDIFF(SECOND, lastPwdReset, NOW()) AS lastReset FROM users_stats WHERE uid = '".$_SESSION['id']."' LIMIT 1";
+        $sql = SqlQuery::make('SELECT pwdResets, TIMESTAMPDIFF(SECOND, lastPwdReset, NOW()) AS lastReset FROM users_stats WHERE uid = ? LIMIT 1', [$_SESSION['id']]);
         $data = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
                 
         $pwdInfo = self::pwd_studyPrice($data->pwdresets, $data->lastreset);
@@ -1643,28 +1640,10 @@ $news->listIndex(3);
         exit();
     }    
     
-    public function isPremium($uid = ''){
-        
-        if($uid == ''){
-            $uid = $_SESSION['id'];
-        }
-
-        $this->session->newQuery();
-        $sql = "SELECT COUNT(*) AS total FROM users_premium WHERE id = '".$uid."' LIMIT 1";
-        $premium = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->total;
-        
-        if($premium == 1){
-            return TRUE;
-        } else {
-            return FALSE;
-        }
-        
-    }
-    
     public function isNoob($uid){
         
         $this->session->newQuery();
-        $sql = "SELECT COUNT(*) AS total FROM hist_users WHERE userID = '".$uid."' LIMIT 1";
+        $sql = SqlQuery::make('SELECT COUNT(*) AS total FROM hist_users WHERE userID = ? LIMIT 1', [$uid]);
         $previousRound = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->total;
         
         if($previousRound > 0){
@@ -1672,7 +1651,7 @@ $news->listIndex(3);
         }
         
         $this->session->newQuery();
-        $sql = "SELECT exp FROM users_stats WHERE uid = '".$uid."' LIMIT 1";
+        $sql = SqlQuery::make('SELECT exp FROM users_stats WHERE uid = ? LIMIT 1', [$uid]);
         $exp = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->exp;
         
         if($exp < 100){
@@ -1814,20 +1793,6 @@ $news->listIndex(3);
                     </div>
                     <div class="span6">
                         
-                        <div class="widget-box">
-                            <div class="widget-title">
-                                <span class="icon"><span class="he16-premium"></span></span>
-                                <h5><?php echo _('Buy premium account'); ?></h5>
-                            </div>
-                            <div class="widget-content">
-                                <?php echo sprintf(_('Hey oh! Let\'s make this real fun. Refeer to the %spremium page%s in order to get detailed information about premium accounts.'), '<a href="premium">', '</a>'); ?>
-                                <br/>
-                                <?php echo _('*Licks from Phoebe*'); ?><br/><br/>
-                                <div class="center">
-                                    <img src="images/phoebe2.jpg" width="500">
-                                </div>
-                            </div>
-                        </div>
                         
                     </div>
 

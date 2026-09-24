@@ -1,6 +1,6 @@
 <?php
 
-require_once '/var/www/classes/Player.class.php';
+require_once __DIR__.'/Player.class.php';
 
 class Ranking extends Player {
     
@@ -77,7 +77,7 @@ class Ranking extends Player {
                         $system->handleError('Invalid bank account.', $redirect);
                     }
                     
-                    require '/var/www/classes/Finances.class.php';
+                    require __DIR__.'/Finances.class.php';
                     $finances = new Finances();
 
                     if($finances->totalMoney() < $price){
@@ -112,7 +112,7 @@ class Ranking extends Player {
     public function updateDDoSCount($total){
         
         $this->session->newQuery();
-        $sql = "UPDATE users_stats SET ddosCount = ddosCount + $total WHERE uid = '".$_SESSION['id']."'";
+        $sql = SqlQuery::make('UPDATE users_stats SET ddosCount = ddosCount + ? WHERE uid = ?', [SqlQuery::num($total), $_SESSION['id']]);
         $this->pdo->query($sql);
         
     }
@@ -126,7 +126,7 @@ class Ranking extends Player {
         $corrTime = round(($timePlayed/60), 1);
         
         $this->session->newQuery();
-        $sql = "UPDATE users_stats SET timePlaying = timePlaying + '".(double)$corrTime."' WHERE uid = '".$_SESSION['id']."'";
+        $sql = SqlQuery::make('UPDATE users_stats SET timePlaying = timePlaying + ? WHERE uid = ?', [((double)$corrTime), $_SESSION['id']]);
         $this->pdo->query($sql);
         
     }
@@ -152,7 +152,7 @@ class Ranking extends Player {
         $newAmount = round($amount, 0);
         
         $this->session->newQuery();
-        $sql = "UPDATE users_stats SET ".$column." = ".$column." + $newAmount WHERE uid = '".$id."'";
+        $sql = SqlQuery::make('UPDATE users_stats SET '.$column.' = '.$column.' + ? WHERE uid = ?', [SqlQuery::num($newAmount), $id]);
         $this->pdo->query($sql);
         
     }
@@ -213,7 +213,7 @@ class Ranking extends Player {
     public function getSoftwareRanking($softwareID, $category = FALSE){
         
         $this->session->newQuery();
-        $sql = 'SELECT COUNT(*) AS total, rank FROM ranking_software WHERE softID = '.$softwareID.' LIMIT 1';
+        $sql = SqlQuery::make('SELECT COUNT(*) AS total, rank FROM ranking_software WHERE softID = ? LIMIT 1', [SqlQuery::num($softwareID)]);
         $issetInfo = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
                 
         if($issetInfo->total == 0){
@@ -236,21 +236,21 @@ class Ranking extends Player {
         }
         
         $this->session->newQuery();
-        $sql = 'SELECT COUNT(id) AS total
+        $sql = SqlQuery::make('SELECT COUNT(id) AS total
                 FROM ranking_software
                 INNER JOIN software
                 ON software.id = ranking_software.softID
                 WHERE 
-                    rank <= '.$issetInfo->rank.' AND 
+                    rank <= ? AND 
                     rank > -1 AND 
-                    softID <> '.$softwareID.'
+                    softID <> ?
                 GROUP BY software.softType 
                 HAVING software.softType = 
                 (
                     SELECT softType 
                     FROM software 
-                    WHERE id = '.$softwareID.'
-                )';
+                    WHERE id = ?
+                )', [SqlQuery::num($issetInfo->rank), SqlQuery::num($softwareID), SqlQuery::num($softwareID)]);
         $categoryRank = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
 
         if(!$categoryRank){
@@ -270,7 +270,7 @@ class Ranking extends Player {
         if($cached == 1){
             
             $this->session->newQuery();
-            $sql = "SELECT rank FROM ranking_user WHERE userID = $uid LIMIT 1";
+            $sql = SqlQuery::make('SELECT rank FROM ranking_user WHERE userID = ? LIMIT 1', [SqlQuery::num($uid)]);
             $cached = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
 
             if($cached->rank == -1){
@@ -285,7 +285,7 @@ class Ranking extends Player {
         }        
         
         $this->session->newQuery();
-        $sql = "SELECT id FROM hist_users_current WHERE userID = $uid";
+        $sql = SqlQuery::make('SELECT id FROM hist_users_current WHERE userID = ?', [SqlQuery::num($uid)]);
         $query = $this->pdo->query($sql)->fetchAll();
         
         if(count($query) > '0'){
@@ -305,7 +305,7 @@ class Ranking extends Player {
         if($cached == 1){
             
             $this->session->newQuery();
-            $sql = "SELECT COUNT(*) AS total, reputation FROM cache WHERE userID = $uid LIMIT 1";
+            $sql = SqlQuery::make('SELECT COUNT(*) AS total, reputation FROM cache WHERE userID = ? LIMIT 1', [SqlQuery::num($uid)]);
             $cached = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
 
             if($cached->total == 0){
@@ -317,7 +317,7 @@ class Ranking extends Player {
         }
         
         $this->session->newQuery();
-        $sql = "SELECT exp FROM users_stats WHERE uid = $uid";
+        $sql = SqlQuery::make('SELECT exp FROM users_stats WHERE uid = ?', [SqlQuery::num($uid)]);
         $query = $this->pdo->query($sql)->fetchAll();
         
         if(count($query) > '0'){
@@ -365,7 +365,7 @@ class Ranking extends Player {
     public function exp_add($exp, $uid){
         echo 'deprecated';
         $this->session->newQuery();
-        $sql = "UPDATE users_stats SET exp = exp + $exp WHERE uid = $uid";
+        $sql = SqlQuery::make('UPDATE users_stats SET exp = exp + ? WHERE uid = ?', [SqlQuery::num($exp), SqlQuery::num($uid)]);
         $this->pdo->query($sql);
         
     }
@@ -419,7 +419,7 @@ class Ranking extends Player {
         $uid = $_SESSION['id'];
         
         $this->session->newQuery();
-        $sql = "SELECT certLevel FROM certifications WHERE userID = $uid";
+        $sql = SqlQuery::make('SELECT certLevel FROM certifications WHERE userID = ?', [SqlQuery::num($uid)]);
         return $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->certlevel;
         
     }
@@ -472,7 +472,11 @@ class Ranking extends Player {
             $page = 1;
         }
         
-        $link = 'certs/'.$cid.'-'.$page.'.php';
+        $link = BASE_PATH.'/certs/'.(int)$cid.'-'.(int)$page.'.php';
+
+        if(!is_file($link)){
+            die("invalid");
+        }
 
         require $link;
         
@@ -526,13 +530,13 @@ class Ranking extends Player {
         $uid = $_SESSION['id'];        
 
         $this->session->newQuery();
-        $sql = "UPDATE certifications SET certLevel = certLevel + 1 WHERE userID = $uid";
+        $sql = SqlQuery::make('UPDATE certifications SET certLevel = certLevel + 1 WHERE userID = ?', [SqlQuery::num($uid)]);
         $this->pdo->query($sql);
         
         $this->session->certSession($this->session->getCert() + 1);
         
         if($this->session->getCert() == 5){
-            require '/var/www/classes/Social.class.php';
+            require __DIR__.'/Social.class.php';
             $social = new Social();
             $social->badge_add(54, $_SESSION['id']);
         }
@@ -574,7 +578,7 @@ class Ranking extends Player {
         
         if($cid == 2){
             
-            require '/var/www/classes/Storyline.class.php';
+            require __DIR__.'/Storyline.class.php';
             $storyline = new Storyline();
             
             $storyline->tutorial_start();
@@ -631,7 +635,7 @@ class Ranking extends Player {
                 $table .= 'software';
                 $pagStr = 'rankSoftware';
                 if($system->issetGet('orderby')){
-                    $page = 'show=software&orderby='.$_GET['orderby'].'&page';
+                    $page = 'show=software&orderby='.urlencode($_GET['orderby']).'&page';
                 } else {
                     $page = 'show=software&page';
                 }
@@ -651,12 +655,12 @@ class Ranking extends Player {
         }
         
         $this->session->newQuery();
-        $sql = "SELECT rank FROM ".$table." LIMIT 1";
+        $sql = SqlQuery::make('SELECT rank FROM '.$table.' LIMIT 1', []);
         $data = $this->pdo->query($sql)->fetchAll();
         
         if(sizeof($data) == 1){
             
-            require_once '/var/www/classes/Pagination.class.php';
+            require_once __DIR__.'/Pagination.class.php';
             $pagination = new Pagination();
 
             $pagination->paginate('', $pagStr, 50, $page, 1);
@@ -676,6 +680,7 @@ class Ranking extends Player {
         }
         
         $ending = '';
+        $params = [];
         $select = 'totalusers, activeUsers, warezSent, spamSent, mailSent, ddosCount, hackCount, clans, timePlaying, totalListed, totalVirus,
                    totalMoney, researchCount, moneyResearch, moneyHardware, moneyTransfered, moneyEarned, usersClicks, missionCount,
                    totalConnections, totalTasks, totalSoftware, totalRunning, totalServers, clansWar, clansMembers, clansClicks, onlineUsers,
@@ -694,15 +699,20 @@ class Ranking extends Player {
         } elseif($round == '') {
             $ending = 'ORDER BY id DESC LIMIT 1';
         } else {
-            $ending = 'WHERE id = '.$round.' LIMIT 1';
+            $ending = 'WHERE id = ? LIMIT 1';
+            $params[] = SqlQuery::num($round);
         }
 
         $this->session->newQuery();
-        $sql = 'SELECT 
+        $sql = SqlQuery::make('SELECT 
                     '.$select.' 
                 FROM round_stats 
-                '.$ending;
+                '.$ending, $params);
         $this->serverInfo = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
+        if(!$this->serverInfo){
+            // no statistics recorded yet (e.g. right after installing)
+            $this->serverInfo = new stdClass();
+        }
         
         $this->session->newQuery();
         $sql = 'SELECT 
@@ -971,13 +981,13 @@ foreach($contentArray AS $content){
     public function stats_updateCollect($warezSent, $mailSent, $moneyEarned, $bitcoinSent){
         
         $this->session->newQuery();
-        $sql = "UPDATE users_stats 
+        $sql = SqlQuery::make('UPDATE users_stats 
                 SET 
-                    moneyEarned = moneyEarned + '".$moneyEarned."', 
-                    warezSent = warezSent + '".$warezSent."', 
-                    spamSent = spamSent + '".$mailSent."',
-                    bitcoinSent = bitcoinSent + '".$bitcoinSent."'
-                WHERE uid = '".$_SESSION['id']."' LIMIT 1";
+                    moneyEarned = moneyEarned + ?, 
+                    warezSent = warezSent + ?, 
+                    spamSent = spamSent + ?,
+                    bitcoinSent = bitcoinSent + ?
+                WHERE uid = ? LIMIT 1', [$moneyEarned, $warezSent, $mailSent, $bitcoinSent, $_SESSION['id']]);
         $this->pdo->query($sql);
         
     }
@@ -989,7 +999,7 @@ foreach($contentArray AS $content){
         }
         
         $this->session->newQuery();
-        $sql = 'SELECT moneyResearch FROM users_stats WHERE uid = '.$uid.' LIMIT 1';
+        $sql = SqlQuery::make('SELECT moneyResearch FROM users_stats WHERE uid = ? LIMIT 1', [SqlQuery::num($uid)]);
         return $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->moneyresearch;
         
     }

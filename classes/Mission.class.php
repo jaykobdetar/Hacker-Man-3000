@@ -1,5 +1,5 @@
 <?php
-require_once '/var/www/classes/List.class.php';
+require_once __DIR__.'/List.class.php';
 
 class Mission {
 
@@ -167,7 +167,7 @@ class Mission {
     public function updateInfo($newSoftID, $mid) {
 
         $this->session->newQuery();
-        $sql = "UPDATE missions SET newInfo = $newSoftID WHERE id = $mid LIMIT 1";
+        $sql = SqlQuery::make('UPDATE missions SET newInfo = ? WHERE id = ? LIMIT 1', [SqlQuery::num($newSoftID), SqlQuery::num($mid)]);
         $this->pdo->query($sql);
         
     }
@@ -175,7 +175,7 @@ class Mission {
     public function updateInfo2($newSoftID, $mid) {
 
         $this->session->newQuery();
-        $sql = "UPDATE missions SET info2 = $newSoftID WHERE id = $mid LIMIT 1";
+        $sql = SqlQuery::make('UPDATE missions SET info2 = ? WHERE id = ? LIMIT 1', [SqlQuery::num($newSoftID), SqlQuery::num($mid)]);
         $this->pdo->query($sql);
         
     }
@@ -188,7 +188,7 @@ class Mission {
             }
         } else {
             $this->session->newQuery();
-            $sqlQuery = "SELECT COUNT(*) AS total FROM missions WHERE userID = $uid AND (status = 2 OR status = 3) LIMIT 1";
+            $sqlQuery = SqlQuery::make('SELECT COUNT(*) AS total FROM missions WHERE userID = ? AND (status = 2 OR status = 3) LIMIT 1', [SqlQuery::num($uid)]);
             $total = $this->pdo->query($sqlQuery)->fetch(PDO::FETCH_OBJ)->total;
             if($total > 0){
                 return TRUE;
@@ -202,7 +202,7 @@ class Mission {
     public function getPlayerMissionID($uid){
         
         $this->session->newQuery();
-        $sqlQuery = "SELECT id FROM missions WHERE userID = $uid AND (status = 2 OR status = 3) LIMIT 1";
+        $sqlQuery = SqlQuery::make('SELECT id FROM missions WHERE userID = ? AND (status = 2 OR status = 3) LIMIT 1', [SqlQuery::num($uid)]);
         $total = $this->pdo->query($sqlQuery)->fetch(PDO::FETCH_OBJ);
 
         return $total->id;
@@ -499,7 +499,7 @@ class Mission {
                 break;
             case 51: //downloaded doom
 
-                require '/var/www/classes/Clan.class.php';
+                require __DIR__.'/Clan.class.php';
                 $clan = new Clan();
                 if($clan->playerHaveClan()){
                     $haveClan = TRUE;
@@ -532,7 +532,7 @@ class Mission {
                 break;
             case 53: //someone uploaded doom
 
-                require '/var/www/classes/Clan.class.php';
+                require __DIR__.'/Clan.class.php';
                 $clan = new Clan();
                 if($clan->playerHaveClan()){
                     $haveClan = TRUE;
@@ -593,7 +593,7 @@ class Mission {
     public function seed_isset($mid){
         
         $this->session->newQuery();
-        $sql = 'SELECT COUNT(*) AS total FROM missions_seed WHERE missionID = \''.$mid.'\' LIMIT 1';
+        $sql = SqlQuery::make('SELECT COUNT(*) AS total FROM missions_seed WHERE missionID = ? LIMIT 1', [$mid]);
         if($this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->total == 1){
             return TRUE;
         } else {
@@ -633,8 +633,8 @@ class Mission {
         }
         
         $this->session->newQuery();
-        $sql = "INSERT INTO missions_seed (missionID, greeting, intro, victim_call, payment, victim_location, warning, action) 
-                VALUES ('".$missionID."', '".$seedArr[0]."', '".$seedArr[1]."', '".$seedArr[2]."', '".$seedArr[3]."', '".$seedArr[4]."', '".$seedArr[5]."', '".$seedArr[6]."')";
+        $sql = SqlQuery::make('INSERT INTO missions_seed (missionID, greeting, intro, victim_call, payment, victim_location, warning, action) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [$missionID, $seedArr[0], $seedArr[1], $seedArr[2], $seedArr[3], $seedArr[4], $seedArr[5], $seedArr[6]]);
         $this->pdo->query($sql);
         
     }
@@ -642,8 +642,8 @@ class Mission {
     public function seed_get($missionID){
         
         $this->session->newQuery();
-        $sql = 'SELECT greeting AS s0, intro AS s1, victim_call AS s2, payment AS s3, victim_location AS s4, warning AS s5, action AS s6 
-                FROM missions_seed WHERE missionID = \''.$missionID.'\' LIMIT 1';
+        $sql = SqlQuery::make('SELECT greeting AS s0, intro AS s1, victim_call AS s2, payment AS s3, victim_location AS s4, warning AS s5, action AS s6 
+                FROM missions_seed WHERE missionID = ? LIMIT 1', [$missionID]);
         $seed = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
         
         return Array(
@@ -666,14 +666,14 @@ class Mission {
         }
         
         $this->session->newQuery();
-        $sqlQuery = "SELECT missions.id, status, info, info2, newInfo, newInfo2, type, hirer, prize, victim, userID, level, dateGenerated, hirerInfo.name AS hirerName, victimInfo.name AS victimName
+        $sqlQuery = SqlQuery::make('SELECT missions.id, status, info, info2, newInfo, newInfo2, type, hirer, prize, victim, userID, level, dateGenerated, hirerInfo.name AS hirerName, victimInfo.name AS victimName
                      FROM missions
                      INNER JOIN npc npcHirer ON npcHirer.npcIP = hirer
-                     INNER JOIN $table AS hirerInfo ON hirerInfo.npcID = npcHirer.id
+                     INNER JOIN '.$table.' AS hirerInfo ON hirerInfo.npcID = npcHirer.id
                      INNER JOIN npc npcVictim ON npcVictim.npcIP = victim
-                     INNER JOIN $table AS victimInfo ON victimInfo.npcID = npcVictim.id
-                     WHERE missions.id = $mid
-                     LIMIT 1";
+                     INNER JOIN '.$table.' AS victimInfo ON victimInfo.npcID = npcVictim.id
+                     WHERE missions.id = ?
+                     LIMIT 1', [SqlQuery::num($mid)]);
         $mission = $this->pdo->query($sqlQuery)->fetch(PDO::FETCH_OBJ);
 
         $valid = FALSE;
@@ -1080,27 +1080,6 @@ class Mission {
 ?>
                                     
 
-<?php if($_SESSION['premium'] == 0){ ?>
-<style type="text/css">
-@media (min-width : 320px) and (max-width : 480px) { .adslot_mission { width: 250px; height: 250px; } }
-@media (min-width : 768px) and (max-width : 1024px) { .adslot_mission { width: 336px; height: 280px; } }
-@media (min-width:1024px) { .adslot_mission { width: 120px; height: 240px; } }
-@media (min-width:1280px) { .adslot_mission { width: 200px; height: 200px; } }
-@media (min-width:1366px) { .adslot_mission { width: 250px; height: 250px; } }
-@media (min-width:1824px) { .adslot_mission { width: 336px; height: 280px; } }
-</style>
-<div class="center">
-<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<!-- missions responsive -->
-<ins class="adsbygoogle adslot_mission"
-     style="display:inline-block"
-     data-ad-client="ca-pub-7193007468156667"
-     data-ad-slot="7907947758"></ins>
-<script>
-(adsbygoogle = window.adsbygoogle || []).push({});
-</script>
-</div>
-<?php } ?>
 
                                 </div>
 <?php
@@ -1112,7 +1091,7 @@ class Mission {
         $id = $_SESSION['id'];
         
         $this->session->newQuery();
-        $sql = "SELECT completed, prize FROM missions_history WHERE userID = '".$id."'";
+        $sql = SqlQuery::make('SELECT completed, prize FROM missions_history WHERE userID = ?', [$id]);
         $data = $this->pdo->query($sql);
         
         $total = 0;
@@ -1222,12 +1201,12 @@ class Mission {
                 break;
             case 84:
                 
-                require '/var/www/classes/Storyline.class.php';
+                require __DIR__.'/Storyline.class.php';
                 $storyline = new Storyline();
                 
                 $storyline->tutorial_setExpireDate(self::missionVictim($_SESSION['MISSION_ID']), self::missionInfo2($_SESSION['MISSION_ID']));
                 
-                require '/var/www/classes/Mail.class.php';
+                require __DIR__.'/Mail.class.php';
                 $mail = new Mail();
                 $mail->sendGreetingMail();
                 
@@ -1243,11 +1222,11 @@ class Mission {
         self::recordMission($mid);
 
         $this->session->newQuery();
-        $sql = "DELETE FROM missions WHERE id = $mid LIMIT 1";
+        $sql = SqlQuery::make('DELETE FROM missions WHERE id = ? LIMIT 1', [SqlQuery::num($mid)]);
         $this->pdo->query($sql);
         
         $this->session->newQuery();
-        $sql = "DELETE FROM missions_seed WHERE missionID = " .$mid.' LIMIT 1';
+        $sql = SqlQuery::make('DELETE FROM missions_seed WHERE missionID = ? LIMIT 1', [SqlQuery::num($mid)]);
         $this->pdo->query($sql);
         
         unset($_SESSION['MISSION_ID']);
@@ -1267,16 +1246,16 @@ class Mission {
     public function recordMission($mid){
         
         $this->session->newQuery();
-        $sqlQuery = "SELECT type, hirer, prize FROM missions WHERE id = '".$mid."' LIMIT 1";
+        $sqlQuery = SqlQuery::make('SELECT type, hirer, prize FROM missions WHERE id = ? LIMIT 1', [$mid]);
         $data = $this->pdo->query($sqlQuery)->fetch(PDO::FETCH_OBJ);
         
         $this->session->newQuery();
-        $sql = "INSERT INTO missions_history (id, type, hirer, missionEnd, prize, userID, completed) VALUES ('".$mid."', :type, :hirer, NOW(), :prize, '".$_SESSION['id']."', '1')";
+        $sql = "INSERT INTO missions_history (id, type, hirer, missionEnd, prize, userID, completed) VALUES (:mid, :type, :hirer, NOW(), :prize, :uid, '1')";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute(array(':type' => $data->type, ':hirer' => $data->hirer, ':prize' => $data->prize));
+        $stmt->execute(array(':mid' => $mid, ':type' => $data->type, ':hirer' => $data->hirer, ':prize' => $data->prize, ':uid' => $_SESSION['id']));
         
         $this->session->newQuery();
-        $sql = "UPDATE users_stats SET missionCount = missionCount + 1 WHERE uid = '".$_SESSION['id']."' LIMIT 1";
+        $sql = SqlQuery::make('UPDATE users_stats SET missionCount = missionCount + 1 WHERE uid = ? LIMIT 1', [$_SESSION['id']]);
         $this->pdo->query($sql);
         
     }
@@ -1284,7 +1263,7 @@ class Mission {
     public function restoreMissionSession($uid) {
 
         $this->session->newQuery();
-        $sqlQuery = "SELECT id, type FROM missions WHERE userID = $uid AND (status = 2 OR status = 3)";
+        $sqlQuery = SqlQuery::make('SELECT id, type FROM missions WHERE userID = ? AND (status = 2 OR status = 3)', [SqlQuery::num($uid)]);
         $total = $this->pdo->query($sqlQuery)->fetchAll();
 
         if (count($total) == '1') {
@@ -1297,7 +1276,7 @@ class Mission {
     public function issetMission($mid) {
 
         $this->session->newQuery();
-        $sqlQuery = "SELECT id FROM missions WHERE id = $mid";
+        $sqlQuery = SqlQuery::make('SELECT id FROM missions WHERE id = ?', [SqlQuery::num($mid)]);
         $total = $this->pdo->query($sqlQuery)->fetchAll();
 
         if (count($total) != 0) {
@@ -1329,7 +1308,7 @@ class Mission {
     public function missionLevel($mid){
         
         $this->session->newQuery();
-        $sqlQuery = "SELECT level FROM missions WHERE id = $mid LIMIT 1";
+        $sqlQuery = SqlQuery::make('SELECT level FROM missions WHERE id = ? LIMIT 1', [SqlQuery::num($mid)]);
         return $this->pdo->query($sqlQuery)->fetch(PDO::FETCH_OBJ)->level;
         
     }
@@ -1344,7 +1323,7 @@ class Mission {
             }
             
             $this->session->newQuery();
-            $sql = "UPDATE missions SET status = 2, userID = $uid WHERE id = $mid";
+            $sql = SqlQuery::make('UPDATE missions SET status = 2, userID = ? WHERE id = ?', [SqlQuery::num($uid), SqlQuery::num($mid)]);
             $this->pdo->query($sql);
 
             $_SESSION['MISSION_ID'] = $mid;
@@ -1360,7 +1339,7 @@ class Mission {
     public function missionVictim($mid) {
 
         $this->session->newQuery();
-        $sqlQuery = "SELECT victim FROM missions WHERE id = $mid";
+        $sqlQuery = SqlQuery::make('SELECT victim FROM missions WHERE id = ?', [SqlQuery::num($mid)]);
         $mission = $this->pdo->query($sqlQuery)->fetch(PDO::FETCH_OBJ);
 
         return $mission->victim;
@@ -1369,7 +1348,7 @@ class Mission {
     public function missionHirer($mid) {
 
         $this->session->newQuery();
-        $sqlQuery = "SELECT hirer FROM missions WHERE id = $mid";
+        $sqlQuery = SqlQuery::make('SELECT hirer FROM missions WHERE id = ?', [SqlQuery::num($mid)]);
         $mission = $this->pdo->query($sqlQuery)->fetch(PDO::FETCH_OBJ);
 
         return $mission->hirer;
@@ -1378,7 +1357,7 @@ class Mission {
     public function missionStatus($mid) {
 
         $this->session->newQuery();
-        $sqlQuery = "SELECT status FROM missions WHERE id = $mid";
+        $sqlQuery = SqlQuery::make('SELECT status FROM missions WHERE id = ?', [SqlQuery::num($mid)]);
         $mission = $this->pdo->query($sqlQuery)->fetch(PDO::FETCH_OBJ);
 
         return $mission->status;
@@ -1387,7 +1366,7 @@ class Mission {
     public function missionType($mid) {
 
         $this->session->newQuery();
-        $sqlQuery = "SELECT type FROM missions WHERE id = $mid";
+        $sqlQuery = SqlQuery::make('SELECT type FROM missions WHERE id = ?', [SqlQuery::num($mid)]);
         $mission = $this->pdo->query($sqlQuery)->fetch(PDO::FETCH_OBJ);
 
         return $mission->type;
@@ -1396,7 +1375,7 @@ class Mission {
     public function missionInfo($mid) {
 
         $this->session->newQuery();
-        $sqlQuery = "SELECT info FROM missions WHERE id = $mid";
+        $sqlQuery = SqlQuery::make('SELECT info FROM missions WHERE id = ?', [SqlQuery::num($mid)]);
         $mission = $this->pdo->query($sqlQuery)->fetch(PDO::FETCH_OBJ);
 
         return $mission->info;
@@ -1405,7 +1384,7 @@ class Mission {
     public function missionNewInfo($mid) {
 
         $this->session->newQuery();
-        $sqlQuery = "SELECT newInfo FROM missions WHERE id = $mid";
+        $sqlQuery = SqlQuery::make('SELECT newInfo FROM missions WHERE id = ?', [SqlQuery::num($mid)]);
         $mission = $this->pdo->query($sqlQuery)->fetch(PDO::FETCH_OBJ);
 
         return $mission->newinfo;
@@ -1414,7 +1393,7 @@ class Mission {
     public function missionInfo2($mid) {
 
         $this->session->newQuery();
-        $sqlQuery = "SELECT info2 FROM missions WHERE id = $mid";
+        $sqlQuery = SqlQuery::make('SELECT info2 FROM missions WHERE id = ?', [SqlQuery::num($mid)]);
         $mission = $this->pdo->query($sqlQuery)->fetch(PDO::FETCH_OBJ);
 
         return $mission->info2;
@@ -1423,7 +1402,7 @@ class Mission {
     public function missionPrize($mid) {
 
         $this->session->newQuery();
-        $sqlQuery = "SELECT prize FROM missions WHERE id = $mid";
+        $sqlQuery = SqlQuery::make('SELECT prize FROM missions WHERE id = ?', [SqlQuery::num($mid)]);
         $mission = $this->pdo->query($sqlQuery)->fetch(PDO::FETCH_OBJ);
 
         return $mission->prize;
@@ -1432,9 +1411,9 @@ class Mission {
     public function availableMissions() {
 
         $this->session->newQuery();
-        $sqlQuery = "SELECT id 
+        $sqlQuery = SqlQuery::make('SELECT id 
                      FROM missions 
-                     WHERE status = 1 AND level = ".$this->level;
+                     WHERE status = 1 AND level = ?', [SqlQuery::num($this->level)]);
         $total = $this->pdo->query($sqlQuery)->fetchAll();
 
         return count($total);
@@ -1443,7 +1422,7 @@ class Mission {
     public function completeMission($mid) {
 
         $this->session->newQuery();
-        $sql = "UPDATE missions SET status = 3 WHERE id = $mid";
+        $sql = SqlQuery::make('UPDATE missions SET status = 3 WHERE id = ?', [SqlQuery::num($mid)]);
         $this->pdo->query($sql);
         
     }
@@ -1485,12 +1464,12 @@ class Mission {
         } else {
 
             $this->session->newQuery();
-            $sqlQuery = "SELECT missions.id, type, hirer, prize, victim, hirerInfo.name AS hirerName 
+            $sqlQuery = SqlQuery::make('SELECT missions.id, type, hirer, prize, victim, hirerInfo.name AS hirerName 
                          FROM missions
                          INNER JOIN npc ON npc.npcIP = hirer
                          INNER JOIN npc_info_en AS hirerInfo ON hirerInfo.npcID = npc.id
-                         WHERE status = 1 AND level = '".$this->level."'
-                         ORDER BY prize DESC";
+                         WHERE status = 1 AND level = ?
+                         ORDER BY prize DESC', [$this->level]);
             $query = $this->pdo->query($sqlQuery);
 
             $i = 0;
@@ -1570,7 +1549,7 @@ class Mission {
         }
         
         $this->session->newQuery();
-        $sql = "SELECT COUNT(*) AS total FROM missions_history WHERE userID = '".$id."' AND completed = 1";
+        $sql = SqlQuery::make('SELECT COUNT(*) AS total FROM missions_history WHERE userID = ? AND completed = 1', [$id]);
         return $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->total;
         
     }
@@ -1579,7 +1558,7 @@ class Mission {
         
         if(self::countCompletedMissions() > 0){
 
-            require_once '/var/www/classes/Pagination.class.php';
+            require_once __DIR__.'/Pagination.class.php';
             $pagination = new Pagination();
 
             $pagination->paginate($_SESSION['id'], 'missionsHistory', '10', 'view=completed&page', 1);
@@ -1602,7 +1581,7 @@ class Mission {
         }
         
         $this->session->newQuery();
-        $sql = "SELECT id, type FROM missions WHERE (type = '50' OR type = '51' OR type = '52' OR type = '53' OR type = '54') AND userID = '".$uid."' AND status <> 4 ORDER BY status ASC";
+        $sql = SqlQuery::make('SELECT id, type FROM missions WHERE (type = \'50\' OR type = \'51\' OR type = \'52\' OR type = \'53\' OR type = \'54\') AND userID = ? AND status <> 4 ORDER BY status ASC', [$uid]);
         $data = $this->pdo->query($sql)->fetchAll();
         
         if(count($data) > '0'){
@@ -1623,10 +1602,10 @@ class Mission {
         if($_SESSION['MISSION_TYPE'] < 49){ //cant abort doom-based missions.
 
             $this->session->newQuery();
-            $sqlQuery = "SELECT status, type, prize 
+            $sqlQuery = SqlQuery::make('SELECT status, type, prize 
                          FROM missions
-                         WHERE missions.id = ".$_SESSION['MISSION_ID']."
-                         LIMIT 1";
+                         WHERE missions.id = ?
+                         LIMIT 1', [SqlQuery::num($_SESSION['MISSION_ID'])]);
             $mission = $this->pdo->query($sqlQuery)->fetch(PDO::FETCH_OBJ);        
 
             ?>
@@ -1665,9 +1644,9 @@ class Mission {
             
             $this->session->newQuery();
             $sql = "INSERT INTO missions_history (id, type, hirer, missionEnd, prize, userID, completed) 
-                    VALUES ('".$mid."', :type, :hirer, NOW(), :prize, '".$_SESSION['id']."', '0')";
+                    VALUES (:mid, :type, :hirer, NOW(), :prize, :uid, '0')";
             $stmt = $this->pdo->prepare($sql);
-            $stmt->execute(array(':type' => $mtype, ':hirer' => self::missionHirer($mid), ':prize' => self::missionPrize($mid)));
+            $stmt->execute(array(':mid' => $mid, ':type' => $mtype, ':hirer' => self::missionHirer($mid), ':prize' => self::missionPrize($mid), ':uid' => $_SESSION['id']));
 
             self::deleteMission($mid);
 
@@ -1676,9 +1655,9 @@ class Mission {
             }
             
             $this->session->newQuery();
-            $sql = "SELECT COUNT(*) AS total FROM missions_history WHERE completed = 0 AND userID = '".$_SESSION['id']."'";
+            $sql = SqlQuery::make('SELECT COUNT(*) AS total FROM missions_history WHERE completed = 0 AND userID = ?', [$_SESSION['id']]);
             if($this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->total == 5){
-                require '/var/www/classes/Social.class.php';
+                require __DIR__.'/Social.class.php';
                 $social = new Social();
                 $social->badge_add(58, $_SESSION['id']);
             }
@@ -1697,11 +1676,11 @@ class Mission {
         }
         
         $this->session->newQuery();
-        $sql = "DELETE FROM missions WHERE id = " .$mid.' LIMIT 1';
+        $sql = SqlQuery::make('DELETE FROM missions WHERE id = ? LIMIT 1', [SqlQuery::num($mid)]);
         $this->pdo->query($sql);
 
         $this->session->newQuery();
-        $sql = "DELETE FROM missions_seed WHERE missionID = " .$mid.' LIMIT 1';
+        $sql = SqlQuery::make('DELETE FROM missions_seed WHERE missionID = ? LIMIT 1', [SqlQuery::num($mid)]);
         $this->pdo->query($sql);
 
     }
@@ -1712,10 +1691,10 @@ class Mission {
         //$finances->debtMoney(500 + self::missionPrize($mid), $finances->getWealthiestBankAcc());
         
         $this->session->newQuery();
-        $sql = 'UPDATE users_stats
+        $sql = SqlQuery::make('UPDATE users_stats
                 SET exp = exp*0.9
-                WHERE uid = \''.$_SESSION['id'].'\'
-                LIMIT 1';
+                WHERE uid = ?
+                LIMIT 1', [$_SESSION['id']]);
         $this->pdo->query($sql);
         
     }
@@ -1730,7 +1709,7 @@ class Mission {
         }
 
         $this->session->newQuery();
-        $sql = "DELETE FROM missions WHERE id = " .$mid.' LIMIT 1';
+        $sql = SqlQuery::make('DELETE FROM missions WHERE id = ? LIMIT 1', [SqlQuery::num($mid)]);
         $this->pdo->query($sql);
 
         if($deleteSession == 1){
@@ -1781,7 +1760,7 @@ class Mission {
         }
         
         $this->session->newQuery();
-        $sql = "INSERT INTO missions (id, type, status, hirer, victim, info, newInfo, prize, userID) VALUES ('', '".$type."', 2, '".$hirer."', '".$victim."', '".$storyline->nsa_getDoomID()."', '".$newInfo."', '".$prize."', '".$id."')";
+        $sql = SqlQuery::make('INSERT INTO missions (id, type, status, hirer, victim, info, newInfo, prize, userID) VALUES (\'\', ?, 2, ?, ?, ?, ?, ?, ?)', [$type, $hirer, $victim, $storyline->nsa_getDoomID(), $newInfo, $prize, $id]);
         $this->pdo->query($sql);
         
     }
@@ -1793,10 +1772,10 @@ class Mission {
         }
         
         $this->session->newQuery();
-        $sql = "SELECT id, type 
+        $sql = SqlQuery::make('SELECT id, type 
                 FROM missions 
-                WHERE (type = '50' OR type = '51' OR type = '52' OR type = '53' OR type = '54') AND 
-                userID = '".$uid."'";
+                WHERE (type = \'50\' OR type = \'51\' OR type = \'52\' OR type = \'53\' OR type = \'54\') AND 
+                userID = ?', [$uid]);
         $data = $this->pdo->query($sql)->fetchAll();
         
         if(count($data) > '0'){
@@ -1824,7 +1803,7 @@ class Mission {
         }
                         
         $this->session->newQuery();
-        $sql = "INSERT INTO missions (id, type, status, hirer, victim, info, newInfo, prize, userID) VALUES ('', '".$type."', 2, '".$hirer."', '".$victim[0]."', '".$victim[1]."', '', '500', '".$_SESSION['id']."')";
+        $sql = SqlQuery::make('INSERT INTO missions (id, type, status, hirer, victim, info, newInfo, prize, userID) VALUES (\'\', ?, 2, ?, ?, ?, \'\', \'500\', ?)', [$type, $hirer, $victim[0], $victim[1], $_SESSION['id']]);
         $this->pdo->query($sql);
         
         self::restoreMissionSession($_SESSION['id']);
@@ -1838,7 +1817,7 @@ class Mission {
             switch($to){
                 case 81:
                     
-                    require_once '/var/www/classes/PC.class.php';
+                    require_once __DIR__.'/PC.class.php';
                     
                     $player = new Player();
                     $log = new LogVPC();
@@ -1852,7 +1831,7 @@ class Mission {
                     $log->addLog($vic1ID['0']['id'], '['.long2ip($vic2).'] deleted file Users.dat at localhost', 1);
                     $log->addLog($vic2ID['0']['id'], 'localhost deleted file Users.dat at ['.long2ip($vic1).']', 1);
                     
-                    $sql = 'UPDATE missions SET type = 81 WHERE id = \''.$_SESSION['MISSION_ID'].'\'';
+                    $sql = SqlQuery::make('UPDATE missions SET type = 81 WHERE id = ?', [$_SESSION['MISSION_ID']]);
 
                     break;
                 case 82:
@@ -1865,14 +1844,14 @@ class Mission {
                     
                     $softID = $this->pdo->lastInsertId();
                     
-                    $sql = 'UPDATE missions SET type = 82, victim = \''.self::missionInfo($_SESSION['MISSION_ID']).'\', info = \''.$softID.'\', info2 = \''.self::missionVictim($_SESSION['MISSION_ID']).'\' WHERE id = \''.$_SESSION['MISSION_ID'].'\'';
+                    $sql = SqlQuery::make('UPDATE missions SET type = 82, victim = ?, info = ?, info2 = ? WHERE id = ?', [self::missionInfo($_SESSION['MISSION_ID']), $softID, self::missionVictim($_SESSION['MISSION_ID']), $_SESSION['MISSION_ID']]);
 
                     break;
                 case 83:
-                    $sql = 'UPDATE missions SET type = 83 WHERE id = \''.$_SESSION['MISSION_ID'].'\'';
+                    $sql = SqlQuery::make('UPDATE missions SET type = 83 WHERE id = ?', [$_SESSION['MISSION_ID']]);
                     break;
                 case 84:
-                    $sql = 'UPDATE missions SET type = 84 WHERE id = \''.$_SESSION['MISSION_ID'].'\'';
+                    $sql = SqlQuery::make('UPDATE missions SET type = 84 WHERE id = ?', [$_SESSION['MISSION_ID']]);
                     break;
             }
             
@@ -1888,7 +1867,7 @@ class Mission {
     public function passedTutorial($uid){
         
         $this->session->newQuery();
-        $sql = 'SELECT COUNT(*) AS total FROM missions_history WHERE userID = \''.$uid.'\' AND type = \''. 84 .'\' LIMIT 1';
+        $sql = SqlQuery::make('SELECT COUNT(*) AS total FROM missions_history WHERE userID = ? AND type = ? LIMIT 1', [$uid, (84)]);
         $total = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->total;
         
         if($total > 0){
@@ -1896,7 +1875,7 @@ class Mission {
         } else {
 
             $this->session->newQuery();
-            $sql = 'SELECT COUNT(*) AS total FROM hist_missions WHERE userID = \''.$uid.'\' AND type = \''. 84 .'\' LIMIT 1';
+            $sql = SqlQuery::make('SELECT COUNT(*) AS total FROM hist_missions WHERE userID = ? AND type = ? LIMIT 1', [$uid, (84)]);
             $total = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->total;
             
             if($total > 0){

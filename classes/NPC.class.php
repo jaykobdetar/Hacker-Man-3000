@@ -19,7 +19,7 @@ class NPC {
         if(is_numeric($nid)){
 
             $this->session->newQuery();
-            $sqlSelect = "SELECT npcType FROM npc WHERE id = $nid LIMIT 1";
+            $sqlSelect = SqlQuery::make('SELECT npcType FROM npc WHERE id = ? LIMIT 1', [SqlQuery::num($nid)]);
             $data = $this->pdo->query($sqlSelect)->fetchAll();
 
             if (count($data) == '1') {
@@ -47,12 +47,12 @@ class NPC {
             }
             
             $this->session->newQuery();
-            $sqlSelect = "  SELECT npcIP, npcType, $table.web AS npcWeb, npcPass, $table.name 
+            $sqlSelect = SqlQuery::make('  SELECT npcIP, npcType, '.$table.'.web AS npcWeb, npcPass, '.$table.'.name 
                             FROM npc
-                            LEFT JOIN $table
-                            ON $table.npcID = npc.id
-                            WHERE id = $nid 
-                            LIMIT 1";
+                            LEFT JOIN '.$table.'
+                            ON '.$table.'.npcID = npc.id
+                            WHERE id = ? 
+                            LIMIT 1', [SqlQuery::num($nid)]);
             $data = $this->pdo->query($sqlSelect)->fetch(PDO::FETCH_OBJ);
 
             return $data;
@@ -68,7 +68,7 @@ class NPC {
     public function downNPC($nid){
 
         $this->session->newQuery();
-        $sqlSelect = "SELECT COUNT(*) AS total FROM npc_down WHERE npcID = $nid LIMIT 1";
+        $sqlSelect = SqlQuery::make('SELECT COUNT(*) AS total FROM npc_down WHERE npcID = ? LIMIT 1', [SqlQuery::num($nid)]);
         $total = $this->pdo->query($sqlSelect)->fetch(PDO::FETCH_OBJ)->total;
         
         if($total == 1){
@@ -101,20 +101,20 @@ class NPC {
         $genIP = ip2long($gameIP);        
         
         $this->session->newQuery();
-        $sql = 'INSERT INTO npc (id, npcType, npcIP, npcPass, downUntil)
-                VALUES (\'\', \''.$type.'\', \''.$genIP.'\', \''.self::randString(8).'\', \'\')';
+        $sql = SqlQuery::make('INSERT INTO npc (id, npcType, npcIP, npcPass, downUntil)
+                VALUES (\'\', ?, ?, ?, \'\')', [$type, $genIP, self::randString(8)]);
         $this->pdo->query($sql);
         
         $npcID = $this->pdo->lastInsertId();
 
         $this->session->newQuery();
-        $sql = "INSERT INTO npc_info_en (npcID, name, web)
-                VALUES ('".$npcID."', 'Initech Corp', '')";
+        $sql = SqlQuery::make('INSERT INTO npc_info_en (npcID, name, web)
+                VALUES (?, \'Initech Corp\', \'\')', [$npcID]);
         $this->pdo->query($sql);
         
         $this->session->newQuery();
-        $sql = "INSERT INTO npc_info_pt (npcID, name, web)
-                VALUES ('".$npcID."', 'Initech Corp', '')";
+        $sql = SqlQuery::make('INSERT INTO npc_info_pt (npcID, name, web)
+                VALUES (?, \'Initech Corp\', \'\')', [$npcID]);
         $this->pdo->query($sql);
         
         $this->session->newQuery();
@@ -123,8 +123,8 @@ class NPC {
         $sqlReg->execute(array($npcID));
         
         $this->session->newQuery();
-        $sql = 'INSERT INTO log (userID, text, isNPC)
-                VALUES (\''.$npcID.'\', \'\', \'1\')';
+        $sql = SqlQuery::make('INSERT INTO log (userID, text, isNPC)
+                VALUES (?, \'\', \'1\')', [$npcID]);
         $this->pdo->query($sql);
         
         return $npcID;
@@ -134,7 +134,7 @@ class NPC {
     public function getNPCByKey($key){
         
         $this->session->newQuery();
-        $sql = "SELECT npc.id, npc.npcIP FROM npc INNER JOIN npc_key ON npc.id = npc_key.npcID WHERE npc_key.key = '".$key."' LIMIT 1";
+        $sql = SqlQuery::make('SELECT npc.id, npc.npcIP FROM npc INNER JOIN npc_key ON npc.id = npc_key.npcID WHERE npc_key.key = ? LIMIT 1', [$key]);
         return $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
         
     }

@@ -13,11 +13,11 @@ class Lists {
 
     function __construct(){
 
-        require_once '/var/www/classes/Player.class.php';
-        require_once '/var/www/classes/Pagination.class.php';
-        require_once '/var/www/classes/PC.class.php';
-        require_once '/var/www/classes/Process.class.php';
-        require_once '/var/www/classes/Finances.class.php';
+        require_once __DIR__.'/Player.class.php';
+        require_once __DIR__.'/Pagination.class.php';
+        require_once __DIR__.'/PC.class.php';
+        require_once __DIR__.'/Process.class.php';
+        require_once __DIR__.'/Finances.class.php';
 
         $this->pdo = PDO_DB::factory();
         $this->player = new Player();
@@ -55,14 +55,14 @@ class Lists {
                     
                     $listIP = self::getListIPByID($listID);
                     
-                    $sql = "SELECT COUNT(*) AS totalList FROM lists WHERE virusID = '".$virusID."' AND id = '".$listID."' LIMIT 1";
+                    $sql = SqlQuery::make('SELECT COUNT(*) AS totalList FROM lists WHERE virusID = ? AND id = ? LIMIT 1', [$virusID, $listID]);
                     $totalList = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->totallist;
                     
                     if($totalList == 1){
                         $system->handleError('This virus is already assigned to this IP.', $postRedirect);
                     }
                     
-                    $sql = "SELECT COUNT(*) AS totalVirus FROM virus WHERE virusID = '".$virusID."' AND installedIp = '".$listIP."' AND installedBy = '".$_SESSION['id']."' AND active = 1 LIMIT 1";
+                    $sql = SqlQuery::make('SELECT COUNT(*) AS totalVirus FROM virus WHERE virusID = ? AND installedIp = ? AND installedBy = ? AND active = 1 LIMIT 1', [$virusID, $listIP, $_SESSION['id']]);
                     $totalVirus = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->totalvirus;                    
                     
                     if($totalVirus == 0){
@@ -181,11 +181,11 @@ class Lists {
     public function assign($virusID, $listIP, $listID){
         
         $this->session->newQuery();
-        $sql = "UPDATE virus SET lastCollect = NOW() WHERE virusID = '".$virusID."' AND installedIp = '".$listIP."' AND installedBy = '".$_SESSION['id']."' LIMIT 1";
+        $sql = SqlQuery::make('UPDATE virus SET lastCollect = NOW() WHERE virusID = ? AND installedIp = ? AND installedBy = ? LIMIT 1', [$virusID, $listIP, $_SESSION['id']]);
         $this->pdo->query($sql);
 
         $this->session->newQuery();
-        $sql = "UPDATE lists SET virusID = '".$virusID."' WHERE id = '".$listID."' LIMIT 1";
+        $sql = SqlQuery::make('UPDATE lists SET virusID = ? WHERE id = ? LIMIT 1', [$virusID, $listID]);
         $this->pdo->query($sql);
         
     }
@@ -193,7 +193,7 @@ class Lists {
     public function getListIPByID($id){
         
         $this->session->newQuery();
-        $sql = "SELECT ip FROM lists WHERE id = '".$id."'";
+        $sql = SqlQuery::make('SELECT ip FROM lists WHERE id = ?', [$id]);
         return $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->ip;
         
     }
@@ -201,7 +201,7 @@ class Lists {
     public function getListIDByIP($ip){
         
         $this->session->newQuery();
-        $sql = "SELECT id FROM lists WHERE ip = '".$ip."' AND userID = '". $_SESSION['id']."'";
+        $sql = SqlQuery::make('SELECT id FROM lists WHERE ip = ? AND userID = ?', [$ip, $_SESSION['id']]);
         return $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->id;
         
     }
@@ -213,7 +213,7 @@ class Lists {
         $virNote = '';
                     
         $this->session->newQuery();
-        $sql = "SELECT ip, notificationType, virusName FROM lists_notifications WHERE userID = '".$_SESSION['id']."'";
+        $sql = SqlQuery::make('SELECT ip, notificationType, virusName FROM lists_notifications WHERE userID = ?', [$_SESSION['id']]);
         $data = $this->pdo->query($sql)->fetchAll();
                                 
         if(sizeof($data) > 0){
@@ -243,7 +243,7 @@ class Lists {
             }
         
             $this->session->newQuery();
-            $sql = "DELETE FROM lists_notifications WHERE userID = '".$_SESSION['id']."' LIMIT ".sizeof($data);
+            $sql = SqlQuery::make('DELETE FROM lists_notifications WHERE userID = ? LIMIT ?', [$_SESSION['id'], SqlQuery::num(sizeof($data))]);
             $this->pdo->query($sql);        
             
         }
@@ -269,8 +269,8 @@ class Lists {
     public function addNotification($user, $ip, $type, $virus = ''){
         
         $this->session->newQuery();
-        $sql = "INSERT INTO lists_notifications (userID, ip, notificationType, virusName)
-                VALUES ('".$user."', '".$ip."', '".$type."', '".$virus."')";
+        $sql = SqlQuery::make('INSERT INTO lists_notifications (userID, ip, notificationType, virusName)
+                VALUES (?, ?, ?, ?)', [$user, $ip, $type, $virus]);
         $this->pdo->query($sql);
                 
     }
@@ -383,11 +383,11 @@ class Lists {
                     if ($total > '0') {
 
                         $this->session->newQuery();
-                        $sql = "SELECT virus_ddos.ddosID, virus_ddos.ip, virus_ddos.ddosName, virus_ddos.ddosVersion 
+                        $sql = SqlQuery::make('SELECT virus_ddos.ddosID, virus_ddos.ip, virus_ddos.ddosName, virus_ddos.ddosVersion 
                                 FROM virus_ddos 
                                 INNER JOIN lists
                                 ON lists.virusID = virus_ddos.ddosID
-                                WHERE virus_ddos.userID = '" . $_SESSION['id'] . "' AND virus_ddos.active = 1";
+                                WHERE virus_ddos.userID = ? AND virus_ddos.active = 1', [$_SESSION['id']]);
                         $tmp = $this->pdo->query($sql);
 
                         while ($ddosInfo = $tmp->fetch(PDO::FETCH_OBJ)) {
@@ -426,7 +426,7 @@ class Lists {
                 $sqlReg->execute(array($id, $ip, $user, $pass, $virusID));
 
                 $this->session->newQuery();
-                $sql = "UPDATE users_stats SET hackCount = hackCount + 1 WHERE uid = '".$_SESSION['id']."'";
+                $sql = SqlQuery::make('UPDATE users_stats SET hackCount = hackCount + 1 WHERE uid = ?', [$_SESSION['id']]);
                 $this->pdo->query($sql);
                 
             }
@@ -438,8 +438,8 @@ class Lists {
     public function bank_addToList($bankID, $acc, $pass){
         
         $this->session->newQuery();
-        $sql = "INSERT INTO lists_bankAccounts (id, userID, bankAcc, bankPass, bankID, hackedDate, lastMoney, lastMoneyDate)
-                VALUES ('', '".$_SESSION['id']."', '".$acc."', '".$pass."', '".$bankID."', NOW(), '-1', NOW())";
+        $sql = SqlQuery::make('INSERT INTO lists_bankAccounts (id, userID, bankAcc, bankPass, bankID, hackedDate, lastMoney, lastMoneyDate)
+                VALUES (\'\', ?, ?, ?, ?, NOW(), \'-1\', NOW())', [$_SESSION['id'], $acc, $pass, $bankID]);
         $this->pdo->query($sql);
         
     }
@@ -447,7 +447,7 @@ class Lists {
     public function isListed($id, $ip){
 
         $this->session->newQuery();
-        $sqlCount = "SELECT id FROM lists WHERE userID = $id AND ip = $ip LIMIT 1";
+        $sqlCount = SqlQuery::make('SELECT id FROM lists WHERE userID = ? AND ip = ? LIMIT 1', [SqlQuery::num($id), SqlQuery::num($ip)]);
         $total = $this->pdo->query($sqlCount)->fetchAll();
 
         if(count($total) == '1'){
@@ -461,7 +461,7 @@ class Lists {
     public function isExploited($id, $ip){
         
         $this->session->newQuery();
-        $sqlCount = "SELECT pass FROM lists WHERE userID = $id AND ip = $ip LIMIT 1";
+        $sqlCount = SqlQuery::make('SELECT pass FROM lists WHERE userID = ? AND ip = ? LIMIT 1', [SqlQuery::num($id), SqlQuery::num($ip)]);
         $pass = $this->pdo->query($sqlCount)->fetch(PDO::FETCH_OBJ)->pass;
         
         if($pass == 'exploited'){
@@ -475,7 +475,7 @@ class Lists {
     public function isDownload($id, $ip){
         
         $this->session->newQuery();
-        $sqlCount = "SELECT pass FROM lists WHERE userID = $id AND ip = $ip LIMIT 1";
+        $sqlCount = SqlQuery::make('SELECT pass FROM lists WHERE userID = ? AND ip = ? LIMIT 1', [SqlQuery::num($id), SqlQuery::num($ip)]);
         $pass = $this->pdo->query($sqlCount)->fetch(PDO::FETCH_OBJ)->pass;
         
         if($pass == 'download'){
@@ -489,7 +489,7 @@ class Lists {
     public function isUnknown($id, $ip){
         
         $this->session->newQuery();
-        $sqlCount = "SELECT pass FROM lists WHERE userID = $id AND ip = $ip LIMIT 1";
+        $sqlCount = SqlQuery::make('SELECT pass FROM lists WHERE userID = ? AND ip = ? LIMIT 1', [SqlQuery::num($id), SqlQuery::num($ip)]);
         $pass = $this->pdo->query($sqlCount)->fetch(PDO::FETCH_OBJ)->pass;
         
         if($pass == 'unknown'){
@@ -504,7 +504,7 @@ class Lists {
     public function revealUnknownPassword($id, $ip, $user, $pass){
         
         $this->session->newQuery();
-        $sql = "UPDATE lists SET user = '".$user."', pass = '".$pass."' WHERE userID = $id AND ip = $ip LIMIT 1";
+        $sql = SqlQuery::make('UPDATE lists SET user = ?, pass = ? WHERE userID = ? AND ip = ? LIMIT 1', [$user, $pass, SqlQuery::num($id), SqlQuery::num($ip)]);
         $this->pdo->query($sql);
         
     }
@@ -512,23 +512,23 @@ class Lists {
     public function updateListedHardware($id, $info){
         
         $this->session->newQuery();
-        $sql = 'SELECT COUNT(*) AS total FROM lists_specs_analyzed WHERE listID = '.$id.' LIMIT 1';
+        $sql = SqlQuery::make('SELECT COUNT(*) AS total FROM lists_specs_analyzed WHERE listID = ? LIMIT 1', [SqlQuery::num($id)]);
         $total = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->total;
         
         if($total == 0){
-            $sql = "INSERT INTO lists_specs_analyzed
+            $sql = SqlQuery::make('INSERT INTO lists_specs_analyzed
                         (listID, minCPU, maxCPU, minRAM, maxRAM)
                     VALUES
-                        ('".$id."', '".$info[0]."', '".$info[1]."', '".$info[2]."', '".$info[3]."')";
+                        (?, ?, ?, ?, ?)', [$id, $info[0], $info[1], $info[2], $info[3]]);
         } else {
-            $sql = "UPDATE lists_specs_analyzed 
+            $sql = SqlQuery::make('UPDATE lists_specs_analyzed 
                     SET 
-                        minCPU = '".$info[0]."',
-                        maxCPU = '".$info[1]."',
-                        minRAM = '".$info[2]."',
-                        maxRAM = '".$info[3]."'
-                    WHERE listID = $id 
-                    LIMIT 1";
+                        minCPU = ?,
+                        maxCPU = ?,
+                        minRAM = ?,
+                        maxRAM = ?
+                    WHERE listID = ? 
+                    LIMIT 1', [$info[0], $info[1], $info[2], $info[3], SqlQuery::num($id)]);
         }
         
         $this->session->newQuery();
@@ -539,7 +539,7 @@ class Lists {
     public function bank_isListed($user, $acc){
         
         $this->session->newQuery();
-        $sqlCount = "SELECT id FROM lists_bankAccounts WHERE userID = $user AND bankAcc = $acc LIMIT 1";
+        $sqlCount = SqlQuery::make('SELECT id FROM lists_bankAccounts WHERE userID = ? AND bankAcc = ? LIMIT 1', [SqlQuery::num($user), SqlQuery::num($acc)]);
         $total = $this->pdo->query($sqlCount)->fetchAll();
 
         if(count($total) == '1'){
@@ -553,7 +553,7 @@ class Lists {
     public function getListedLoginInfo($id, $ip){
         
 	$this->session->newQuery();
-        $sqlCount = "SELECT user, pass FROM lists WHERE userID = $id AND ip = $ip LIMIT 1";
+        $sqlCount = SqlQuery::make('SELECT user, pass FROM lists WHERE userID = ? AND ip = ? LIMIT 1', [SqlQuery::num($id), SqlQuery::num($ip)]);
         $total = $this->pdo->query($sqlCount)->fetchAll();
 
         return $total;
@@ -563,7 +563,7 @@ class Lists {
     public function bank_getListedLoginInfo($id, $acc){
         
 	$this->session->newQuery();
-        $sqlCount = "SELECT bankPass FROM lists_bankAccounts WHERE userID = $id AND bankAcc = $acc LIMIT 1";
+        $sqlCount = SqlQuery::make('SELECT bankPass FROM lists_bankAccounts WHERE userID = ? AND bankAcc = ? LIMIT 1', [SqlQuery::num($id), SqlQuery::num($acc)]);
         $total = $this->pdo->query($sqlCount)->fetchAll();
 
         return $total;
@@ -573,7 +573,7 @@ class Lists {
     public function bank_updateMoney($acc, $id, $money){
         
         $this->session->newQuery();
-        $sql = "UPDATE lists_bankAccounts SET lastMoney = $money, lastMoneyDate = NOW() WHERE bankAcc = $acc AND userID = $id";
+        $sql = SqlQuery::make('UPDATE lists_bankAccounts SET lastMoney = ?, lastMoneyDate = NOW() WHERE bankAcc = ? AND userID = ?', [SqlQuery::num($money), SqlQuery::num($acc), SqlQuery::num($id)]);
         $this->pdo->query($sql);
         
     }
@@ -646,7 +646,7 @@ class Lists {
                     $hardInfo = $hardware->getHardwareInfo($hackedInfo['0']['id'], $hackedInfo['0']['pctype']);
 
                     $this->session->newQuery();
-                    $sql = "SELECT COUNT(*) AS virusCount FROM virus WHERE installedIp = '".$virusInfo->installedip."' AND virusType = '".$virusInfo->virustype."' AND active = 1";
+                    $sql = SqlQuery::make('SELECT COUNT(*) AS virusCount FROM virus WHERE installedIp = ? AND virusType = ? AND active = 1', [$virusInfo->installedip, $virusInfo->virustype]);
                     $virusCount = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->viruscount; //total de virus desse tipo trabalhando no ip em questão
                     
                     if($virusInfo->virustype == '1'){ //vspam
@@ -918,7 +918,7 @@ class Lists {
             }
             
             $this->session->newQuery();
-            $sql = 'SELECT COUNT(*) AS total FROM lists_collect WHERE userID = '.$_SESSION['id'].' LIMIT 1';
+            $sql = SqlQuery::make('SELECT COUNT(*) AS total FROM lists_collect WHERE userID = ? LIMIT 1', [SqlQuery::num($_SESSION['id'])]);
             $isCollected = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->total;
             
             if($isCollected == 1){
@@ -971,7 +971,7 @@ class Lists {
     public function lastCollect(){
         
         $this->session->newQuery();
-        $sql = 'SELECT COUNT(*) AS total, collectText FROM lists_collect WHERE userID = '.$_SESSION['id'].' LIMIT 1';
+        $sql = SqlQuery::make('SELECT COUNT(*) AS total, collectText FROM lists_collect WHERE userID = ? LIMIT 1', [SqlQuery::num($_SESSION['id'])]);
         $text = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
         
         if($text->total == 0){
@@ -1038,7 +1038,7 @@ class Lists {
         $id = $_SESSION['id'];
 
 	$this->session->newQuery();
-        $sql = "UPDATE virus SET lastCollect = NOW() WHERE installedBy = $id AND virusID = '".$virusID."'";
+        $sql = SqlQuery::make('UPDATE virus SET lastCollect = NOW() WHERE installedBy = ? AND virusID = ?', [SqlQuery::num($id), $virusID]);
         $this->pdo->query($sql);
 
     }
@@ -1052,7 +1052,7 @@ class Lists {
         }
         
         $this->session->newQuery();
-        $sql = "SELECT id FROM ".$table." WHERE userID = '".$_SESSION['id']."' AND id = '".$listID."' LIMIT 1";
+        $sql = SqlQuery::make('SELECT id FROM '.$table.' WHERE userID = ? AND id = ? LIMIT 1', [$_SESSION['id'], $listID]);
         $data = $this->pdo->query($sql)->fetchAll();
         
         if(sizeof($data) == 1){
@@ -1074,26 +1074,26 @@ class Lists {
         if($type == 1){ //check if have active viruses
             
             $this->session->newQuery();
-            $sql = "UPDATE virus
+            $sql = SqlQuery::make('UPDATE virus
                     INNER JOIN lists
                     ON virus.installedIp = lists.ip
                     LEFT JOIN virus_ddos 
                     ON virus_ddos.ip = virus.installedIp
-                    SET virus.active = '0', virus_ddos.active = '0'
-                    WHERE lists.id = '".$listID."' AND virus.installedBy = '".$_SESSION['id']."'
-                    ";
+                    SET virus.active = \'0\', virus_ddos.active = \'0\'
+                    WHERE lists.id = ? AND virus.installedBy = ?
+                    ', [$listID, $_SESSION['id']]);
             $this->pdo->query($sql);
             
             
         }
         
         $this->session->newQuery();
-        $sql = "DELETE FROM ".$table." WHERE userID = '".$_SESSION['id']."' AND id = '".$listID."' LIMIT 1";
+        $sql = SqlQuery::make('DELETE FROM '.$table.' WHERE userID = ? AND id = ? LIMIT 1', [$_SESSION['id'], $listID]);
         $this->pdo->query($sql);
         
         if($type == 1){
             $this->session->newQuery();
-            $sql = "DELETE FROM lists_specs WHERE listID = '".$listID."' LIMIT 1";
+            $sql = SqlQuery::make('DELETE FROM lists_specs WHERE listID = ? LIMIT 1', [$listID]);
             $this->pdo->query($sql);
         }
 
@@ -1105,18 +1105,18 @@ class Lists {
         $victimHardware = $hardware->getHardwareInfo($victimInfo['id'], $victimInfo['pctype']);
 
         if(self::specs_isset($victimIP)){
-            $sql = "UPDATE lists_specs
+            $sql = SqlQuery::make('UPDATE lists_specs
                     SET
-                        spec_hdd = '".$victimHardware['HDD']."',
-                        spec_net = '".$victimHardware['NET']."'
+                        spec_hdd = ?,
+                        spec_net = ?
                     WHERE  
-                        listID = '".self::getListIDByIP($victimIP)."'
-                    LIMIT 1";            
+                        listID = ?
+                    LIMIT 1', [$victimHardware['HDD'], $victimHardware['NET'], self::getListIDByIP($victimIP)]);            
         } else {
-            $sql = "INSERT INTO lists_specs 
+            $sql = SqlQuery::make('INSERT INTO lists_specs 
                         (listID, spec_hdd, spec_net) 
                     VALUES
-                        ('".self::getListIDByIP($victimIP)."', '".$victimHardware['HDD']."', '".$victimHardware['NET']."')";
+                        (?, ?, ?)', [self::getListIDByIP($victimIP), $victimHardware['HDD'], $victimHardware['NET']]);
         }
         
         $this->session->newQuery();
@@ -1127,15 +1127,15 @@ class Lists {
     private function specs_isset($victimIP){
         
         $this->session->newQuery();
-        $sql = 'SELECT COUNT(*) AS total 
+        $sql = SqlQuery::make('SELECT COUNT(*) AS total 
                 FROM lists_specs
                 WHERE listID = (
                     SELECT id
                     FROM lists
                     WHERE 
-                        ip = \''.$victimIP.'\' AND
-                        userID = \''.$_SESSION['id'].'\'
-                )';
+                        ip = ? AND
+                        userID = ?
+                )', [$victimIP, $_SESSION['id']]);
 
         if($this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->total == 1){
             return TRUE;

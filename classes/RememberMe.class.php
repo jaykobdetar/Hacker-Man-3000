@@ -1,196 +1,181 @@
 <?php
 
 /*
- * 2019: Taken from <link>
- * Retirado de http://stackoverflow.com/questions/1354999/keep-me-logged-in-the-best-approach/17267718#17267718
+ * "Keep me logged in" cookie.
+ *
+ * The cookie holds the user id, a random token and an HMAC signature (keyed with APP_KEY).
+ * Only a SHA-256 hash of the token is stored in users_online, and the token is rotated every
+ * time the cookie is used.
+ *
+ * Based on http://stackoverflow.com/questions/1354999/keep-me-logged-in-the-best-approach/17267718#17267718
  */
 
 class RememberMe {
-    private $key = null;
+
+    const COOKIE = 'auto';
+    const LIFETIME = 172800; // 2 days
+
+    private $key;
     private $pdo;
 
-    function __construct($privatekey, $db) {
-        $this->key = $privatekey;
-        $this->pdo = $db;
+    function __construct($privatekey = null, $db = null) {
+        $this->key = $privatekey ?? self::appKey();
+        $this->pdo = $db ?? PDO_DB::factory();
     }
 
+    /** Secret used to sign cookies, from APP_KEY (generate with `php -r "echo bin2hex(random_bytes(32));"`). */
+    public static function appKey() {
+        $key = Config::require('APP_KEY');
+        if (strpos($key, 'base64:') === 0) {
+            return base64_decode(substr($key, 7), true);
+        }
+        return ctype_xdigit($key) && strlen($key) % 2 === 0 ? hex2bin($key) : $key;
+    }
+
+    /**
+     * @return array|false|int user info when the cookie is valid, false when there is no usable cookie,
+     *                         -1 when the cookie was tampered with
+     */
     public function auth() {
 
-        // Check if remeber me cookie is present
-        if (! isset($_COOKIE["auto"]) || empty($_COOKIE["auto"])) {
+        if (empty($_COOKIE[self::COOKIE]) || !is_string($_COOKIE[self::COOKIE])) {
             return false;
         }
 
-        // Decode cookie value
-        if (! $cookie = @json_decode($_COOKIE["auto"], true)) {
+        $cookie = json_decode($_COOKIE[self::COOKIE], true);
+        if (!is_array($cookie) || !isset($cookie['user'], $cookie['token'], $cookie['signature'])
+            || !is_scalar($cookie['user']) || !is_string($cookie['token']) || !is_string($cookie['signature'])) {
             return false;
         }
 
-        // Check all parameters
-        if (! (isset($cookie['user']) || isset($cookie['token']) || isset($cookie['signature']))) {
-            return false;
-        }
-
-        $var = $cookie['user'] . $cookie['token'];
-
-        // Check Signature
-        if (! $this->verify($var, $cookie['signature'])) {
+        if (!$this->verify($cookie['user'] . $cookie['token'], $cookie['signature'])) {
             return -1;
         }
 
-        // Check Database
-        $info = $this->getdb($cookie['user']);
-        if (! $info) {
-            return false; // User must have deleted accout
+        $stored = $this->getdb($cookie['user']);
+        if (!$stored) {
+            return false; // logged out elsewhere, or the account was deleted
         }
 
-        // Check User Data
-        if (! $info = json_decode($info, true)) {
+        if (!hash_equals($stored, hash('sha256', $cookie['token']))) {
             return -1;
         }
 
-        // Verify Token
-        if ($info['token'] !== $cookie['token']) {
-            return -1;
-        }
+        // Rotate the token on every use.
+        $this->remember($cookie['user'], true, true);
+        return ['user' => (int) $cookie['user']];
 
-        /**
-         * Important
-         * To make sure the cookie is always change
-         * reset the Token information
-         */
-
-        $this->remember($info['user'], true, true);
-        return $info;
-        
     }
-    
+
     public function getdb($user){
-              
-        $sql = 'SELECT COUNT(*) AS total, token FROM users_online WHERE id = '.$user.' LIMIT 1';
-        return $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->token;
-                
+
+        $sql = SqlQuery::make('SELECT token FROM users_online WHERE id = ? LIMIT 1', [SqlQuery::num($user)]);
+        $row = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
+        return $row ? $row->token : false;
+
     }
 
-    public function setdb($user, $encoded, $update, $expire){
-        
+    public function setdb($user, $tokenHash, $update, $expire){
+
         if($update){
             $sql = 'UPDATE users_online SET token = :token WHERE id = :id';
         } else {
-            $sql = 'INSERT INTO users_online (id, token) 
+            $sql = 'INSERT INTO users_online (id, token)
                     VALUES (:id, :token)';
         }
-        
+
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute(array(':id' => $user, ':token' => $encoded));
-        
+        $stmt->execute(array(':id' => $user, ':token' => $tokenHash));
+
         if($expire){
-            
-            $sql = 'REPLACE INTO users_expire (userID, expireDate) 
+
+            $sql = 'REPLACE INTO users_expire (userID, expireDate)
                     VALUES (:id, DATE_ADD(NOW(), INTERVAL 2 HOUR))';
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute(array(':id' => $user));
-            
+
         }
-        
-        $sql = 'INSERT INTO stats_login (userID) 
+
+        $sql = 'INSERT INTO stats_login (userID)
                 VALUES (:id)';
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute(array(':id' => $user));
-        
+
     }
-    
+
     public function remember($user, $updateQuery, $createCookie) {
+        $token = bin2hex(random_bytes(32));
         $cookie = [
-                "user" => $user,
-                "token" => $this->getRand(64),
-                "signature" => null
+            'user' => $user,
+            'token' => $token,
+            'signature' => $this->hash($user . $token),
         ];
-        $cookie['signature'] = $this->hash($cookie['user'] . $cookie['token']);
-        $encoded = json_encode($cookie);
 
-        // Add User to database
-        $this->setdb($user, $encoded, $updateQuery, !$createCookie);
+        $this->setdb($user, hash('sha256', $token), $updateQuery, !$createCookie);
 
-        /**
-         * Set Cookies
-         * In production enviroment Use
-         * setcookie("auto", $encoded, time() + $expiration, "/~root/",
-         * "example.com", 1, 1);
-         */
         if($createCookie){
-            setcookie("auto", $encoded, time() + 172800); // Sample
+            setcookie(self::COOKIE, json_encode($cookie), [
+                'expires' => time() + self::LIFETIME,
+                'path' => '/',
+                'secure' => Config::bool('SESSION_SECURE_COOKIE', Config::isHttps()),
+                'httponly' => true,
+                'samesite' => Config::get('SESSION_SAMESITE', 'Strict'),
+            ]);
         }
     }
 
-    public function verify($data, $hash) {
-        $rand = substr($hash, 0, 4);
-        return $this->hash($data, $rand) === $hash;
+    public static function forget() {
+        setcookie(self::COOKIE, '', ['expires' => time() - 3600, 'path' => '/']);
     }
 
-    private function hash($value, $rand = null) {
-        $rand = $rand === null ? $this->getRand(4) : $rand;
-        return $rand . bin2hex(hash_hmac('sha256', $value . $rand, $this->key, true));
+    private function verify($data, $signature) {
+        return hash_equals($this->hash($data), $signature);
     }
 
-    private function getRand($length) {
-        switch (true) {
-            case function_exists("mcrypt_create_iv") :
-                $r = mcrypt_create_iv($length, MCRYPT_DEV_URANDOM);
-                break;
-            case function_exists("openssl_random_pseudo_bytes") :
-                $r = openssl_random_pseudo_bytes($length);
-                break;
-            case is_readable('/dev/urandom') : // deceze
-                $r = file_get_contents('/dev/urandom', false, null, 0, $length);
-                break;
-            default :
-                $i = 0;
-                $r = "";
-                while($i ++ < $length) {
-                    $r .= chr(mt_rand(0, 255));
-                }
-                break;
-        }
-        return substr(bin2hex($r), 0, $length);
+    private function hash($value) {
+        return hash_hmac('sha256', (string) $value, $this->key);
     }
-    
+
     public function rememberlogin(){
-                                
+
         $data = self::auth();
 
-        if ($data) {
-
-            require '/var/www/classes/Database.class.php';
-            $database = new LRSys();
-            
-            require_once '/var/www/classes/Player.class.php';
-            $player = new Player();
-
-            if($player->verifyID($data['user'])){
-                
-                $redirect = 'index';
-                if(array_key_exists('GOING_ON', $_SESSION)){
-                    $redirect = $_SESSION['GOING_ON'];
-                    unset($_SESSION['GOING_ON']);
-                }
-                
-                $username = $player->getPlayerInfo($data['user'])->login;
-                $database->login($username, '', 'remember');
-                                
-                header("Location:".$redirect);
-                exit();
-                
-            }
-
-        } elseif($data == -1){ //invalid or tampered cookie.
-            $_SESSION = NULL;
+        if ($data === -1) { // invalid or tampered cookie
+            self::forget();
+            $_SESSION = [];
             session_destroy();
             exit("Invalid token");
         }
-        
-    }
-    
-}
 
-?>
+        if ($data) {
+
+            require_once __DIR__.'/Database.class.php';
+            $database = new LRSys();
+
+            require_once __DIR__.'/Player.class.php';
+            $player = new Player();
+
+            if($player->verifyID($data['user'])){
+
+                $redirect = 'index';
+                if(isset($_SESSION['GOING_ON'])){
+                    // only ever redirect to a local page
+                    if (is_string($_SESSION['GOING_ON']) && preg_match('#^[A-Za-z0-9_\-]+(\.php)?(\?[^\s]*)?$#', $_SESSION['GOING_ON'])) {
+                        $redirect = $_SESSION['GOING_ON'];
+                    }
+                    unset($_SESSION['GOING_ON']);
+                }
+
+                $username = $player->getPlayerInfo($data['user'])->login;
+                $database->login($username, '', 'remember');
+
+                header("Location:".$redirect);
+                exit();
+
+            }
+
+        }
+
+    }
+
+}

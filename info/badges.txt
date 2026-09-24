@@ -13,6 +13,7 @@
 5 - Premium
         Image
         IMPLEMENTADO
+        2026: no longer awarded (paid accounts were removed); kept so existing badges still display.
 6 - Beta tester
         Add: special
         Image
@@ -325,6 +326,7 @@ TODO
         Evento: expire premium
         Image
         IMPLEMENTADO
+        2026: no longer awarded (paid accounts were removed); kept so existing badges still display.
 81 - Best clan
         Situação: primeiro lugar no ranking de clan
         Evento: round reset

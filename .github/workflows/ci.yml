@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  php:
+    name: PHP ${{ matrix.php }} lint and audit
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ["8.2", "8.3", "8.4"]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: pdo_mysql, gd, gettext, sodium
+          tools: composer:v2
+      - run: composer validate --strict
+      - run: composer install --no-interaction --no-progress
+      - run: composer audit
+      - name: Lint all PHP files
+        run: git ls-files '*.php' | xargs -n 50 -P 4 php -l > /dev/null
+
+  python:
+    name: Python scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r python/requirements.txt
+      - run: python -m compileall -q python cron2
+
+  smoke:
+    name: Smoke test (MariaDB)
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: mariadb:11.4
+        env:
+          MARIADB_DATABASE: game
+          MARIADB_USER: he
+          MARIADB_PASSWORD: ci-password
+          MARIADB_ROOT_PASSWORD: ci-root
+        ports: ["3306:3306"]
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PASSWORD: ci-password
+      APP_KEY: 0000000000000000000000000000000000000000000000000000000000000000
+      BTC_PRICE_URL: ""
+    steps:
+      - uses: actions/checkout@v5
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: pdo_mysql, gd, gettext, sodium
+          tools: composer:v2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: composer install --no-interaction --no-progress
+      - run: pip install -r python/requirements.txt
+      - name: Create the database and start round 1
+        run: |
+          mysql -h 127.0.0.1 -uhe -pci-password game < game.sql
+          mysql -h 127.0.0.1 -uhe -pci-password game -e "INSERT INTO round (name, startDate, status) VALUES ('Round 1', NOW() - INTERVAL 1 MINUTE, 0)"
+          python cron2/newRoundUpdater.py > /dev/null
+      - name: Start the game
+        run: |
+          php -S 127.0.0.1:8080 scripts/dev-router.php > php-server.log 2>&1 &
+          timeout 30 sh -c 'until curl -s -o /dev/null http://127.0.0.1:8080/; do sleep 1; done'
+      - run: tests/smoke.sh http://127.0.0.1:8080
+      - name: Server log
+        if: always()
+        run: cat php-server.log
+
+  docker:
+    name: Docker image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: docker build -t hackerexperience-legacy:ci .

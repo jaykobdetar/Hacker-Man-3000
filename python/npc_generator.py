@@ -1,12 +1,12 @@
-import MySQLdb
+import gamedb
 import json
 import random
 import string
 
-db = MySQLdb.connect(host="localhost",user="he",passwd="REDADCTED",db="game")
+db = gamedb.connect()
 cur = db.cursor()
 
-json_data = open('/var/www/json/npc.json').read()
+json_data = open(gamedb.path('json/npc.json')).read()
 npcList = json.loads(json_data)
 
 def ip_generator():
@@ -120,7 +120,7 @@ def add(npcType, npcInfo, key):
 					""", (npcID, nextScan))
 
 	except:
-		print 'ROOOLING BACK'
+		print('ROOOLING BACK')
 		db.rollback()
 
 emptyDB()
@@ -170,6 +170,6 @@ db.commit()
 #precisa ser por os (e nao subprocess.call) pq npc_generator.py eh chamado de newroundupdater por os
 
 import os
-os.system('python /var/www/python/software_generator.py')
-os.system('python /var/www/python/software_generator_riddle.py')
-os.system('python /var/www/python/npc_generator_web.py')
+gamedb.run_script('software_generator.py')
+gamedb.run_script('software_generator_riddle.py')
+gamedb.run_script('npc_generator_web.py')

@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 import sys
-import MySQLdb
+import gamedb
 import json
 import os
 import gettext
@@ -26,10 +26,10 @@ def prepare():
 		badge_table = 'clan_badge'
 		field = 'clanID'
 
-	db = MySQLdb.connect(host="localhost",user="he",passwd="REDACTED",db="game",charset="utf8",init_command="set names utf8")
+	db = gamedb.connect()
 	cur = db.cursor()
 
-	json_data = open('/var/www/json/badges.json').read()
+	json_data = open(gamedb.path('json/badges.json')).read()
 	badgeList = json.loads(json_data)
 	badgeInfo = {'name':badgeList[str(badgeID)]["name"], 'desc':badgeList[str(badgeID)]["desc"], 'collectible':badgeList[str(badgeID)]["collectible"], 'per_round':badgeList[str(badgeID)]["per_round"]}
 
@@ -139,10 +139,10 @@ def install_gettext(lang):
 	elif lang == 'br':
 		lang = 'pt_BR'
 
-	locale.setlocale(locale.LC_ALL, lang)
+	gamedb.set_locale(lang)
 	loc = locale.getlocale()
 
-	filename = "/var/www/locale/%s/LC_MESSAGES/messages.mo" % locale.getlocale()[0]
+	filename = gamedb.path("locale/%s/LC_MESSAGES/messages.mo") % locale.getlocale()[0]
 	 
 	global trans
 
@@ -151,7 +151,7 @@ def install_gettext(lang):
 	except IOError:
 	    trans = gettext.NullTranslations()
 
-	trans.install(unicode=True)
+	trans.install()
 
 def badge_add():
 
@@ -208,12 +208,11 @@ def badge_add():
 				else:
 					text += _('You now have a total of <strong>%s</strong> badges.') % str(myBadges)
 					if myBadges == 30:
-						os.system('python /var/www/python/badge_add.py user '+str(userID)+' 50')
+						gamedb.run_script('badge_add.py', 'user', userID, 50)
 
-				mail(subject.encode('utf-8').decode('cp1252'), text.encode('utf-8').decode('cp1252'))
+				mail(subject, text)
 
-			os.system('python /var/www/python/profile_generator.py '+str(userID)+' '+get_lang(userID))
-
+			gamedb.run_script('profile_generator.py', str(userID), get_lang(userID))
 		db.commit()
 
 
@@ -221,7 +220,7 @@ userBadge = userID = badgeID = None
 
 if __name__ == '__main__':
 
-	userBadge = sys.argv[1]
+	userBadge = 'clan' if sys.argv[1] == 'clan' else 'user'
 	userID = int(sys.argv[2])
 	badgeID = int(sys.argv[3])
 

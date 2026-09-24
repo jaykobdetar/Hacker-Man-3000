@@ -1,8 +1,11 @@
-import MySQLdb
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..', 'python'))
+import gamedb
 import time
 start_time = time.time()
 
-db = MySQLdb.connect(host="localhost",user="he",passwd="REDACTED",db="game")
+db = gamedb.connect()
 cur = db.cursor()
 
 cur.execute("""	DELETE users_expire, users_online, internet_connections
@@ -25,4 +28,4 @@ cur.execute("""	DELETE users_online, internet_connections
 
 db.commit()
 
-print time.strftime("%d/%m/%y %H:%M:%S"),' - ',__file__,' - ',round(time.time() - start_time, 4), "s \n"
+print(time.strftime("%d/%m/%y %H:%M:%S"),' - ',__file__,' - ',round(time.time() - start_time, 4), "s \n")
