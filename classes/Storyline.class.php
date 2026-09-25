@@ -1,7 +1,7 @@
 <?php
 
-require_once '/var/www/classes/System.class.php';
-require_once '/var/www/classes/Session.class.php';
+require_once __DIR__.'/System.class.php';
+require_once __DIR__.'/Session.class.php';
 
 class Storyline {
     
@@ -76,7 +76,7 @@ class Storyline {
     public function safenet_onFBI($ip, $reason){
         
         $this->session->newQuery();
-        $sql = "SELECT onFBI FROM safeNet WHERE IP = '".$ip."' AND reason = '".$reason."' LIMIT 1";
+        $sql = SqlQuery::make('SELECT onFBI FROM safeNet WHERE IP = ? AND reason = ? LIMIT 1', [$ip, $reason]);
         $data = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
         
         if($data->onfbi == 1){
@@ -133,11 +133,11 @@ class Storyline {
             }        
             
             $this->session->newQuery();
-            $sql = "INSERT INTO safeNet (IP, reason, startTime, endTime, count, onFBI)
-                    VALUES ('".$ip."', '".$reason."', NOW(), DATE_ADD(NOW(), INTERVAL '".$addTime."' SECOND), 1, 0)";
+            $sql = SqlQuery::make('INSERT INTO safeNet (IP, reason, startTime, endTime, count, onFBI)
+                    VALUES (?, ?, NOW(), DATE_ADD(NOW(), INTERVAL ? SECOND), 1, 0)', [$ip, $reason, $addTime]);
             $this->pdo->query($sql);
             
-            require_once '/var/www/classes/Mail.class.php';
+            require_once __DIR__.'/Mail.class.php';
 
             $mail = new Mail();
             $mail->newMail($_SESSION['id'], _('Safenet is tracking you.'), $text, '1', -3);            
@@ -145,7 +145,7 @@ class Storyline {
         } else {
             
             $this->session->newQuery();
-            $sql = "UPDATE safeNet SET count = count + 1 WHERE IP = '".$ip."' AND reason = '".$reason."' LIMIT 1";
+            $sql = SqlQuery::make('UPDATE safeNet SET count = count + 1 WHERE IP = ? AND reason = ? LIMIT 1', [$ip, $reason]);
             $this->pdo->query($sql);
             
         }
@@ -169,7 +169,7 @@ class Storyline {
     public function safenet_until($ip){
 
         $this->session->newQuery();
-        $sql = "SELECT endTime FROM safeNet WHERE ip = '".$ip."' ORDER BY endTime DESC";
+        $sql = SqlQuery::make('SELECT endTime FROM safeNet WHERE ip = ? ORDER BY endTime DESC', [$ip]);
         return $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->endtime;
 
     }
@@ -200,7 +200,7 @@ class Storyline {
         }
         
         $this->session->newQuery();
-        $sql = "UPDATE safeNet SET count = count + 1, endTime = DATE_ADD(endTime, INTERVAL '".$timeSec."' SECOND) WHERE IP = '".$ip."' AND reason = '".$reason."' LIMIT 1";
+        $sql = SqlQuery::make('UPDATE safeNet SET count = count + 1, endTime = DATE_ADD(endTime, INTERVAL ? SECOND) WHERE IP = ? AND reason = ? LIMIT 1', [$timeSec, $ip, $reason]);
         $this->pdo->query($sql);        
         
     }
@@ -208,7 +208,7 @@ class Storyline {
     public function safenet_isset($ip, $reason){
         
         $this->session->newQuery();
-        $sql = "SELECT IP FROM safeNet WHERE IP = '".$ip."' AND reason = '".$reason."' LIMIT 1";
+        $sql = SqlQuery::make('SELECT IP FROM safeNet WHERE IP = ? AND reason = ? LIMIT 1', [$ip, $reason]);
         $data = $this->pdo->query($sql)->fetchAll();
         
         if(sizeof($data) == 1){
@@ -271,7 +271,7 @@ class Storyline {
     public function fbi_getBounty($ip){
         
         $this->session->newQuery();
-        $sql = "SELECT SUM(bounty) AS totalBounty FROM fbi WHERE ip = '".$ip."'";
+        $sql = SqlQuery::make('SELECT SUM(bounty) AS totalBounty FROM fbi WHERE ip = ?', [$ip]);
         return $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->totalbounty;
                
     }
@@ -279,7 +279,7 @@ class Storyline {
     public function fbi_until($ip){
         
         $this->session->newQuery();
-        $sql = "SELECT dateEnd FROM fbi WHERE ip = '".$ip."' ORDER BY dateEnd DESC";
+        $sql = SqlQuery::make('SELECT dateEnd FROM fbi WHERE ip = ? ORDER BY dateEnd DESC', [$ip]);
         return $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->dateend;
         
     }
@@ -290,10 +290,10 @@ class Storyline {
         $bounty = self::fbi_calculateBounty($reason, $info);
         
         $this->session->newQuery();
-        $sql = "UPDATE fbi SET dateEnd = DATE_ADD(dateEnd, INTERVAL '".$addTime."' SECOND), bounty = bounty + '".$bounty."' WHERE ip = '".$ip."' AND reason = '".$reason."'";
+        $sql = SqlQuery::make('UPDATE fbi SET dateEnd = DATE_ADD(dateEnd, INTERVAL ? SECOND), bounty = bounty + ? WHERE ip = ? AND reason = ?', [$addTime, $bounty, $ip, $reason]);
         $this->pdo->query($sql);
         
-        require_once '/var/www/classes/Mail.class.php';
+        require_once __DIR__.'/Mail.class.php';
 
         $mail = new Mail();
         $mail->newMail($_SESSION['id'], _('Bounty increased.'), _('Your bounty has increased. We want you so bad.'), '2', -2);
@@ -324,17 +324,17 @@ class Storyline {
         $finances = new Finances();
         
         $this->session->newQuery();
-        $sql = "SELECT SUM(bounty) AS totalBounty FROM fbi WHERE ip = '".$ip."'";
+        $sql = SqlQuery::make('SELECT SUM(bounty) AS totalBounty FROM fbi WHERE ip = ?', [$ip]);
         $bounty = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->totalbounty;
         
         $finances->addMoney($bounty, $finances->getWealthiestBankAcc());
         
         $this->session->newQuery();
-        $sql = "DELETE FROM fbi WHERE ip = '".$ip."'";
+        $sql = SqlQuery::make('DELETE FROM fbi WHERE ip = ?', [$ip]);
         $this->pdo->query($sql);
         
         $this->session->newQuery();
-        $sql = "DELETE FROM safeNet WHERE IP = '".$ip."'";
+        $sql = SqlQuery::make('DELETE FROM safeNet WHERE IP = ?', [$ip]);
         $this->pdo->query($sql);
         
         $ranking = new Ranking();
@@ -368,14 +368,16 @@ class Storyline {
     
     public function fbi_isset($ip, $reason = ''){
         
+        $params = [$ip];
         if($reason != ''){
-            $where = ' AND reason = '.$reason.' ';
+            $where = ' AND reason = ? ';
+            $params[] = SqlQuery::num($reason);
         } else {
             $where = '';
         }
         
         $this->session->newQuery();
-        $sql = "SELECT ip FROM fbi WHERE ip = '".$ip."' $where LIMIT 1";
+        $sql = SqlQuery::make('SELECT ip FROM fbi WHERE ip = ? '.$where.' LIMIT 1', $params);
         $data = $this->pdo->query($sql)->fetchAll();
         
         if(sizeof($data) == 1){
@@ -391,18 +393,18 @@ class Storyline {
         if(!self::fbi_isset($ip, $reason)){
 
             $this->session->newQuery();
-            $sql = "UPDATE safeNet SET onFBI = '1' WHERE IP = '".$ip."' AND reason = '".$reason."'";
+            $sql = SqlQuery::make('UPDATE safeNet SET onFBI = \'1\' WHERE IP = ? AND reason = ?', [$ip, $reason]);
             $this->pdo->query($sql);
 
             $duration = self::fbi_calculateTime($reason, $info);
             $bounty = self::fbi_calculateBounty($reason, $info);
 
             $this->session->newQuery();
-            $sql = "INSERT INTO fbi (ip, reason, bounty, dateAdd, dateEnd)
-                    VALUES ('".$ip."', '".$reason."', '".$bounty."', NOW(), DATE_ADD(NOW(), INTERVAL '".$duration."' SECOND))";
+            $sql = SqlQuery::make('INSERT INTO fbi (ip, reason, bounty, dateAdd, dateEnd)
+                    VALUES (?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL ? SECOND))', [$ip, $reason, $bounty, $duration]);
             $this->pdo->query($sql);
         
-            require_once '/var/www/classes/Mail.class.php';
+            require_once __DIR__.'/Mail.class.php';
 
             $mail = new Mail();
             $mail->newMail($_SESSION['id'], _('FBI suspect'), _('Hey bitch, FBI is now looking for you. Take care and expect attacks.'), '1', -2);            
@@ -638,7 +640,7 @@ class Storyline {
     public function round_stats($roundID){
                 
         $this->session->newQuery();
-        $sql = 'SELECT activeUsers, ddosCount, hackCount, researchCount FROM round_stats WHERE id = \''.$roundID.'\' LIMIT 1';
+        $sql = SqlQuery::make('SELECT activeUsers, ddosCount, hackCount, researchCount FROM round_stats WHERE id = ? LIMIT 1', [$roundID]);
         return $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
         
     }
@@ -688,7 +690,7 @@ class Storyline {
         $tries = 0;
         
         $this->session->newQuery();
-        $sql = 'SELECT doomCreatorID, doomClanID, status FROM hist_doom WHERE round = \''.$roundID.'\'';
+        $sql = SqlQuery::make('SELECT doomCreatorID, doomClanID, status FROM hist_doom WHERE round = ?', [$roundID]);
         $data = $this->pdo->query($sql);
                 
         while($doomInfo = $data->fetch(PDO::FETCH_OBJ)){
@@ -746,7 +748,7 @@ class Storyline {
     
     public function doom_showFailed(){
         
-        require '/var/www/classes/Clan.class.php';
+        require __DIR__.'/Clan.class.php';
         
         $player = new Player();
         $clan = new Clan();
@@ -846,7 +848,7 @@ class Storyline {
             </div>
 <?php
 
-        require '/var/www/classes/Clan.class.php';
+        require __DIR__.'/Clan.class.php';
         
         $player = new Player();
         $clan = new Clan();
@@ -950,7 +952,7 @@ class Storyline {
     public function nsa_haveDoom(){
  
         $this->session->newQuery();
-        $sql = "SELECT COUNT(*) AS total FROM software WHERE softType = 29 AND userID = '".self::nsa_getID()."' AND isNPC = 1 LIMIT 1";
+        $sql = SqlQuery::make('SELECT COUNT(*) AS total FROM software WHERE softType = 29 AND userID = ? AND isNPC = 1 LIMIT 1', [self::nsa_getID()]);
         $total = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->total;
         
         if($total == 1){
@@ -966,8 +968,8 @@ class Storyline {
         $doomName = 'DooM';
         
         $this->session->newQuery();
-        $sql = "INSERT INTO software (id, userID, softName, softVersion, softSize, softRam, softType, softLastEdit, softHidden, isNPC, originalFrom, licensedTo, isFolder)
-                VALUES ('', '".self::nsa_getID()."', '".$doomName."', '10', '100', '512', '29', NOW(), '0', '1', '0', '0', '0')";
+        $sql = SqlQuery::make('INSERT INTO software (id, userID, softName, softVersion, softSize, softRam, softType, softLastEdit, softHidden, isNPC, originalFrom, licensedTo, isFolder)
+                VALUES (\'\', ?, ?, \'10\', \'100\', \'512\', \'29\', NOW(), \'0\', \'1\', \'0\', \'0\', \'0\')', [self::nsa_getID(), $doomName]);
         $this->pdo->query($sql);        
         
     }
@@ -977,7 +979,7 @@ class Storyline {
         //TODO: e se for deletado? ddosado?
         
         $this->session->newQuery();
-        $sql = "SELECT id FROM software WHERE softType = 29 AND userID = '".self::nsa_getID()."' AND isNPC = 1 LIMIT 1";
+        $sql = SqlQuery::make('SELECT id FROM software WHERE softType = 29 AND userID = ? AND isNPC = 1 LIMIT 1', [self::nsa_getID()]);
         return $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->id;        
         
     }
@@ -993,7 +995,7 @@ class Storyline {
     public function md_getIP(){
         
         $this->session->newQuery();
-        $sql = "SELECT npcIP FROM npc WHERE id = '".self::md_getID()."' LIMIT 1";
+        $sql = SqlQuery::make('SELECT npcIP FROM npc WHERE id = ? LIMIT 1', [self::md_getID()]);
         return $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->npcip;
         
     }
@@ -1009,7 +1011,7 @@ class Storyline {
     public function evilcorp_getIP(){
         
         $this->session->newQuery();
-        $sql = "SELECT npcIP FROM npc WHERE id = '".self::evilcorp_getID()."' LIMIT 1";
+        $sql = SqlQuery::make('SELECT npcIP FROM npc WHERE id = ? LIMIT 1', [self::evilcorp_getID()]);
         return $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->npcip;        
         
     }
@@ -1017,10 +1019,10 @@ class Storyline {
     public function evilcorp_getName(){
         
         $this->session->newQuery();
-        $sql = "SELECT name 
+        $sql = SqlQuery::make('SELECT name 
                 FROM npc_info_en
-                WHERE npcID = '".self::evilcorp_getID()."' 
-                LIMIT 1";
+                WHERE npcID = ? 
+                LIMIT 1', [self::evilcorp_getID()]);
         return $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->name; 
         
     }
@@ -1041,8 +1043,8 @@ class Storyline {
     
     public function tutorial_start(){
         
-        require '/var/www/classes/Mission.class.php';
-        require '/var/www/classes/Mail.class.php';
+        require __DIR__.'/Mission.class.php';
+        require __DIR__.'/Mail.class.php';
         
         $player = new Player();
         $mission = new Mission();
@@ -1068,21 +1070,21 @@ class Storyline {
     public function tutorial_setExpireDate($ip1, $ip2){
         
         $this->session->newQuery();
-        $sql = "INSERT INTO npc_expire
+        $sql = SqlQuery::make('INSERT INTO npc_expire
                     (npcID, expireDate)
                 VALUES 
                     (
                         (SELECT npc.id
                         FROM npc
-                        WHERE npcIP = '".$ip1."'),
+                        WHERE npcIP = ?),
                         DATE_ADD(NOW(), INTERVAL 7 DAY)
                     ),
                     (
                         (SELECT npc.id
                         FROM npc
-                        WHERE npcIP = '".$ip2."'),
+                        WHERE npcIP = ?),
                         DATE_ADD(NOW(), INTERVAL 7 DAY)  
-                    )";
+                    )', [$ip1, $ip2]);
         $this->pdo->query($sql);
         
     }

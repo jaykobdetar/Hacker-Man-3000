@@ -7,7 +7,7 @@
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
+/*!40101 SET NAMES utf8mb4 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -21,7 +21,7 @@
 
 DROP TABLE IF EXISTS `admin`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `admin` (
   `id` tinyint(2) NOT NULL AUTO_INCREMENT,
   `user` varchar(50) NOT NULL,
@@ -29,7 +29,7 @@ CREATE TABLE `admin` (
   `password` varchar(36) NOT NULL,
   `lastLogin` datetime NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -47,7 +47,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `admin_reports`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `admin_reports` (
   `id` int(5) NOT NULL AUTO_INCREMENT,
   `errorID` int(5) NOT NULL,
@@ -57,7 +57,7 @@ CREATE TABLE `admin_reports` (
   `time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `read` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -75,12 +75,12 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `badges_clans`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `badges_clans` (
   `badgeID` tinyint(3) NOT NULL,
   `priority` int(5) NOT NULL,
   PRIMARY KEY (`badgeID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -98,12 +98,12 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `badges_users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `badges_users` (
   `badgeID` tinyint(3) NOT NULL,
   `priority` smallint(3) NOT NULL,
   PRIMARY KEY (`badgeID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -121,7 +121,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `bankAccounts`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `bankAccounts` (
   `id` int(12) NOT NULL AUTO_INCREMENT,
   `bankAcc` bigint(12) NOT NULL,
@@ -134,7 +134,7 @@ CREATE TABLE `bankAccounts` (
   KEY `id` (`bankUser`),
   KEY `bankUser` (`bankUser`,`bankAcc`,`bankID`),
   KEY `bankAcc` (`bankAcc`)
-) ENGINE=InnoDB AUTO_INCREMENT=12716004 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -152,13 +152,13 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `bankaccounts_expire`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `bankaccounts_expire` (
   `accID` int(30) unsigned NOT NULL,
   `expireDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   KEY `expireDate` (`expireDate`),
   KEY `accID` (`accID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -176,7 +176,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `bitcoin_wallets`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `bitcoin_wallets` (
   `address` varchar(34) NOT NULL,
   `userID` int(5) unsigned NOT NULL,
@@ -186,7 +186,7 @@ CREATE TABLE `bitcoin_wallets` (
   `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`address`),
   KEY `userID` (`userID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -204,7 +204,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `bugreports`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `bugreports` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `dateCreated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -215,7 +215,7 @@ CREATE TABLE `bugreports` (
   `follow` tinyint(1) NOT NULL DEFAULT '0',
   `solved` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4289 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -233,12 +233,12 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `cache`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `cache` (
   `userID` int(5) unsigned NOT NULL,
   `reputation` int(6) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`userID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -256,12 +256,12 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `cache_profile`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `cache_profile` (
   `userID` int(5) unsigned NOT NULL,
   `expireDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY `userID` (`userID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -279,12 +279,12 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `certifications`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `certifications` (
   `userID` int(5) NOT NULL,
   `certLevel` tinyint(1) NOT NULL,
   PRIMARY KEY (`userID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -302,7 +302,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `changelog`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `changelog` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `description` varchar(100) NOT NULL,
@@ -310,7 +310,7 @@ CREATE TABLE `changelog` (
   `dateCreated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `author` varchar(50) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -328,7 +328,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `clan`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `clan` (
   `clanID` int(5) NOT NULL AUTO_INCREMENT,
   `clanIP` int(11) unsigned NOT NULL,
@@ -345,7 +345,7 @@ CREATE TABLE `clan` (
   `power` int(10) NOT NULL,
   `corp` tinyint(1) NOT NULL,
   PRIMARY KEY (`clanID`)
-) ENGINE=InnoDB AUTO_INCREMENT=23259 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -363,14 +363,14 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `clan_badge`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `clan_badge` (
   `clanID` int(5) NOT NULL,
   `badgeID` smallint(3) NOT NULL,
   `round` tinyint(3) NOT NULL DEFAULT '0',
   `dateAdd` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   KEY `userID` (`clanID`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -388,7 +388,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `clan_ddos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `clan_ddos` (
   `attackerClan` int(5) NOT NULL,
   `victimClan` int(5) NOT NULL,
@@ -396,7 +396,7 @@ CREATE TABLE `clan_ddos` (
   `displayAttacker` tinyint(1) NOT NULL DEFAULT '1',
   `displayVictim` tinyint(1) NOT NULL DEFAULT '1',
   KEY `attackerClan` (`attackerClan`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -414,14 +414,14 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `clan_ddos_history`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `clan_ddos_history` (
   `attackerClan` int(5) NOT NULL,
   `victimClan` int(5) NOT NULL,
   `ddosID` int(5) NOT NULL,
   `warID` int(5) NOT NULL,
   KEY `attackerClan` (`attackerClan`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -439,7 +439,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `clan_defcon`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `clan_defcon` (
   `id` int(5) NOT NULL AUTO_INCREMENT,
   `attackerID` int(5) NOT NULL,
@@ -449,7 +449,7 @@ CREATE TABLE `clan_defcon` (
   `attackDate` datetime NOT NULL,
   `clanServer` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=29249 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -467,7 +467,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `clan_requests`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `clan_requests` (
   `id` int(5) NOT NULL AUTO_INCREMENT,
   `clanID` int(5) unsigned NOT NULL,
@@ -478,7 +478,7 @@ CREATE TABLE `clan_requests` (
   `msg` text NOT NULL,
   PRIMARY KEY (`id`),
   KEY `clanID` (`clanID`)
-) ENGINE=InnoDB AUTO_INCREMENT=63154 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -496,7 +496,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `clan_stats`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `clan_stats` (
   `cid` int(5) NOT NULL,
   `totalMemberPower` int(11) NOT NULL,
@@ -510,7 +510,7 @@ CREATE TABLE `clan_stats` (
   `won` int(4) NOT NULL,
   `lost` int(4) NOT NULL,
   PRIMARY KEY (`cid`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -528,7 +528,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `clan_users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `clan_users` (
   `id` int(5) NOT NULL AUTO_INCREMENT,
   `clanID` int(5) NOT NULL,
@@ -539,7 +539,7 @@ CREATE TABLE `clan_users` (
   PRIMARY KEY (`id`),
   KEY `clanID` (`clanID`),
   KEY `userID` (`userID`)
-) ENGINE=InnoDB AUTO_INCREMENT=48282 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -557,7 +557,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `clan_war`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `clan_war` (
   `id` int(5) NOT NULL AUTO_INCREMENT,
   `clanID1` int(5) NOT NULL,
@@ -569,7 +569,7 @@ CREATE TABLE `clan_war` (
   `bounty` int(10) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `clanID1` (`clanID1`,`clanID2`)
-) ENGINE=InnoDB AUTO_INCREMENT=4764 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -587,7 +587,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `clan_war_history`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `clan_war_history` (
   `id` int(5) unsigned NOT NULL AUTO_INCREMENT,
   `idWinner` int(5) unsigned NOT NULL,
@@ -598,7 +598,7 @@ CREATE TABLE `clan_war_history` (
   `endDate` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `bounty` int(10) unsigned NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4494 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -616,14 +616,14 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `debug_pagarme`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `debug_pagarme` (
   `debug_id` int(5) unsigned NOT NULL AUTO_INCREMENT,
   `id` int(10) NOT NULL,
   `post` text NOT NULL,
   PRIMARY KEY (`debug_id`),
   KEY `id` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=481 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -641,13 +641,13 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `doom_abort`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `doom_abort` (
   `doomID` int(5) unsigned NOT NULL,
   `abortedBy` int(5) unsigned NOT NULL,
   `abortDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`doomID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -665,11 +665,11 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `email_delete`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `email_delete` (
   `userID` int(5) NOT NULL,
   `code` varchar(13) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -687,13 +687,13 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `email_reset`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `email_reset` (
   `userID` int(5) NOT NULL,
-  `code` varchar(32) NOT NULL,
+  `code` char(64) NOT NULL,
   `requestDate` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   KEY `userID` (`userID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -711,14 +711,14 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `email_verification`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `email_verification` (
   `userID` int(5) unsigned NOT NULL,
   `email` varchar(60) NOT NULL,
   `code` varchar(25) NOT NULL,
   `creationDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`userID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -736,7 +736,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `fbi`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `fbi` (
   `ip` bigint(11) NOT NULL,
   `reason` tinyint(1) NOT NULL,
@@ -744,7 +744,7 @@ CREATE TABLE `fbi` (
   `dateAdd` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `dateEnd` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   KEY `ip` (`ip`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -762,13 +762,13 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `friend_requests`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `friend_requests` (
   `id` int(5) NOT NULL AUTO_INCREMENT,
   `userID` int(5) NOT NULL,
   `requestedBy` int(5) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=95891 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -786,7 +786,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `hardware`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `hardware` (
   `serverID` int(5) NOT NULL AUTO_INCREMENT,
   `userID` int(5) NOT NULL,
@@ -798,7 +798,7 @@ CREATE TABLE `hardware` (
   `isNPC` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`serverID`),
   KEY `IndiceComNPC` (`userID`,`isNPC`)
-) ENGINE=InnoDB AUTO_INCREMENT=6593993 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -816,7 +816,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `hardware_external`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `hardware_external` (
   `serverID` int(5) NOT NULL AUTO_INCREMENT,
   `userID` int(5) NOT NULL,
@@ -824,7 +824,7 @@ CREATE TABLE `hardware_external` (
   `size` int(4) NOT NULL DEFAULT '100',
   UNIQUE KEY `serverID` (`serverID`),
   KEY `userID` (`userID`)
-) ENGINE=InnoDB AUTO_INCREMENT=329611 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -842,7 +842,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `hist_clans`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `hist_clans` (
   `id` int(5) NOT NULL AUTO_INCREMENT,
   `cid` int(5) NOT NULL,
@@ -859,7 +859,7 @@ CREATE TABLE `hist_clans` (
   PRIMARY KEY (`id`),
   KEY `cid` (`cid`),
   KEY `reputation` (`reputation`)
-) ENGINE=InnoDB AUTO_INCREMENT=67957 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -877,7 +877,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `hist_clans_current`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `hist_clans_current` (
   `id` int(5) NOT NULL AUTO_INCREMENT,
   `cid` int(5) NOT NULL,
@@ -893,7 +893,7 @@ CREATE TABLE `hist_clans_current` (
   PRIMARY KEY (`id`),
   KEY `cid` (`cid`),
   KEY `reputation` (`reputation`)
-) ENGINE=InnoDB AUTO_INCREMENT=23259 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -911,7 +911,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `hist_clans_war`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `hist_clans_war` (
   `id` int(5) unsigned NOT NULL AUTO_INCREMENT,
   `idWinner` int(5) unsigned NOT NULL,
@@ -923,7 +923,7 @@ CREATE TABLE `hist_clans_war` (
   `bounty` int(10) unsigned NOT NULL,
   `round` tinyint(2) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1958 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -941,7 +941,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `hist_ddos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `hist_ddos` (
   `id` int(5) NOT NULL AUTO_INCREMENT,
   `rank` int(4) NOT NULL,
@@ -953,7 +953,7 @@ CREATE TABLE `hist_ddos` (
   `power` int(10) NOT NULL,
   `servers` int(3) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=159502 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -971,14 +971,14 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `hist_doom`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `hist_doom` (
   `round` tinyint(3) NOT NULL,
   `doomCreatorID` int(5) unsigned NOT NULL,
   `doomClanID` int(5) unsigned NOT NULL,
   `status` tinyint(1) NOT NULL,
   KEY `round` (`round`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -996,7 +996,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `hist_mails`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `hist_mails` (
   `id` int(5) unsigned NOT NULL AUTO_INCREMENT,
   `from` int(5) unsigned NOT NULL,
@@ -1006,7 +1006,7 @@ CREATE TABLE `hist_mails` (
   `dateSent` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `round` smallint(3) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1024,7 +1024,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `hist_missions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `hist_missions` (
   `id` int(5) unsigned NOT NULL AUTO_INCREMENT,
   `userID` int(5) unsigned NOT NULL,
@@ -1036,7 +1036,7 @@ CREATE TABLE `hist_missions` (
   `round` tinyint(3) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `userID` (`userID`)
-) ENGINE=InnoDB AUTO_INCREMENT=486196 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1054,7 +1054,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `hist_software`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `hist_software` (
   `id` int(5) NOT NULL AUTO_INCREMENT,
   `rank` int(5) NOT NULL,
@@ -1065,7 +1065,7 @@ CREATE TABLE `hist_software` (
   `ownerID` int(5) NOT NULL,
   `round` tinyint(3) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=543259 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1083,7 +1083,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `hist_users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `hist_users` (
   `id` int(5) NOT NULL AUTO_INCREMENT,
   `rank` int(5) NOT NULL,
@@ -1112,7 +1112,7 @@ CREATE TABLE `hist_users` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `userID_2` (`userID`,`round`),
   KEY `userID` (`userID`)
-) ENGINE=InnoDB AUTO_INCREMENT=446252 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1130,7 +1130,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `hist_users_current`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `hist_users_current` (
   `id` int(5) NOT NULL AUTO_INCREMENT,
   `userID` int(5) NOT NULL,
@@ -1155,7 +1155,7 @@ CREATE TABLE `hist_users_current` (
   PRIMARY KEY (`id`),
   KEY `userID` (`userID`),
   KEY `reputation` (`reputation`)
-) ENGINE=InnoDB AUTO_INCREMENT=750474 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1173,13 +1173,13 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `internet_connections`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `internet_connections` (
   `userID` int(5) NOT NULL,
   `ip` bigint(14) NOT NULL,
   `expires` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`userID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1197,12 +1197,12 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `internet_home`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `internet_home` (
   `userID` int(5) unsigned NOT NULL,
   `homeIP` bigint(11) unsigned NOT NULL,
   PRIMARY KEY (`userID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1220,14 +1220,14 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `internet_important`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `internet_important` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `userID` int(5) unsigned NOT NULL,
   `ip` bigint(11) unsigned NOT NULL,
   `name` varchar(15) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=970151 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1245,13 +1245,13 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `internet_webserver`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `internet_webserver` (
   `id` int(5) NOT NULL,
   `webDesc` text NOT NULL,
   `active` tinyint(1) NOT NULL,
   UNIQUE KEY `id` (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1269,7 +1269,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `lists`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `lists` (
   `id` int(5) NOT NULL AUTO_INCREMENT,
   `userID` int(5) NOT NULL,
@@ -1282,7 +1282,7 @@ CREATE TABLE `lists` (
   KEY `userID` (`userID`),
   KEY `ip` (`ip`),
   KEY `virusID` (`virusID`)
-) ENGINE=InnoDB AUTO_INCREMENT=4620175 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1300,7 +1300,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `lists_bankAccounts`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `lists_bankAccounts` (
   `id` int(5) NOT NULL AUTO_INCREMENT,
   `userID` int(5) NOT NULL,
@@ -1312,7 +1312,7 @@ CREATE TABLE `lists_bankAccounts` (
   `lastMoney` int(10) NOT NULL,
   `lastMoneyDate` datetime NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1511488 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1330,13 +1330,13 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `lists_collect`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `lists_collect` (
   `userID` int(5) unsigned NOT NULL,
   `collectText` text NOT NULL,
   `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`userID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1354,14 +1354,14 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `lists_notifications`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `lists_notifications` (
   `userID` int(5) NOT NULL,
   `ip` bigint(11) NOT NULL,
   `notificationType` tinyint(1) NOT NULL,
   `virusName` varchar(30) NOT NULL,
   KEY `userID` (`userID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1379,13 +1379,13 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `lists_specs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `lists_specs` (
   `listID` int(5) unsigned NOT NULL,
   `spec_net` int(5) NOT NULL DEFAULT '1',
   `spec_hdd` int(5) NOT NULL DEFAULT '1000',
   PRIMARY KEY (`listID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1403,7 +1403,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `lists_specs_analyzed`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `lists_specs_analyzed` (
   `listID` int(5) unsigned NOT NULL,
   `minCPU` int(5) unsigned NOT NULL,
@@ -1411,7 +1411,7 @@ CREATE TABLE `lists_specs_analyzed` (
   `minRAM` int(5) unsigned NOT NULL,
   `maxRAM` int(5) unsigned NOT NULL,
   PRIMARY KEY (`listID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1424,18 +1424,33 @@ LOCK TABLES `lists_specs_analyzed` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `login_attempts`
+--
+
+DROP TABLE IF EXISTS `login_attempts`;
+CREATE TABLE `login_attempts` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `ip` varchar(45) NOT NULL,
+  `login` varchar(50) NOT NULL,
+  `attemptTime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `ip` (`ip`, `attemptTime`),
+  KEY `login` (`login`, `attemptTime`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
 -- Table structure for table `log`
 --
 
 DROP TABLE IF EXISTS `log`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `log` (
   `userID` int(5) NOT NULL AUTO_INCREMENT,
   `text` text NOT NULL,
   `isNPC` tinyint(1) NOT NULL,
   KEY `userID` (`userID`)
-) ENGINE=InnoDB AUTO_INCREMENT=897198 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1453,7 +1468,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `log_edit`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `log_edit` (
   `id` int(5) unsigned NOT NULL AUTO_INCREMENT,
   `vicID` int(5) NOT NULL,
@@ -1463,7 +1478,7 @@ CREATE TABLE `log_edit` (
   PRIMARY KEY (`id`),
   KEY `vicID` (`vicID`,`isNPC`),
   KEY `editorID` (`editorID`)
-) ENGINE=InnoDB AUTO_INCREMENT=13490282 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1481,7 +1496,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `mails`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mails` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
   `from` int(5) NOT NULL,
@@ -1496,7 +1511,7 @@ CREATE TABLE `mails` (
   KEY `from` (`from`),
   KEY `to` (`to`),
   KEY `type` (`type`)
-) ENGINE=InnoDB AUTO_INCREMENT=4016487 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1514,13 +1529,13 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `mails_history`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mails_history` (
   `mid` int(15) unsigned NOT NULL,
   `infoDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `info1` varchar(15) NOT NULL,
   PRIMARY KEY (`mid`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1538,7 +1553,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `missions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `missions` (
   `id` int(5) NOT NULL AUTO_INCREMENT,
   `type` tinyint(2) NOT NULL,
@@ -1558,7 +1573,7 @@ CREATE TABLE `missions` (
   PRIMARY KEY (`id`),
   KEY `userID` (`userID`),
   KEY `status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=13887278 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1576,7 +1591,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `missions_history`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `missions_history` (
   `id` int(5) NOT NULL AUTO_INCREMENT,
   `type` tinyint(2) NOT NULL,
@@ -1590,7 +1605,7 @@ CREATE TABLE `missions_history` (
   KEY `completed` (`completed`),
   KEY `missionEnd` (`missionEnd`),
   KEY `hirer` (`hirer`)
-) ENGINE=InnoDB AUTO_INCREMENT=13887173 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1608,7 +1623,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `missions_seed`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `missions_seed` (
   `missionID` int(5) unsigned NOT NULL,
   `greeting` tinyint(1) NOT NULL,
@@ -1619,7 +1634,7 @@ CREATE TABLE `missions_seed` (
   `warning` tinyint(1) NOT NULL,
   `action` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`missionID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1637,7 +1652,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `news`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `news` (
   `id` int(5) NOT NULL AUTO_INCREMENT,
   `author` varchar(30) NOT NULL,
@@ -1648,7 +1663,7 @@ CREATE TABLE `news` (
   `info1` varchar(15) NOT NULL,
   `info2` varchar(15) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=35359 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1666,14 +1681,14 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `news_history`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `news_history` (
   `newsID` int(5) unsigned NOT NULL AUTO_INCREMENT,
   `info1` varchar(15) NOT NULL,
   `info2` varchar(15) NOT NULL,
   `infoDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`newsID`)
-) ENGINE=InnoDB AUTO_INCREMENT=35359 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1691,7 +1706,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `npc`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `npc` (
   `id` int(5) NOT NULL AUTO_INCREMENT,
   `npcType` tinyint(2) NOT NULL,
@@ -1700,7 +1715,7 @@ CREATE TABLE `npc` (
   `downUntil` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `npcIP` (`npcIP`)
-) ENGINE=InnoDB AUTO_INCREMENT=897198 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1718,14 +1733,14 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `npc_down`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `npc_down` (
   `npcID` int(5) unsigned NOT NULL,
   `downDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `downUntil` datetime NOT NULL,
   PRIMARY KEY (`npcID`),
   KEY `downUntil` (`downUntil`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1743,13 +1758,13 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `npc_expire`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `npc_expire` (
   `npcID` int(5) unsigned NOT NULL,
   `expireDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`npcID`),
   KEY `expireDate` (`expireDate`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1767,13 +1782,13 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `npc_info_en`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `npc_info_en` (
   `npcID` int(5) unsigned NOT NULL,
   `name` varchar(50) NOT NULL,
   `web` text NOT NULL,
   PRIMARY KEY (`npcID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1791,13 +1806,13 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `npc_info_pt`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `npc_info_pt` (
   `npcID` int(5) unsigned NOT NULL,
   `name` varchar(50) NOT NULL,
   `web` text NOT NULL,
   PRIMARY KEY (`npcID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1815,13 +1830,13 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `npc_key`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `npc_key` (
   `npcID` int(5) unsigned NOT NULL,
   `key` varchar(15) NOT NULL,
   PRIMARY KEY (`npcID`),
   KEY `key` (`key`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1839,13 +1854,13 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `npc_reset`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `npc_reset` (
   `npcID` int(5) NOT NULL,
   `nextScan` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`npcID`),
   KEY `nextScan` (`nextScan`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1858,95 +1873,12 @@ LOCK TABLES `npc_reset` WRITE;
 UNLOCK TABLES;
 
 --
--- Table structure for table `payments`
---
-
-DROP TABLE IF EXISTS `payments`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `payments` (
-  `id` int(15) NOT NULL AUTO_INCREMENT,
-  `userID` int(5) NOT NULL,
-  `info` text NOT NULL,
-  `paid` double NOT NULL,
-  `original_amount` double NOT NULL,
-  `plan` varchar(15) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `userID` (`userID`)
-) ENGINE=MyISAM AUTO_INCREMENT=137918 DEFAULT CHARSET=latin1;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `payments`
---
-
-LOCK TABLES `payments` WRITE;
-/*!40000 ALTER TABLE `payments` DISABLE KEYS */;
-/*!40000 ALTER TABLE `payments` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `payments_history`
---
-
-DROP TABLE IF EXISTS `payments_history`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `payments_history` (
-  `id` int(5) NOT NULL AUTO_INCREMENT,
-  `userID` int(5) NOT NULL,
-  `valid` tinyint(1) NOT NULL DEFAULT '1',
-  `info` text NOT NULL,
-  `paid` double NOT NULL,
-  `plan` varchar(15) NOT NULL,
-  `confirmation` text NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=359 DEFAULT CHARSET=latin1;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `payments_history`
---
-
-LOCK TABLES `payments_history` WRITE;
-/*!40000 ALTER TABLE `payments_history` DISABLE KEYS */;
-/*!40000 ALTER TABLE `payments_history` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `premium_history`
---
-
-DROP TABLE IF EXISTS `premium_history`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `premium_history` (
-  `id` int(5) unsigned NOT NULL AUTO_INCREMENT,
-  `userID` int(5) NOT NULL,
-  `boughtDate` datetime NOT NULL,
-  `premiumUntil` datetime NOT NULL,
-  `paid` double NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `userID` (`userID`)
-) ENGINE=InnoDB AUTO_INCREMENT=891 DEFAULT CHARSET=latin1;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `premium_history`
---
-
-LOCK TABLES `premium_history` WRITE;
-/*!40000 ALTER TABLE `premium_history` DISABLE KEYS */;
-/*!40000 ALTER TABLE `premium_history` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `processes`
 --
 
 DROP TABLE IF EXISTS `processes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `processes` (
   `pid` int(32) NOT NULL AUTO_INCREMENT,
   `pCreatorID` int(5) NOT NULL,
@@ -1970,7 +1902,7 @@ CREATE TABLE `processes` (
   KEY `pNPC` (`pNPC`),
   KEY `pVictimID` (`pVictimID`),
   KEY `pTimeEnd` (`pTimeEnd`)
-) ENGINE=InnoDB AUTO_INCREMENT=48831552 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1988,14 +1920,14 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `processes_paused`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `processes_paused` (
   `pid` int(30) NOT NULL,
   `timeLeft` int(6) NOT NULL,
   `timePaused` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `userID` int(5) NOT NULL,
   PRIMARY KEY (`pid`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2013,10 +1945,9 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `profile`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `profile` (
   `id` int(5) NOT NULL,
-  `premium` tinyint(1) NOT NULL,
   `active` tinyint(1) NOT NULL DEFAULT '0',
   `reputation` bigint(15) NOT NULL,
   `rank` int(5) NOT NULL,
@@ -2035,7 +1966,7 @@ CREATE TABLE `profile` (
   `moneyResearch` bigint(11) NOT NULL,
   `profileViews` int(5) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2053,14 +1984,14 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `puzzle_solved`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `puzzle_solved` (
   `puzzleID` int(5) unsigned NOT NULL,
   `userID` int(5) unsigned NOT NULL,
   `solvedDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   KEY `userID` (`userID`),
   KEY `puzzleID` (`puzzleID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2078,13 +2009,13 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `ranking_clan`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `ranking_clan` (
   `clanID` int(5) NOT NULL,
   `rank` int(5) NOT NULL,
   UNIQUE KEY `clanID` (`clanID`),
   KEY `rank` (`rank`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2102,13 +2033,13 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `ranking_ddos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `ranking_ddos` (
   `ddosID` int(5) NOT NULL,
   `rank` int(5) NOT NULL DEFAULT '-1',
   KEY `rank` (`rank`),
   KEY `ddosID` (`ddosID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2126,13 +2057,13 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `ranking_software`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `ranking_software` (
   `softID` int(5) NOT NULL,
   `rank` int(5) NOT NULL DEFAULT '-1',
   KEY `rank` (`rank`),
   KEY `softID` (`softID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2150,13 +2081,13 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `ranking_user`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `ranking_user` (
   `userID` int(5) NOT NULL,
   `rank` int(5) NOT NULL,
   KEY `rank` (`rank`),
   KEY `userID` (`userID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2174,7 +2105,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `round`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `round` (
   `id` smallint(3) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) NOT NULL,
@@ -2182,7 +2113,7 @@ CREATE TABLE `round` (
   `endDate` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `status` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2200,7 +2131,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `round_ddos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `round_ddos` (
   `id` int(5) NOT NULL AUTO_INCREMENT,
   `attID` int(5) NOT NULL,
@@ -2215,7 +2146,7 @@ CREATE TABLE `round_ddos` (
   KEY `attUser` (`attUser`),
   KEY `vicID` (`vicID`),
   KEY `power` (`power`)
-) ENGINE=InnoDB AUTO_INCREMENT=290530 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2233,7 +2164,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `round_stats`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `round_stats` (
   `id` tinyint(1) NOT NULL,
   `totalUsers` int(6) NOT NULL,
@@ -2265,7 +2196,7 @@ CREATE TABLE `round_stats` (
   `clansMembers` int(5) unsigned NOT NULL,
   `clansClicks` int(10) unsigned NOT NULL,
   `onlineUsers` int(5) unsigned NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2283,7 +2214,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `safeNet`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `safeNet` (
   `IP` bigint(11) NOT NULL,
   `reason` tinyint(1) NOT NULL,
@@ -2292,7 +2223,7 @@ CREATE TABLE `safeNet` (
   `count` tinyint(3) NOT NULL DEFAULT '1',
   `onFBI` tinyint(1) NOT NULL,
   KEY `IP` (`IP`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2310,7 +2241,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `server_stats`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `server_stats` (
   `id` tinyint(1) NOT NULL,
   `totalUsers` int(6) NOT NULL,
@@ -2328,7 +2259,7 @@ CREATE TABLE `server_stats` (
   `researchCount` int(5) NOT NULL,
   `researchMoney` bigint(11) unsigned NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2346,7 +2277,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `software`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `software` (
   `id` int(32) NOT NULL AUTO_INCREMENT,
   `userID` int(5) NOT NULL,
@@ -2364,7 +2295,7 @@ CREATE TABLE `software` (
   `isFolder` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `userID` (`userID`,`isNPC`)
-) ENGINE=InnoDB AUTO_INCREMENT=13662031 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2382,7 +2313,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `software_external`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `software_external` (
   `id` bigint(20) NOT NULL,
   `userID` int(5) NOT NULL,
@@ -2395,7 +2326,7 @@ CREATE TABLE `software_external` (
   `licensedTo` int(5) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `userID` (`userID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2413,13 +2344,13 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `software_folders`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `software_folders` (
   `folderID` int(30) NOT NULL,
   `softID` bigint(20) NOT NULL,
   KEY `folderID` (`folderID`),
   KEY `softID` (`softID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2437,7 +2368,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `software_original`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `software_original` (
   `id` int(30) NOT NULL AUTO_INCREMENT,
   `npcID` int(5) NOT NULL,
@@ -2449,7 +2380,7 @@ CREATE TABLE `software_original` (
   `running` tinyint(1) NOT NULL,
   `licensedTo` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9886 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2467,7 +2398,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `software_research`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `software_research` (
   `researched_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `id` int(30) unsigned NOT NULL AUTO_INCREMENT,
@@ -2479,7 +2410,7 @@ CREATE TABLE `software_research` (
   PRIMARY KEY (`id`),
   KEY `userID` (`userID`),
   KEY `softID` (`softID`)
-) ENGINE=InnoDB AUTO_INCREMENT=767171 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2497,7 +2428,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `software_running`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `software_running` (
   `id` int(30) NOT NULL AUTO_INCREMENT,
   `softID` int(30) NOT NULL,
@@ -2507,7 +2438,7 @@ CREATE TABLE `software_running` (
   PRIMARY KEY (`id`),
   KEY `userID_isNPC` (`userID`,`isNPC`),
   KEY `softID` (`softID`)
-) ENGINE=InnoDB AUTO_INCREMENT=4803691 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2525,7 +2456,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `software_texts`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `software_texts` (
   `creator` bigint(20) DEFAULT NULL,
   `id` bigint(20) NOT NULL,
@@ -2536,7 +2467,7 @@ CREATE TABLE `software_texts` (
   `ddos` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `userID_isNPC` (`userID`,`isNPC`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2554,14 +2485,14 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `stats_login`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `stats_login` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `userID` int(5) unsigned NOT NULL,
   `loginTime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `userID` (`userID`)
-) ENGINE=InnoDB AUTO_INCREMENT=4585265 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2579,14 +2510,14 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `stats_register`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `stats_register` (
   `userID` int(5) unsigned NOT NULL,
   `registrationDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `ip` varchar(15) NOT NULL,
   PRIMARY KEY (`userID`),
   KEY `ip` (`ip`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2604,23 +2535,22 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users` (
   `id` int(5) NOT NULL AUTO_INCREMENT,
   `login` varchar(15) NOT NULL,
-  `password` varchar(60) NOT NULL,
+  `password` varchar(255) NOT NULL,
   `email` varchar(50) NOT NULL,
   `gamePass` varchar(8) NOT NULL,
   `gameIP` bigint(11) NOT NULL,
   `realIP` bigint(11) NOT NULL,
   `homeIP` bigint(11) NOT NULL,
   `learning` tinyint(1) NOT NULL DEFAULT '0',
-  `premium` tinyint(1) NOT NULL,
   `lastLogin` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `gameIP` (`gameIP`),
   KEY `lastLogin` (`lastLogin`)
-) ENGINE=InnoDB AUTO_INCREMENT=750703 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2638,11 +2568,11 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `users_admin`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users_admin` (
   `userID` int(5) unsigned NOT NULL,
   PRIMARY KEY (`userID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2660,7 +2590,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `users_badge`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users_badge` (
   `userID` int(5) NOT NULL,
   `badgeID` smallint(3) NOT NULL,
@@ -2668,7 +2598,7 @@ CREATE TABLE `users_badge` (
   `dateAdd` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `priority` tinyint(5) NOT NULL,
   KEY `userID` (`userID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2686,11 +2616,11 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `users_banned`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users_banned` (
   `user_id` bigint(11) NOT NULL,
   PRIMARY KEY (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2708,12 +2638,12 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `users_expire`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users_expire` (
   `userID` int(5) unsigned NOT NULL,
   `expireDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`userID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2726,41 +2656,18 @@ LOCK TABLES `users_expire` WRITE;
 UNLOCK TABLES;
 
 --
--- Table structure for table `users_facebook`
---
-
-DROP TABLE IF EXISTS `users_facebook`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `users_facebook` (
-  `gameID` int(5) NOT NULL,
-  `userID` bigint(20) NOT NULL,
-  PRIMARY KEY (`userID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `users_facebook`
---
-
-LOCK TABLES `users_facebook` WRITE;
-/*!40000 ALTER TABLE `users_facebook` DISABLE KEYS */;
-/*!40000 ALTER TABLE `users_facebook` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `users_friends`
 --
 
 DROP TABLE IF EXISTS `users_friends`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users_friends` (
   `userID` int(5) NOT NULL,
   `friendID` int(5) NOT NULL,
   `dateAdd` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`userID`,`friendID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2778,12 +2685,12 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `users_language`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users_language` (
   `userID` int(5) unsigned NOT NULL,
   `lang` varchar(2) NOT NULL DEFAULT 'en',
   PRIMARY KEY (`userID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2801,12 +2708,12 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `users_learning`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users_learning` (
   `userID` int(5) unsigned NOT NULL,
   `learning` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`userID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2824,13 +2731,13 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `users_online`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users_online` (
   `id` int(5) NOT NULL,
   `loginTime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `token` varchar(200) NOT NULL DEFAULT '0000-00-00 00:00:00',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2843,43 +2750,18 @@ LOCK TABLES `users_online` WRITE;
 UNLOCK TABLES;
 
 --
--- Table structure for table `users_premium`
---
-
-DROP TABLE IF EXISTS `users_premium`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `users_premium` (
-  `id` int(5) unsigned NOT NULL,
-  `boughtDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `premiumUntil` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `totalPaid` double NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `users_premium`
---
-
-LOCK TABLES `users_premium` WRITE;
-/*!40000 ALTER TABLE `users_premium` DISABLE KEYS */;
-/*!40000 ALTER TABLE `users_premium` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `users_puzzle`
 --
 
 DROP TABLE IF EXISTS `users_puzzle`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users_puzzle` (
   `userID` int(5) unsigned NOT NULL,
   `puzzleID` int(5) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`userID`),
   KEY `puzzleID` (`puzzleID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2897,7 +2779,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `users_stats`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users_stats` (
   `uid` int(5) NOT NULL,
   `dateJoined` datetime NOT NULL,
@@ -2921,7 +2803,7 @@ CREATE TABLE `users_stats` (
   `moneyResearch` bigint(15) NOT NULL,
   `profileViews` int(10) NOT NULL,
   PRIMARY KEY (`uid`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2934,35 +2816,12 @@ LOCK TABLES `users_stats` WRITE;
 UNLOCK TABLES;
 
 --
--- Table structure for table `users_twitter`
---
-
-DROP TABLE IF EXISTS `users_twitter`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `users_twitter` (
-  `gameID` int(5) NOT NULL,
-  `userID` int(20) unsigned NOT NULL,
-  PRIMARY KEY (`userID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `users_twitter`
---
-
-LOCK TABLES `users_twitter` WRITE;
-/*!40000 ALTER TABLE `users_twitter` DISABLE KEYS */;
-/*!40000 ALTER TABLE `users_twitter` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `virus`
 --
 
 DROP TABLE IF EXISTS `virus`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `virus` (
   `installedIp` bigint(11) NOT NULL,
   `installedBy` int(5) NOT NULL,
@@ -2975,7 +2834,7 @@ CREATE TABLE `virus` (
   PRIMARY KEY (`virusID`),
   KEY `por_instalacao` (`installedIp`,`installedBy`),
   KEY `installedIp` (`installedIp`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2993,7 +2852,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `virus_ddos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `virus_ddos` (
   `userID` int(5) NOT NULL,
   `ip` bigint(11) NOT NULL,
@@ -3005,7 +2864,7 @@ CREATE TABLE `virus_ddos` (
   PRIMARY KEY (`userID`,`ip`),
   KEY `ip` (`ip`),
   KEY `ddosID` (`ddosID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3023,7 +2882,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `virus_doom`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `virus_doom` (
   `doomID` bigint(20) NOT NULL,
   `doomIP` bigint(12) NOT NULL,
@@ -3033,7 +2892,7 @@ CREATE TABLE `virus_doom` (
   `doomDate` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `status` tinyint(1) NOT NULL,
   KEY `doomID` (`doomID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --

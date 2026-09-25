@@ -1,13 +1,14 @@
 <?php
 
-require '/var/www/classes/Session.class.php';
+require_once __DIR__.'/bootstrap.php';
+require __DIR__.'/classes/Session.class.php';
 require 'config.php';
-require '/var/www/classes/System.class.php';
-require '/var/www/classes/Player.class.php';
-require '/var/www/classes/PC.class.php';
-require '/var/www/classes/List.class.php';
-require_once '/var/www/classes/Finances.class.php';
-require_once '/var/www/classes/Ranking.class.php';
+require __DIR__.'/classes/System.class.php';
+require __DIR__.'/classes/Player.class.php';
+require __DIR__.'/classes/PC.class.php';
+require __DIR__.'/classes/List.class.php';
+require_once __DIR__.'/classes/Finances.class.php';
+require_once __DIR__.'/classes/Ranking.class.php';
 
 $session = new Session();
 $system = new System();

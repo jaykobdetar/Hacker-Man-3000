@@ -1,11 +1,12 @@
 <?php
 
+require_once __DIR__.'/bootstrap.php';
 require 'config.php';
-require '/var/www/classes/Session.class.php';
-require '/var/www/classes/Player.class.php';
-require '/var/www/classes/Internet.class.php';
-require '/var/www/classes/System.class.php';
-require '/var/www/classes/Pagination.class.php';
+require __DIR__.'/classes/Session.class.php';
+require __DIR__.'/classes/Player.class.php';
+require __DIR__.'/classes/Internet.class.php';
+require __DIR__.'/classes/System.class.php';
+require __DIR__.'/classes/Pagination.class.php';
 
 $session = new Session();
 
@@ -37,7 +38,7 @@ if($session->issetLogin()){
 
     if($system->issetGet('round')){
         
-        $page = 'round='.$_GET['round'].'&page';
+        $page = 'round='.urlencode($_GET['round']).'&page';
         
     } else {
         $page = 'page';

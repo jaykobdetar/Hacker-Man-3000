@@ -1,15 +1,5 @@
 <?php
 
-$fbServerURL = 'http://hackerexperience.com/';
-
-if(isset($_SERVER['HTTP_HOST'])){
-    if($_SERVER['HTTP_HOST'] == 'br.hackerexperience.com'){
-        $fbServerURL = 'http://br.hackerexperience.com/';
-    } elseif($_SERVER['HTTP_HOST'] == 'en.hackerexperience.com'){
-        $fbServerURL = 'http://en.hackerexperience.com/';
-    }
-}
-
 $l = 'en_US';
 
 if(isset($_SERVER['HTTP_HOST'])){
@@ -27,67 +17,6 @@ bind_textdomain_codeset($domain, 'UTF-8');
 
 textdomain($domain);
 
-require_once 'twitter/twitteroauth.php';
-require_once '/var/www/classes/Facebook.class.php';
-
-switch($fbServerURL){
-    case 'http://hackerexperience.com/':
-        $appID = 0;
-        $appSecret = 'REDACTED';
-        break;
-    case 'http://br.hackerexperience.com/':
-        $appID = 0;
-        $appSecret = 'REDACTED';
-        break;
-    case 'http://en.hackerexperience.com/':
-        $appID = 0;
-        $appSecret = 'REDACTED';
-        break;
-}
-
-
-$facebook = new Facebook(array(
-    'appId' => $appID,
-    'secret' => $appSecret,
-    'cookie' => true
-));
-
-$facebookURL = $facebook->getLoginUrl(Array(
-    'scope' => 'email',
-    'redirect_uri' => $fbServerURL
-));
-
-$twitteroauth = new TwitterOAuth('REDACTED', 'REDACTED');
-$twitteroauth->host = "https://api.twitter.com/1.1/";
-
-//if($_SERVER['HTTP_HOST'] == 'www.hackerexperience.com' || $_SERVER['HTTP_HOST'] == 'hackerexperience.com'){
-//    $url = 'http://hackerexperience.com/';
-//} else {
-//    $url = 'http://127.0.0.1/';
-//}
-$url = 'http://hackerexperience.com/';
-
-$request_token = $twitteroauth->getRequestToken($url);
-
-$twitterURL = '';
-
-if($request_token){
-
-    $_SESSION['oauth_token'] = $request_token['oauth_token'];
-    $_SESSION['oauth_token_secret'] = $request_token['oauth_token_secret'];
-
-    if($twitteroauth->http_code==200){
-        $twitterURL = $twitteroauth->getAuthorizeURL($request_token['oauth_token']);
-    } else {
-        
-        //TODO: report
-    }
-
-} elseif($url == 'http://hackerexperience.com/'){
-    //echo 'Error while connecting to twitter';
-    //TODO: report instead of echo
-}
-
 $script = $msgRegister = $msgLogin = $msgIndex = FALSE;
 
 if(isset($_SESSION['TYP'])){
@@ -96,13 +25,13 @@ if(isset($_SESSION['TYP'])){
     
     if($_SESSION['TYP'] == 'REG'){
         $msgIndex = TRUE;
-        $script .= '</script>';
+        $script = ''; // the message is shown at the top of the page
     } elseif($_SESSION['TYP'] == 'LOG') {
         $msgLogin = TRUE;
         $script .= '"login";</script>';
     } else {
         $msgIndex = TRUE;
-        $script = '</script>';
+        $script = '';
     }
     
     if($_SESSION['MSG_TYPE'] == 'error'){
@@ -111,7 +40,7 @@ if(isset($_SESSION['TYP'])){
         $error = 'alert-success';
     }
     
-    $msg = $_SESSION['MSG'];
+    $msg = $_SESSION['MSG'] ?? '';
     
     unset($_SESSION['MSG']);
     unset($_SESSION['TYP']);
@@ -219,11 +148,6 @@ if($msgIndex){
                         <div class="clearfix"></div>
                         <h2 class="section-heading"><?php echo _('Welcome back!'); ?></h2>
                         <p class="lead">
-                            <div id="fb-root"></div>
-                            <ul class="list-inline login-social-buttons">
-                                <li><a id="fb-login" value="<?php echo $facebookURL; ?>" class="btn btn-default btn-lg btn-login" style="background-color: #3B5998; color: #fff;"><i class="fa fa-facebook-square fa-fw"></i> <span><?php echo _('Facebook login'); ?></span></a></li>
-                                <li><a id="tt-login" value="<?php echo $twitterURL; ?>" class="btn btn-default btn-lg btn-login" style="background-color: #00acee; color: #fff;"><i class="fa fa-twitter fa-fw"></i> <span><?php echo _('Twitter login'); ?></span></a></li>
-                            </ul><br/><br/>
                             <div style="margin-left: 10px"><a href="reset"><?php echo _('I forgot my password.'); ?></a></div>
                             <div style="margin-left: 10px; margin-top: 5px"><a class="goto-signup link"><?php echo _('I don\'t have an account.'); ?></a></div>
                         </p>
@@ -312,7 +236,6 @@ $aboutmore = 'Really, much more. There is no space here, why don\'t you join to 
                         <h2 class="section-heading"><?php echo sprintf(_('Sign up now. It\'s %sfree%s!'), '<font color="black">', '</font>'); ?></h2>
                         <p class="lead">
                         <div style=""><a class="goto-faq link"><?php echo _('I am scared.'); ?></a></div>
-                        <div style="margin-top: 5px"><a class="goto-login link"><?php echo _('Login with facebook or twitter.'); ?></a></div>
                         <h5 class="play"><?php echo _('Play anywhere!'); ?></h5>
                         <div class="play-icons">
                             <i class="fa fa-windows fa-4x appico"></i>
@@ -400,8 +323,7 @@ if($msgRegister){
                         <h3><?php echo _('Is it really free?'); ?></h3>
                         <div>
                             <p><?php echo _('Oh yeah. You can play the whole game, <strong>with all features</strong>, for free.'); ?></p>
-                            <p><?php echo _('The only reason we can offer Hacker Experience for free is because of the non-intrusive ads we show in the game.'); ?></p>
-                            <p><?php echo _('The user can opt for a premium account to get rid of the ads and help us directly. This is not a "pay to win" game, though. Premium users have no tactical advantages over basic accounts.'); ?></p>
+                            <p><?php echo _('There are no ads, no paid accounts and no in-game purchases.'); ?></p>
                         </div>
                         <h3><?php echo _('Shouldn\'t it be "cracker"?'); ?></h3>
                         <div>

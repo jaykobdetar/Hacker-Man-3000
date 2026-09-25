@@ -1,11 +1,12 @@
 <?php
 
+require_once __DIR__.'/bootstrap.php';
 require 'config.php';
-require_once '/var/www/classes/System.class.php';
-require '/var/www/classes/Session.class.php';
-require '/var/www/classes/Player.class.php';
-require '/var/www/classes/PC.class.php';
-require '/var/www/classes/Process.class.php';
+require_once __DIR__.'/classes/System.class.php';
+require __DIR__.'/classes/Session.class.php';
+require __DIR__.'/classes/Player.class.php';
+require __DIR__.'/classes/PC.class.php';
+require __DIR__.'/classes/Process.class.php';
 
 $session = new Session();
 
@@ -77,7 +78,7 @@ if($session->issetLogin()){
                 $act = 'E_LOG';
                 $tmpLogID = '';
                 
-                require '/var/www/classes/Purifier.class.php';
+                require __DIR__.'/classes/Purifier.class.php';
                 $purifier = new Purifier();
                 $purifier->set_config('text');
                 

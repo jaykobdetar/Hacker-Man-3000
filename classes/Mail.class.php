@@ -1,6 +1,6 @@
 <?php
 
-require_once '/var/www/classes/Player.class.php';
+require_once __DIR__.'/Player.class.php';
 
 class Mail {
 
@@ -272,7 +272,7 @@ class Mail {
 
         if (self::countMails() != '0') {
 
-            require_once '/var/www/classes/Pagination.class.php';
+            require_once __DIR__.'/Pagination.class.php';
             $pagination = new Pagination();
 
             $pagination->paginate($id, 'mailAll', '5', 'page', 1);
@@ -393,7 +393,7 @@ class Mail {
                             <div class="control-group">
                                 <label class="control-label"><?php echo _('Subject'); ?></label>
                                 <div class="controls">
-                                    <input type="text" value="Re: <?php echo $this->mailInfo->subject; ?>" name="subject"/>
+                                    <input type="text" value="Re: <?php echo esc($this->mailInfo->subject); ?>" name="subject"/>
                                 </div>
                             </div>                
                             <div class="control-group">
@@ -437,7 +437,7 @@ class Mail {
             $closeLink = '</a>';
         } else {
             
-            require '/var/www/classes/Storyline.class.php';
+            require __DIR__.'/Storyline.class.php';
             $this->storyline = new Storyline();
             
             switch($this->mailInfo->from){
@@ -459,7 +459,7 @@ class Mail {
         $profilePic = $this->player->getProfilePic($this->mailInfo->from, $this->mailInfo->sentby, TRUE);
 
         
-        require '/var/www/classes/Purifier.class.php';
+        require __DIR__.'/Purifier.class.php';
         $purifier = new Purifier();
         $purifier->set_config('mail');
 
@@ -497,7 +497,7 @@ class Mail {
         <div class="widget-box">
             <div class="widget-title">
                 <span class="icon"><i class="fa fa-arrow-right"></i></span>
-                <h5><?php echo $this->mailInfo->subject; ?></h5>
+                <h5><?php echo esc($this->mailInfo->subject); ?></h5>
             </div>            
             <div class="widget-content padding"> 
             
@@ -515,7 +515,7 @@ class Mail {
 
                     </div>
                     <div class="article-post">
-                        <span class="user-info"> <?php echo _('By'); ?>: <?php echo $openLink.$sentby.$closeLink; ?> <?php echo _('on'); ?> <?php echo substr($this->mailInfo->datesent, 0, -3); ?>, IP: <?php echo $showIP; ?>, <?php echo _('Subject'); ?>: <?php echo $this->mailInfo->subject; ?> </span>
+                        <span class="user-info"> <?php echo _('By'); ?>: <?php echo $openLink.$sentby.$closeLink; ?> <?php echo _('on'); ?> <?php echo substr($this->mailInfo->datesent, 0, -3); ?>, IP: <?php echo $showIP; ?>, <?php echo _('Subject'); ?>: <?php echo esc($this->mailInfo->subject); ?> </span>
                         <p>
                             <?php
                             echo $formatedText;
@@ -567,7 +567,7 @@ if($this->mailInfo->from != $_SESSION['id']){
 
         if($this->mailInfo->from > 0){
             
-            require '/var/www/classes/Clan.class.php';
+            require __DIR__.'/Clan.class.php';
 
             $player = new Player();
             $ranking = new Ranking();
@@ -584,13 +584,8 @@ if($this->mailInfo->from != $_SESSION['id']){
             $reputation = number_format($ranking->exp_getTotal($idToDisplay, 1));
             $rank = number_format($ranking->getPlayerRanking($idToDisplay, 1));
             
-            if($player->isPremium($idToDisplay)){
-                $labelColor = 'label-warning';
-                $membership = _('Premium');
-            } else {
-                $labelColor = 'label-success';
+            $labelColor = 'label-success';
                 $membership = _('Basic');
-            }
 
             $clanName = '';
             if($clan->playerHaveClan($idToDisplay)){
@@ -756,7 +751,7 @@ for($i = 0; $i < sizeof($displayArr); $i++){
     public function mail_getHistoryInfo(){
  
         $this->session->newQuery();
-        $sql = "SELECT infoDate, info1 FROM mails_history WHERE mid = '".$this->mid."' LIMIT 1";
+        $sql = SqlQuery::make('SELECT infoDate, info1 FROM mails_history WHERE mid = ? LIMIT 1', [$this->mid]);
         return $this->pdo->query($sql)->fetchAll();        
         
     }
@@ -798,7 +793,7 @@ for($i = 0; $i < sizeof($displayArr); $i++){
 
         $id = $_SESSION['id'];
 
-        require_once '/var/www/classes/Pagination.class.php';
+        require_once __DIR__.'/Pagination.class.php';
         $pagination = new Pagination();
 
         $pagination->paginate($id, 'mailSent', '5', 'action=outbox&page', 1);
@@ -953,7 +948,7 @@ for($i = 0; $i < sizeof($displayArr); $i++){
                 
                 if($type == 1 || $type == 2){
 
-                    require_once '/var/www/classes/Storyline.class.php';
+                    require_once __DIR__.'/Storyline.class.php';
                     $storyline = new Storyline();
                     
                     $userIP = $this->player->getPlayerInfo($_SESSION['id'])->gameip;
@@ -971,7 +966,7 @@ for($i = 0; $i < sizeof($displayArr); $i++){
                 break;
             case -3:
                 
-                require_once '/var/www/classes/Storyline.class.php';
+                require_once __DIR__.'/Storyline.class.php';
                 $storyline = new Storyline();
 
                 $userIP = $this->player->getPlayerInfo($_SESSION['id'])->gameip;

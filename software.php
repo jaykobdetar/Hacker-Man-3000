@@ -1,11 +1,12 @@
 <?php
 
-require '/var/www/classes/Player.class.php';
+require_once __DIR__.'/bootstrap.php';
+require __DIR__.'/classes/Player.class.php';
 require 'config.php';
-require '/var/www/classes/Session.class.php';
-require '/var/www/classes/PC.class.php';
-require '/var/www/classes/System.class.php';
-require '/var/www/classes/Process.class.php';
+require __DIR__.'/classes/Session.class.php';
+require __DIR__.'/classes/PC.class.php';
+require __DIR__.'/classes/System.class.php';
+require __DIR__.'/classes/Process.class.php';
 
 $session = new Session();
 $system = new System();
@@ -88,7 +89,7 @@ if($session->issetLogin()){
             
             if($getInfoAction['ISSET_GET'] == 1 && $_GET['action'] != 'buy'){
                 
-                $link = '?action='.$_GET['action'].'&';
+                $link = '?action='.urlencode($_GET['action']).'&';
                 
             } elseif($getInfoAction['ISSET_GET'] == 0 && !isset($_GET['page'])){
                 $system->handleError('INVALID_GET', 'software.php');
@@ -98,7 +99,7 @@ if($session->issetLogin()){
             $getInfoAction = NULL;
         }
         
-        $link .= 'id='.$_GET['id'];
+        $link .= 'id='.urlencode($_GET['id']);
         
         $gotGet = 1;
         
@@ -441,7 +442,7 @@ if($session->issetLogin()){
                         break;
                     case 'webserver':
                         
-                        require '/var/www/classes/Internet.class.php';
+                        require __DIR__.'/classes/Internet.class.php';
                         $internet = new Internet();
                         
                         $internet->webserver_showPage();

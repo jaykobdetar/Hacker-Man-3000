@@ -33,16 +33,32 @@ class Finances {
             
     }
     
+    /**
+     * In-game bitcoin price. Follows the real BTC/USD price from BTC_PRICE_URL (cached for an hour);
+     * set BTC_PRICE_URL to an empty value to use the fixed fallback price instead.
+     */
     public function bitcoin_getValue(){
-        
-        $price = file_get_contents('https://blockchain.info/q/24hrprice');
-                
-        if(!is_numeric($price)){
-            $price = (int)$price;
+
+        $fallback = 472;
+        $url = Config::get('BTC_PRICE_URL', 'https://blockchain.info/q/24hrprice');
+        if (!$url) {
+            return $fallback;
         }
-        
+
+        $cache = sys_get_temp_dir() . '/he_btc_price_' . md5($url);
+        if (is_file($cache) && filemtime($cache) > time() - 3600) {
+            $price = (float) file_get_contents($cache);
+        } else {
+            $context = stream_context_create(['http' => ['timeout' => 3], 'https' => ['timeout' => 3]]);
+            $price = @file_get_contents($url, false, $context);
+            $price = is_numeric($price) ? (float) $price : 0;
+            if ($price > 0) {
+                @file_put_contents($cache, (string) $price);
+            }
+        }
+
         if($price <= 0){
-            $price = 472;
+            $price = $fallback;
         }
         
         return round($price);
@@ -96,7 +112,7 @@ class Finances {
         }
         
         $this->session->newQuery();
-        $sql = "SELECT address, bitcoin_wallets.key, amount FROM bitcoin_wallets WHERE npcID = '".$btcID."' AND userID = '".$uid."' LIMIT 1";        
+        $sql = SqlQuery::make('SELECT address, bitcoin_wallets.key, amount FROM bitcoin_wallets WHERE npcID = ? AND userID = ? LIMIT 1', [$btcID, $uid]);        
         return $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
 
     }
@@ -259,7 +275,7 @@ class Finances {
     public function userHaveWallet($uid, $btcID){
         
         $this->session->newQuery();
-        $sql = "SELECT COUNT(*) AS total FROM bitcoin_wallets WHERE npcID = '".$btcID."' AND userID = '".$uid."' LIMIT 1";
+        $sql = SqlQuery::make('SELECT COUNT(*) AS total FROM bitcoin_wallets WHERE npcID = ? AND userID = ? LIMIT 1', [$btcID, $uid]);
         if($this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->total > 0){
             return TRUE;
         } else {
@@ -286,16 +302,16 @@ class Finances {
     public function setExpireDate($acc, $deleteIn){
         
         $this->session->newQuery();
-        $sql = 'INSERT INTO bankaccounts_expire (accID, expireDate) VALUES (:acc, DATE_ADD(NOW(), INTERVAL \''.$deleteIn.'\' DAY))';
+        $sql = 'INSERT INTO bankaccounts_expire (accID, expireDate) VALUES (:acc, DATE_ADD(NOW(), INTERVAL :days DAY))';
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute(array(':acc' => $acc));
+        $stmt->execute(array(':acc' => $acc, ':days' => $deleteIn));
         
     }
     
     public function closeAccount($bankAcc){
         
         $this->session->newQuery();
-        $sql = 'DELETE FROM bankAccounts WHERE bankAcc = \''.$bankAcc.'\' LIMIT 1';
+        $sql = SqlQuery::make('DELETE FROM bankAccounts WHERE bankAcc = ? LIMIT 1', [$bankAcc]);
         $this->pdo->query($sql);
         
     }
@@ -316,7 +332,7 @@ class Finances {
         $pwd = randString2(6);
         
         $this->session->newQuery();
-        $sql = 'UPDATE bankAccounts SET bankPass = \''.$pwd.'\' WHERE bankAcc = \''.$bankAcc.'\' LIMIT 1';
+        $sql = SqlQuery::make('UPDATE bankAccounts SET bankPass = ? WHERE bankAcc = ? LIMIT 1', [$pwd, $bankAcc]);
         $this->pdo->query($sql);
         
         return $pwd;
@@ -325,7 +341,7 @@ class Finances {
     
     public function listBankAccounts($uid){
         
-        $return = '';
+        $return = [];
         
 	$this->session->newQuery();
         $sql = 'SELECT bankAcc, cash FROM bankAccounts WHERE bankUser = :uid ORDER BY cash DESC';
@@ -454,7 +470,7 @@ class Finances {
     
     public function transferMoney($from, $to, $amount, $bankFrom, $bankTo, $userTo, $userIP){
 
-        require '/var/www/classes/Storyline.class.php';
+        require __DIR__.'/Storyline.class.php';
         $storyline = new Storyline();
         
         $storyline->safenet_monitorTransfers($amount, $userIP);
@@ -473,7 +489,7 @@ class Finances {
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute(array(':newAmount' => $newAmount, ':to' => $to, ':bankTo' => $bankTo));
         
-        require_once '/var/www/classes/Ranking.class.php';
+        require_once __DIR__.'/Ranking.class.php';
         $ranking = new Ranking();
 
         $ranking->updateMoneyStats('3', $newAmount, $userTo);
@@ -567,7 +583,7 @@ class Finances {
         }
         
         $this->session->newQuery();
-        $sql = 'SELECT SUM(cash) AS total FROM bankAccounts WHERE bankUser = \''.$uid.'\'';
+        $sql = SqlQuery::make('SELECT SUM(cash) AS total FROM bankAccounts WHERE bankUser = ?', [$uid]);
         return $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->total;
 
     }
@@ -575,7 +591,7 @@ class Finances {
     public function getBankIP($bankID){
         
         $this->session->newQuery();
-        $sql = "SELECT npcIP FROM npc WHERE id = '".$bankID."'";
+        $sql = SqlQuery::make('SELECT npcIP FROM npc WHERE id = ?', [$bankID]);
         return $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->npcip;
         
     }
@@ -620,7 +636,7 @@ class Finances {
         }
         
         $this->session->newQuery();
-        $sql = "SELECT bankAcc FROM bankAccounts WHERE bankUser = '".$userID."' ORDER BY cash DESC";
+        $sql = SqlQuery::make('SELECT bankAcc FROM bankAccounts WHERE bankUser = ? ORDER BY cash DESC', [$userID]);
         $data = $this->pdo->query($sql)->fetchAll();
         
         return $data['0']['bankacc'];
@@ -670,7 +686,7 @@ class Finances {
         }
         
         $this->session->newQuery();
-        $sql = "SELECT bankUser FROM bankAccounts WHERE bankAcc = '".$accountID."' LIMIT 1";
+        $sql = SqlQuery::make('SELECT bankUser FROM bankAccounts WHERE bankAcc = ? LIMIT 1', [$accountID]);
         $data = $this->pdo->query($sql)->fetchAll();
         
         if(sizeof($data) == 1){
@@ -707,14 +723,14 @@ class Finances {
         $id = $_SESSION['id'];
 
 	$this->session->newQuery();
-        $sqlSelect = "SELECT bankAcc, bankPass, bankID, cash FROM bankAccounts WHERE bankUser = $id ORDER BY bankID ASC";
+        $sqlSelect = SqlQuery::make('SELECT bankAcc, bankPass, bankID, cash FROM bankAccounts WHERE bankUser = ? ORDER BY bankID ASC', [SqlQuery::num($id)]);
         $bankInfo= $this->pdo->query($sqlSelect)->fetchAll();
 
         $totalAccs = sizeof($bankInfo);
 
         if($totalAccs > '0'){
 
-            require '/var/www/classes/NPC.class.php';
+            require __DIR__.'/NPC.class.php';
             $npc = new NPC();
             
             $firstEmptyDiv = 0;

@@ -1,0 +1,20 @@
+{
+    "name": "hackerexperience/legacy",
+    "description": "Hacker Experience Legacy - browser-based hacking simulation game",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.2",
+        "ext-gettext": "*",
+        "ext-json": "*",
+        "ext-pdo_mysql": "*",
+        "ext-sodium": "*",
+        "ezyang/htmlpurifier": "^4.19",
+        "phpmailer/phpmailer": "^7.1",
+        "vlucas/phpdotenv": "^5.7"
+    },
+    "config": {
+        "sort-packages": true,
+        "optimize-autoloader": true
+    }
+}

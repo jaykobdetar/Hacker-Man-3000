@@ -1,6 +1,6 @@
 <?php
 
-require '/var/www/classes/PDO.class.php';
+require __DIR__.'/PDO.class.php';
 
 class Session {
 
@@ -8,9 +8,12 @@ class Session {
     
     function __construct() {
 
-        if (!isset($_SESSION)) {
-
+        if (session_status() === PHP_SESSION_NONE) {
             session_start();
+        }
+        static $initialized = false;
+        if (!$initialized) {
+            $initialized = true;
             if(!isset($_SESSION['QUERY_COUNT'])){
                 $_SESSION['QUERY_COUNT'] = '0';
             }
@@ -18,7 +21,6 @@ class Session {
                 $_SESSION['BUFFER_QUERY'] = '0';
             }
             $_SESSION['EXEC_TIME'] = microtime(true);
-            
         }
                
         $l = self::language_get();
@@ -91,20 +93,17 @@ class Session {
         
     }
 
-    public function loginSession($id, $user, $premium, $special) {
+    public function loginSession($id, $user, $special) {
+
+        // New session ID and CSRF token on login (prevents session fixation).
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_regenerate_id(true);
+        }
+        unset($_SESSION['CSRF_TOKEN']);
 
         $_SESSION['id'] = $id;
         $_SESSION['user'] = $user;
-        $_SESSION['premium'] = $premium;
         self::language_set(true);
-        
-        if($special){
-            if($special == 'facebook'){
-                $_SESSION['FBLOGIN'] = TRUE;
-            } else {
-                $_SESSION['TTLOGIN'] = TRUE;
-            }
-        }
         
     }
 
@@ -118,12 +117,6 @@ class Session {
         
     }
 
-    public function issetFBLogin(){
-        if(isset($_SESSION['FBLOGIN'])){
-            return TRUE;
-        }
-        return FALSE;
-    }
     
     public function logout($query = 1, $redirect = false) {
         
@@ -132,11 +125,11 @@ class Session {
             $pdo = PDO_DB::factory();
 
             self::newQuery();
-            $sql = "DELETE FROM users_online WHERE id = '".$_SESSION['id']."'";
+            $sql = SqlQuery::make('DELETE FROM users_online WHERE id = ?', [$_SESSION['id']]);
             $pdo->query($sql);
             
             self::newQuery();
-            $sql = "DELETE FROM users_expire WHERE userID = '".$_SESSION['id']."'";
+            $sql = SqlQuery::make('DELETE FROM users_expire WHERE userID = ?', [$_SESSION['id']]);
             $pdo->query($sql);
 
         }
@@ -170,7 +163,7 @@ if (ini_get("session.use_cookies")) {
         $pdo = PDO_DB::factory();
 
         self::newQuery();
-        $sql = 'SELECT COUNT(*) AS t FROM users_online WHERE id = \''.$_SESSION['id'].'\' LIMIT 1';
+        $sql = SqlQuery::make('SELECT COUNT(*) AS t FROM users_online WHERE id = ? LIMIT 1', [$_SESSION['id']]);
         $total = $pdo->query($sql)->fetch(PDO::FETCH_OBJ)->t;
 
         if($total == 1){
@@ -208,7 +201,7 @@ if (ini_get("session.use_cookies")) {
 
     public function createLogSession($lid, $local, $victimIP = '') {
 
-        require_once "classes/Player.class.php";
+        require_once __DIR__.'/Player.class.php';
         $player = new Player();
 
         $_SESSION['LID'] = $lid;
@@ -412,7 +405,7 @@ if (ini_get("session.use_cookies")) {
         $totalToAdd = self::exp_getAmount($action, $info);
         
         self::newQuery();
-        $sql = "UPDATE users_stats SET exp = exp + '$totalToAdd' WHERE uid = $uid";
+        $sql = SqlQuery::make('UPDATE users_stats SET exp = exp + ? WHERE uid = ?', [$totalToAdd, SqlQuery::num($uid)]);
         $pdo->query($sql);
         
     }
@@ -577,45 +570,50 @@ if (ini_get("session.use_cookies")) {
         
     }
     
+    /** Prefix for links to the game wiki, e.g. https://wiki.example.com/ or wiki/doku.php?id= */
+    private static function wikiUrl(){
+        return Config::get('WIKI_URL', 'wiki/doku.php?id=');
+    }
+
     public function help($page, $info = false){
         
         $ext = '';
         
         switch($page){
             case 'clan':
-                return 'https://wiki.hackerexperience.com/'._('en').':clans';
+                return self::wikiUrl()._('en').':clans';
             case 'missions':
                 if($info == 'level'){
                     $ext = _('#mission_level');
                 }
-                return 'https://wiki.hackerexperience.com/'._('en').':missions'.$ext;
+                return self::wikiUrl()._('en').':missions'.$ext;
             case 'hardware':
-                return 'https://wiki.hackerexperience.com/'._('en').':hardware';
+                return self::wikiUrl()._('en').':hardware';
             case 'log':
-                return 'https://wiki.hackerexperience.com/'._('en').':log';
+                return self::wikiUrl()._('en').':log';
             case 'university':
-                return 'https://wiki.hackerexperience.com/'._('en').':university';
+                return self::wikiUrl()._('en').':university';
             case 'finances':
-                return 'https://wiki.hackerexperience.com/'._('en').':finances';
+                return self::wikiUrl()._('en').':finances';
             case 'list':
                 if($info == 'ddos'){
-                    return 'https://wiki.hackerexperience.com/'._('en').':ddos';
+                    return self::wikiUrl()._('en').':ddos';
                 } elseif($info == 'collect'){
-                    return 'https://wiki.hackerexperience.com/'._('en').':hacked_database';
+                    return self::wikiUrl()._('en').':hacked_database';
                 }
-                return 'https://wiki.hackerexperience.com/'._('en').':hacked_database';
+                return self::wikiUrl()._('en').':hacked_database';
             case 'task':
-                return 'https://wiki.hackerexperience.com/'._('en').':processes';
+                return self::wikiUrl()._('en').':processes';
             case 'software':
                 if($info == 'external'){
-                    return 'https://wiki.hackerexperience.com/'._('en').':hardware'._('#external_hard_drive');
+                    return self::wikiUrl()._('en').':hardware'._('#external_hard_drive');
                 }
-                return 'https://wiki.hackerexperience.com/'._('en').':softwares';
+                return self::wikiUrl()._('en').':softwares';
             case 'internet':
                 if($info == 'hack'){
-                    return 'https://wiki.hackerexperience.com/'._('en').':hacking';
+                    return self::wikiUrl()._('en').':hacking';
                 }
-                return 'https://wiki.hackerexperience.com/'._('en').':internet';
+                return self::wikiUrl()._('en').':internet';
                 
         }
         

@@ -1,6 +1,7 @@
 <?php
 
-require '/var/www/classes/Session.class.php';
+require_once __DIR__.'/bootstrap.php';
+require __DIR__.'/classes/Session.class.php';
 
 $session = new Session();
 
@@ -10,9 +11,9 @@ if($session->issetLogin()){
     
     if($_SERVER['REQUEST_METHOD'] == 'POST'){
         
-        require '/var/www/classes/Player.class.php';
-        require '/var/www/classes/Finances.class.php';
-        require '/var/www/classes/Process.class.php';
+        require __DIR__.'/classes/Player.class.php';
+        require __DIR__.'/classes/Finances.class.php';
+        require __DIR__.'/classes/Process.class.php';
         
         $player = new Player();
         $finances = new Finances();

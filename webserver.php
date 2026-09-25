@@ -1,6 +1,7 @@
 <?php
 
-require '/var/www/classes/Session.class.php';
+require_once __DIR__.'/bootstrap.php';
+require __DIR__.'/classes/Session.class.php';
 
 $session = new Session();
 
@@ -8,10 +9,10 @@ if($session->issetLogin()){
 
     if($_SERVER['REQUEST_METHOD'] == 'POST'){
         
-        require '/var/www/classes/Player.class.php';
-        require '/var/www/classes/PC.class.php';
-        require '/var/www/classes/Internet.class.php';
-        require '/var/www/classes/Process.class.php';
+        require __DIR__.'/classes/Player.class.php';
+        require __DIR__.'/classes/PC.class.php';
+        require __DIR__.'/classes/Internet.class.php';
+        require __DIR__.'/classes/Process.class.php';
         
         $player = new Player();
         $internet = new Internet();
@@ -34,11 +35,11 @@ if($session->issetLogin()){
             
             $system = new System();
             if(!$system->validate($content, 'text')){
-                echo "<br/>".$content."<br/>";
+                echo "<br/>".esc($content)."<br/>";
                 die("<br/><strong>Invalid web server text</strong>");
             }
             
-            require '/var/www/classes/Purifier.class.php';
+            require __DIR__.'/classes/Purifier.class.php';
             $purifier = new Purifier();
             $purifier->set_config('text');
 
@@ -79,9 +80,6 @@ if($session->issetLogin()){
                 $host = 'local';
             }
             
-            if(!$player->isPremium($uid)){
-                die("This user is not premium");
-            }
             
             $webServerSoftware = $software->getBestSoftware(18, $uid, 'VPC');
             

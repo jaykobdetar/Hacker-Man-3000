@@ -6,14 +6,14 @@ dict_ram = {'1':{'10':'9','11':'10','12':'12','13':'14','14':'16','15':'19','16'
 
 
 import sys
-import MySQLdb
+import gamedb
 import json
 import string
 
-db = MySQLdb.connect(host="localhost",user="he",passwd="REDADCTED",db="game")
+db = gamedb.connect()
 cur = db.cursor()
 
-json_data = open('/var/www/json/riddle_software.json').read()
+json_data = open(gamedb.path('json/riddle_software.json')).read()
 softList = json.loads(json_data)
 
 typeDict = {
@@ -40,16 +40,16 @@ typeDict = {
 }
 
 descDict = {
-	    '1' : 'Cracker',
-	    '2' : 'Hasher',
-	    '3' : 'Port Scan',
-	    '4' : 'Firewall',
-	    '5' : 'Hidder',
-	    '6' : 'Seeker',
-	    '7' : 'Anti-Virus',
-	    '8' : 'Spam',
-	    '9' : 'Warez',
-	    '10' : 'DDoS',
+            '1' : 'Cracker',
+            '2' : 'Hasher',
+            '3' : 'Port Scan',
+            '4' : 'Firewall',
+            '5' : 'Hidder',
+            '6' : 'Seeker',
+            '7' : 'Anti-Virus',
+            '8' : 'Spam',
+            '9' : 'Warez',
+            '10' : 'DDoS',
         '11' : 'Collector',
         '12' : 'Breaker',
         '13' : 'FTP Exploit',
@@ -60,158 +60,158 @@ descDict = {
 
 def name(v):
 
-	if(v < 15):
-		return 'Basic'
-	elif(v < 20):
-		return 'Generic'
-	elif(v < 30):
-		return 'Decent'
-	elif(v < 40):
-		return 'Intermediate'
-	elif(v < 50):
-		return 'Competent'
-	elif(v < 65):
-		return 'Advanced'
-	elif(v < 80):
-		return 'Big'
-	elif(v < 100):
-		return 'Amazing'
-	elif(v < 120):
-		return 'Super'
-	elif(v < 150):
-		return 'Ultra'
-	elif(v < 175):
-		return 'Epic'
-	else:
-		return 'Ultimate'
+        if(v < 15):
+                return 'Basic'
+        elif(v < 20):
+                return 'Generic'
+        elif(v < 30):
+                return 'Decent'
+        elif(v < 40):
+                return 'Intermediate'
+        elif(v < 50):
+                return 'Competent'
+        elif(v < 65):
+                return 'Advanced'
+        elif(v < 80):
+                return 'Big'
+        elif(v < 100):
+                return 'Amazing'
+        elif(v < 120):
+                return 'Super'
+        elif(v < 150):
+                return 'Ultra'
+        elif(v < 175):
+                return 'Epic'
+        else:
+                return 'Ultimate'
 
 def getType(softType):
-	return typeDict.get(str(softType), 'doom')
+        return typeDict.get(str(softType), 'doom')
 
 def add(npcID, softInfo):
-	
-	try:
+        
+        try:
 
-		if softInfo['running']:
-			strRunning = '1'
-		else:
-			strRunning = '0'
+                if softInfo['running']:
+                        strRunning = '1'
+                else:
+                        strRunning = '0'
 
-		cur.execute(""" INSERT INTO software_original
-							(npcID, softName, softVersion, softSize, softRam, softType, running)
-						VALUES (%s, %s, %s, %s, %s, %s, %s)
-					""" % (npcID, "'"+softInfo['name']+"'", softInfo['version'], softInfo['size'], softInfo['ram'], softInfo['type'], strRunning)
-					)
+                cur.execute(""" INSERT INTO software_original
+                                                        (npcID, softName, softVersion, softSize, softRam, softType, running)
+                                                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                                        """ % (npcID, "'"+softInfo['name']+"'", softInfo['version'], softInfo['size'], softInfo['ram'], softInfo['type'], strRunning)
+                                        )
 
-		cur.execute(""" INSERT INTO software
-							(userID, isNPC, softName, softVersion, softSize, softRam, softType)
-						VALUES (%s, '1', %s, %s, %s, %s, %s)
-					""" % (npcID, "'"+softInfo['name']+"'", softInfo['version'], softInfo['size'], softInfo['ram'], softInfo['type'])
-					)
+                cur.execute(""" INSERT INTO software
+                                                        (userID, isNPC, softName, softVersion, softSize, softRam, softType)
+                                                VALUES (%s, '1', %s, %s, %s, %s, %s)
+                                        """ % (npcID, "'"+softInfo['name']+"'", softInfo['version'], softInfo['size'], softInfo['ram'], softInfo['type'])
+                                        )
 
-		if(softInfo['running']):
+                if(softInfo['running']):
 
-			cur.execute(""" INSERT INTO software_running
-								(softID, userID, ramUsage, isNPC)
-							VALUES (%s, %s, %s, '1')
-						""" % (str(db.insert_id()), npcID, softInfo['ram'])
-						)
+                        cur.execute(""" INSERT INTO software_running
+                                                                (softID, userID, ramUsage, isNPC)
+                                                        VALUES (%s, %s, %s, '1')
+                                                """ % (str(db.insert_id()), npcID, softInfo['ram'])
+                                                )
 
-	except:
-		db.rollback()
+        except:
+                db.rollback()
 
-	db.commit()
+        db.commit()
 
 def getName(softType, softVersion):
 
-	if softType == '17':
+        if softType == '17':
 
-		if softVersion == 10:
-			return 'F.L.I.E.N.D.S'
-		elif softVersion == 20:
-			return 'Winblows 8.1'
-		elif softVersion == 30:
-			return 'Fotoshop CS6'
-		else:
-			return 'Torrent'
+                if softVersion == 10:
+                        return 'F.L.I.E.N.D.S'
+                elif softVersion == 20:
+                        return 'Winblows 8.1'
+                elif softVersion == 30:
+                        return 'Fotoshop CS6'
+                else:
+                        return 'Torrent'
 
-	if softVersion == '0':
-		return 'puzzle'
+        if softVersion == '0':
+                return 'puzzle'
 
-	return name(softVersion)+' '+descDict[softType]
+        return name(softVersion)+' '+descDict[softType]
 
 def infoByExt(softType, softVersion):
 
-	if softVersion:
-		add = True
-	else:
-		return { 'add' : False }
+        if softVersion:
+                add = True
+        else:
+                return { 'add' : False }
 
-	if softType == 'hash':
-		running = True
-	elif softType == 'fwl':
-		running = True
-	elif softType == 'crc':
-		running = True
-	else:
-		running = False
+        if softType == 'hash':
+                running = True
+        elif softType == 'fwl':
+                running = True
+        elif softType == 'crc':
+                running = True
+        else:
+                running = False
 
-	numSoftType = getType(softType)
+        numSoftType = getType(softType)
 
-	if softVersion != '0':
-		try:
-		 	size = dict_size[str(numSoftType)][str(softVersion)]
-		 	ram = dict_ram[str(numSoftType)][str(softVersion)]
-		except KeyError:
-		  	size = dict_size['4'][str(softVersion)]
-		  	ram = dict_ram['4'][str(softVersion)]
+        if softVersion != '0':
+                try:
+                        size = dict_size[str(numSoftType)][str(softVersion)]
+                        ram = dict_ram[str(numSoftType)][str(softVersion)]
+                except KeyError:
+                        size = dict_size['4'][str(softVersion)]
+                        ram = dict_ram['4'][str(softVersion)]
 
-  	else:
-  		size = 0
-  		ram = 0
+        else:
+                size = 0
+                ram = 0
 
-	infoDict = {
-		'add' : True,
-		'name' : getName(numSoftType, softVersion),
-		'size' : size,
-		'ram' : ram,
-		'version' : softVersion,
-		'type' : numSoftType,
-		'running': running
-	}
+        infoDict = {
+                'add' : True,
+                'name' : getName(numSoftType, softVersion),
+                'size' : size,
+                'ram' : ram,
+                'version' : softVersion,
+                'type' : numSoftType,
+                'running': running
+        }
 
-	return infoDict
+        return infoDict
 
 def getNPCID(puzzleID):
 
-	key = 'PUZZLE/'+str(puzzleID)
+        key = 'PUZZLE/'+str(puzzleID)
 
-	cur.execute(""" SELECT npcID
-					FROM npc_key
-					WHERE npc_key.key = %s
-					LIMIT 1
-				""", key)
+        cur.execute(""" SELECT npcID
+                                        FROM npc_key
+                                        WHERE npc_key.key = %s
+                                        LIMIT 1
+                                """, key)
 
-	for npcID in cur.fetchall():
-		return str(npcID[0])
-		
-	print 'SEM ID!!! ERRO???'
+        for npcID in cur.fetchall():
+                return str(npcID[0])
+                
+        print('SEM ID!!! ERRO???')
 
-	return False
+        return False
 
 for riddleKey in softList:
 
-	npcID = getNPCID(riddleKey)
+        npcID = getNPCID(riddleKey)
 
-	#se nao encontrou o puzzle, vamos pra proxima key. 
-	#provavelmente eh pq ainda n foram adicionados
-	if not npcID:
-		continue
+        #se nao encontrou o puzzle, vamos pra proxima key. 
+        #provavelmente eh pq ainda n foram adicionados
+        if not npcID:
+                continue
 
-	add(npcID, infoByExt('riddle', '0'))
+        add(npcID, infoByExt('riddle', '0'))
 
-	for softType in softList[riddleKey]:
+        for softType in softList[riddleKey]:
 
-		info = infoByExt(softType, softList[riddleKey][softType])
+                info = infoByExt(softType, softList[riddleKey][softType])
 
-		add(npcID, info)
+                add(npcID, info)

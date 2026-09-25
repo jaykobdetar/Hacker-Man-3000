@@ -1,10 +1,11 @@
 <?php
 
+require_once __DIR__.'/bootstrap.php';
 require 'config.php';
-require '/var/www/classes/Session.class.php';
-require '/var/www/classes/Player.class.php';
-require '/var/www/classes/Internet.class.php';
-require '/var/www/classes/System.class.php';
+require __DIR__.'/classes/Session.class.php';
+require __DIR__.'/classes/Player.class.php';
+require __DIR__.'/classes/Internet.class.php';
+require __DIR__.'/classes/System.class.php';
 
 $session = new Session();
 $system = new System();

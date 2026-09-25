@@ -13,9 +13,9 @@ Class Pagination {
  
    function __construct() {
 
-        require_once '/var/www/classes/System.class.php';
-        require_once '/var/www/classes/Player.class.php';
-        require_once '/var/www/classes/PC.class.php';
+        require_once __DIR__.'/System.class.php';
+        require_once __DIR__.'/Player.class.php';
+        require_once __DIR__.'/PC.class.php';
 
         $this->pdo = PDO_DB::factory();
         $this->system = new System();
@@ -79,8 +79,9 @@ Class Pagination {
 
     private function getQueryLimit($limit, $page) {
 
-        $start = $page - 1;
-        $start = $limit * $start;
+        // Only integers end up in the LIMIT clause built from this string.
+        $limit = max(1, (int)$limit);
+        $start = max(0, $limit * ((int)$page - 1));
 
         $limitStr = $start . ',' . $limit;
 
@@ -129,7 +130,7 @@ Class Pagination {
             case 'list':
 
                 $this->session->newQuery();
-                $sqlCount = "SELECT id FROM lists WHERE userID = $uid";
+                $sqlCount = SqlQuery::make('SELECT id FROM lists WHERE userID = ?', [SqlQuery::num($uid)]);
                 $count = $this->pdo->query($sqlCount)->fetchAll();
 
                 $total = count($count);
@@ -143,7 +144,7 @@ Class Pagination {
                     <?php
                     
                     $this->session->newQuery();
-                    $sqlQuery = "SELECT 
+                    $sqlQuery = SqlQuery::make('SELECT 
                                     id, userID, user, ip, pass, virusID, 
                                     lists_specs.spec_net, lists_specs.spec_hdd,
                                     lists_specs_analyzed.minCPU, lists_specs_analyzed.maxCPU,
@@ -153,9 +154,9 @@ Class Pagination {
                                  ON lists_specs.listID = lists.id
                                  LEFT JOIN lists_specs_analyzed
                                  ON lists_specs_analyzed.listID = lists.id
-                                 WHERE userID = $uid 
+                                 WHERE userID = ? 
                                  ORDER BY hackedTime DESC 
-                                 LIMIT $queryLimit";
+                                 LIMIT '.$queryLimit, [SqlQuery::num($uid)]);
                     $sqlInfo = $this->pdo->query($sqlQuery);
 
                     self::verifyLimit($queryLimit, $total, $get);
@@ -348,7 +349,7 @@ Class Pagination {
                 self::verifyLimit($queryLimit, $total, $get);
                 
                 $this->session->newQuery();
-                $sql = "SELECT id, mails.from, subject, dateSent, isRead FROM mails WHERE mails.to = $id AND isDeleted = 0 ORDER BY dateSent DESC LIMIT $queryLimit";
+                $sql = SqlQuery::make('SELECT id, mails.from, subject, dateSent, isRead FROM mails WHERE mails.to = ? AND isDeleted = 0 ORDER BY dateSent DESC LIMIT '.$queryLimit, [SqlQuery::num($id)]);
                 $data = $this->pdo->query($sql);
 
                 ?>
@@ -380,7 +381,7 @@ Class Pagination {
                 while ($mailInfo = $data->fetch(PDO::FETCH_OBJ)) {
 
                     $date = substr($mailInfo->datesent, 0, -3);
-                    $subject = '<a href="mail?id='.$mailInfo->id.'">'._($mailInfo->subject).'</a>';
+                    $subject = '<a href="mail?id='.$mailInfo->id.'">'.esc(_($mailInfo->subject)).'</a>';
                     $name = $mail->mail_getSender($mailInfo->from);
                     
                     if ($mailInfo->isread == '0') {
@@ -445,7 +446,7 @@ Class Pagination {
                 self::verifyLimit($queryLimit, $total, $get);
                 
                 $this->session->newQuery();
-                $sql = "SELECT id, mails.to, subject, dateSent, isRead FROM mails WHERE mails.from = $id ORDER BY dateSent DESC LIMIT $queryLimit";
+                $sql = SqlQuery::make('SELECT id, mails.to, subject, dateSent, isRead FROM mails WHERE mails.from = ? ORDER BY dateSent DESC LIMIT '.$queryLimit, [SqlQuery::num($id)]);
                 $data = $this->pdo->query($sql);
 
                 ?>
@@ -476,7 +477,7 @@ Class Pagination {
                 while ($mailInfo = $data->fetch(PDO::FETCH_OBJ)) {
 
                     $date = substr($mailInfo->datesent, 0, -3);
-                    $subject = '<a href="mail?id='.$mailInfo->id.'">'.$mailInfo->subject.'</a>';                    
+                    $subject = '<a href="mail?id='.$mailInfo->id.'">'.esc($mailInfo->subject).'</a>';                    
                     $name = '<a href="profile?id='.$mailInfo->to.'">'.$this->player->getPlayerInfo($mailInfo->to)->login.'</a>';
 
                     ?>
@@ -538,13 +539,13 @@ Class Pagination {
                 self::verifyLimit($queryLimit, $total, $get);
                 
                 $this->session->newQuery();
-                $sql = "SELECT missions_history.id, type, hirer, missionEnd, prize, hirerInfo.name AS hirerName 
+                $sql = SqlQuery::make('SELECT missions_history.id, type, hirer, missionEnd, prize, hirerInfo.name AS hirerName 
                         FROM missions_history
                         INNER JOIN npc ON npc.npcIP = hirer
                         INNER JOIN npc_info_en AS hirerInfo ON hirerInfo.npcID = npc.id
-                        WHERE userID = $id AND completed = 1
+                        WHERE userID = ? AND completed = 1
                         ORDER BY missionEnd DESC 
-                        LIMIT $queryLimit";
+                        LIMIT '.$queryLimit, [SqlQuery::num($id)]);
                 $data = $this->pdo->query($sql);
 
 ?>
@@ -598,7 +599,7 @@ Class Pagination {
                 $total = count($count);
 
                 $this->session->newQuery();
-                $sqlQuery = "SELECT id, author, dateCreated, description FROM changelog ORDER BY dateCreated DESC LIMIT $queryLimit";
+                $sqlQuery = SqlQuery::make('SELECT id, author, dateCreated, description FROM changelog ORDER BY dateCreated DESC LIMIT '.$queryLimit, []);
                 $sqlInfo = $this->pdo->query($sqlQuery);
 
                 echo "<table border=\"1\">";
@@ -628,7 +629,7 @@ Class Pagination {
                 $total = count($count);
 
                 $this->session->newQuery();
-                $sqlQuery = "SELECT id, bugLink, bugReporter, bugText,  dateCreated, comment, reviewed FROM bugreports ORDER BY dateCreated ASC LIMIT $queryLimit";
+                $sqlQuery = SqlQuery::make('SELECT id, bugLink, bugReporter, bugText,  dateCreated, comment, reviewed FROM bugreports ORDER BY dateCreated ASC LIMIT '.$queryLimit, []);
                 $sqlInfo = $this->pdo->query($sqlQuery);
 
                 echo "<table border=\"1\">";
@@ -647,7 +648,7 @@ Class Pagination {
                     echo "<tr>
                     <td>$showInfo->id</td>
                     <td>$showInfo->datecreated</td>
-                    <td><a href=\"bugs?id=$showInfo->id\">$showInfo->bugtext</a></td>
+                    <td><a href=\"bugs?id=".(int)$showInfo->id."\">".esc($showInfo->bugtext)."</a></td>
                     <td>$playerInfo->login</td>
                     <td>$reviewed</td>
                     </tr>";
@@ -668,7 +669,7 @@ Class Pagination {
                 self::verifyLimit($queryLimit, $total, $get);                
                 
                 $this->session->newQuery();
-                $sqlQuery = "SELECT id, author, title, date FROM news ORDER BY date DESC LIMIT $queryLimit";
+                $sqlQuery = SqlQuery::make('SELECT id, author, title, date FROM news ORDER BY date DESC LIMIT '.$queryLimit, []);
                 $sqlInfo = $this->pdo->query($sqlQuery);
 
 ?>
@@ -720,7 +721,7 @@ Class Pagination {
             case 'listBank':
                                 
                 $this->session->newQuery();
-                $sqlCount = "SELECT id FROM lists_bankAccounts WHERE userID = $uid";
+                $sqlCount = SqlQuery::make('SELECT id FROM lists_bankAccounts WHERE userID = ?', [SqlQuery::num($uid)]);
                 $count = $this->pdo->query($sqlCount)->fetchAll();
 
                 $total = count($count);
@@ -741,12 +742,12 @@ Class Pagination {
                     }
                     
                     $this->session->newQuery();
-                    $sqlQuery = "SELECT lists_bankAccounts.id, bankID, bankAcc, bankPass, bankIP, lastMoney, lastMoneyDate, npcInfo.name
+                    $sqlQuery = SqlQuery::make('SELECT lists_bankAccounts.id, bankID, bankAcc, bankPass, bankIP, lastMoney, lastMoneyDate, npcInfo.name
                                  FROM lists_bankAccounts 
-                                 INNER JOIN $table AS npcInfo ON npcInfo.npcID = bankID
-                                 WHERE userID = $uid 
+                                 INNER JOIN '.$table.' AS npcInfo ON npcInfo.npcID = bankID
+                                 WHERE userID = ? 
                                  ORDER BY hackedDate DESC 
-                                 LIMIT $queryLimit";
+                                 LIMIT '.$queryLimit, [SqlQuery::num($uid)]);
                     $sqlInfo = $this->pdo->query($sqlQuery);
 
                     $i = 0;
@@ -855,7 +856,7 @@ Class Pagination {
                                     <tbody>            
 <?php                    
                 
-require 'html/ranking/user_'.$pageToLoad.'.html';
+GeneratedPage::output('html/ranking/user_'.$pageToLoad.'.html');
 
 ?>
                                     </tbody>
@@ -896,7 +897,7 @@ require 'html/ranking/user_'.$pageToLoad.'.html';
                                     <tbody>                            
 <?php                    
                 
-require 'html/ranking/clan_'.$pageToLoad.'.html';
+GeneratedPage::output('html/ranking/clan_'.$pageToLoad.'.html');
 
 ?>
                                     </tbody>
@@ -937,7 +938,7 @@ require 'html/ranking/clan_'.$pageToLoad.'.html';
                 }
 
                 $this->session->newQuery();
-                $sqlCount = "SELECT ranking_software.rank FROM ranking_software $joinStr";
+                $sqlCount = SqlQuery::make('SELECT ranking_software.rank FROM ranking_software '.$joinStr, []);
                 $count = $this->pdo->query($sqlCount)->fetchAll();
 
                 $total = sizeof($count);
@@ -965,18 +966,18 @@ require 'html/ranking/clan_'.$pageToLoad.'.html';
                         $this->system->handleError('Invalid page.', 'ranking?show=software');
                     }
                     
-                    require 'html/ranking/soft_'.$pageToLoad.'.html';
+                    GeneratedPage::output('html/ranking/soft_'.$pageToLoad.'.html');
                     
                 } else {
          
                     $this->session->newQuery();
-                    $sqlQuery = "SELECT ranking_software.softID, software.softname, software.userID, software.softType, software.softversion
+                    $sqlQuery = SqlQuery::make('SELECT ranking_software.softID, software.softname, software.userID, software.softType, software.softversion
                                 FROM ranking_software
                                 INNER JOIN software
                                 ON ranking_software.softID = software.id
-                                $orderStr
+                                '.$orderStr.'
                                 ORDER BY ranking_software.id ASC 
-                                LIMIT $queryLimit";
+                                LIMIT '.$queryLimit, []);
                     $sqlInfo = $this->pdo->query($sqlQuery);
 
                     $studyLimit = explode(",", $queryLimit);
@@ -1046,7 +1047,7 @@ require 'html/ranking/clan_'.$pageToLoad.'.html';
                                     <tbody>                            
 <?php                
 
-                require 'html/ranking/ddos_'.$pageToLoad.'.html';
+                GeneratedPage::output('html/ranking/ddos_'.$pageToLoad.'.html');
 
 ?>
                                     </tbody>
@@ -1147,7 +1148,7 @@ require 'html/ranking/clan_'.$pageToLoad.'.html';
                     
                     $i = 0;
                     $maxPossible = 0;
-                    while(file_exists('html/fame/top_'.$pathName.'_'. $i .'.html')){
+                    while(GeneratedPage::exists('html/fame/top_'.$pathName.'_'. $i .'.html')){
                         $i++;
                         $maxPossible++;
                     }
@@ -1157,7 +1158,7 @@ require 'html/ranking/clan_'.$pageToLoad.'.html';
                 } else {
                     
                     $this->session->newQuery();
-                    $sqlCount = "SELECT COUNT(*) AS total FROM ".$table." WHERE round = '".$round."'";
+                    $sqlCount = SqlQuery::make('SELECT COUNT(*) AS total FROM '.$table.' WHERE round = ?', [$round]);
                     $total = $this->pdo->query($sqlCount)->fetch(PDO::FETCH_OBJ)->total;
                     
                     $maxPossible = ceil($total / $limit);
@@ -1167,7 +1168,7 @@ require 'html/ranking/clan_'.$pageToLoad.'.html';
                     $this->system->handleError('Invalid page.', $redirect);
                 }
                 
-                if(!file_exists('html/fame/'.$round.'_'.$pathName.'_'. ($page - 1) .'.html') && !$top){
+                if(!GeneratedPage::exists('html/fame/'.$round.'_'.$pathName.'_'. ($page - 1) .'.html') && !$top){
                     $this->system->handleError('Ops! We could not find this file :/ Please, try again in a few minutes.', $redirect);
                 }
 
@@ -1192,7 +1193,7 @@ foreach($th as $thName){
                                     <tbody>                            
 <?php                
 
-                require 'html/fame/'.$round.'_'.$pathName.'_'. ($page - 1) .'.html';
+                GeneratedPage::output('html/fame/'.$round.'_'.$pathName.'_'. ($page - 1) .'.html');
 
 ?>
                                     </tbody>
@@ -1204,7 +1205,7 @@ foreach($th as $thName){
                 break;
             case 'round':
 
-                require '/var/www/classes/Storyline.class.php';
+                require __DIR__.'/Storyline.class.php';
                 $storyline = new Storyline();
 
                 $curRound = $storyline->round_current();
@@ -1308,11 +1309,11 @@ foreach($th as $thName){
                 self::verifyLimit($queryLimit, $total, $get);
                 
                 $this->session->newQuery();
-                $sqlQuery = "SELECT userID, user, reputation, age, clanName, timePlaying, missionCount, hackCount, ddosCount, ipResets, moneyEarned, moneyTransfered, moneyHardware, moneyResearch ".$extraSelect."
-                            FROM ".$table."
-                            ".$where."    
+                $sqlQuery = SqlQuery::make('SELECT userID, user, reputation, age, clanName, timePlaying, missionCount, hackCount, ddosCount, ipResets, moneyEarned, moneyTransfered, moneyHardware, moneyResearch '.$extraSelect.'
+                            FROM '.$table.'
+                            '.$where.'    
                             ORDER BY id ASC
-                            LIMIT $queryLimit";
+                            LIMIT '.$queryLimit, []);
                 $sqlInfo = $this->pdo->query($sqlQuery);
 
                 $studyLimit = explode(",", $queryLimit);

@@ -1,4 +1,8 @@
 <?php
+
+require_once __DIR__.'/../bootstrap.php';
+// Cron/maintenance script: never reachable as a web page.
+if (PHP_SAPI !== 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) { http_response_code(404); exit; }
 die("ACHO QUE NAO USO ISSO!");
 function getExtension($softType) {
 
@@ -64,15 +68,12 @@ function getExtension($softType) {
 
  }
 
-require '/var/www/classes/PDO.class.php';
+require __DIR__.'/../classes/PDO.class.php';
 
 $pdo = PDO_DB::factory();
 
 $start = microtime(true);
 
-//TESTES SOMENTE
-$pdo->query('DELETE FROM hist_users; DELETE FROM hist_software; DELETE FROM hist_clans');
-//TESTES SOMENTE
 
 //cur round
 $sql = 'SELECT id FROM round ORDER BY id DESC';
@@ -95,14 +96,14 @@ $pos = 1;
 while($userInfo = $data->fetch(PDO::FETCH_OBJ)){
 
     if($userInfo->clanid != NULL){
-        $sql = "SELECT name FROM clan WHERE clanID = '".$userInfo->clanid."'";
+        $sql = SqlQuery::make('SELECT name FROM clan WHERE clanID = ?', [$userInfo->clanid]);
         $clanName = $pdo->query($sql)->fetch(PDO::FETCH_OBJ)->name;
     } else {
         $clanName = '';
     }
     
     //melhorar dps, precisa ser certificado por mim!
-    $sql = "SELECT softVersion, softName, softType FROM software WHERE userID = '".$userInfo->id."' AND isNPC = 0 AND softType < 30 ORDER BY softVersion DESC, softType DESC LIMIT 1";
+    $sql = SqlQuery::make('SELECT softVersion, softName, softType FROM software WHERE userID = ? AND isNPC = 0 AND softType < 30 ORDER BY softVersion DESC, softType DESC LIMIT 1', [$userInfo->id]);
     $softInfo = $pdo->query($sql)->fetchAll();
     
     if(sizeof($softInfo) > 0){
@@ -113,9 +114,9 @@ while($userInfo = $data->fetch(PDO::FETCH_OBJ)){
         $bestSoftVersion = '';
     }
 
-    $sql = "INSERT INTO hist_users (id, rank, userID, user, reputation, bestSoft, bestSoftVersion, clanName, round, timePlaying, hackCount, ddosCount, ipResets, moneyEarned, moneyTransfered, moneyHardware, moneyResearch, age)
-            VALUES ('', '".$pos."', '".$userInfo->id."', '".$userInfo->login."', '".$userInfo->exp."', '".$bestSoft."', '".$bestSoftVersion."', '".$clanName."', '".$curRound."', '".$userInfo->timeplaying."',
-                    '".$userInfo->hackcount."', '".$userInfo->ddoscount."', '".$userInfo->ipresets."', '".$userInfo->moneyearned."', '".$userInfo->moneytransfered."', '".$userInfo->moneyhardware."', '".$userInfo->moneyresearch."', '".$userInfo->age."')";
+    $sql = SqlQuery::make('INSERT INTO hist_users (id, rank, userID, user, reputation, bestSoft, bestSoftVersion, clanName, round, timePlaying, hackCount, ddosCount, ipResets, moneyEarned, moneyTransfered, moneyHardware, moneyResearch, age)
+            VALUES (\'\', ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                    ?, ?, ?, ?, ?, ?, ?, ?)', [$pos, $userInfo->id, $userInfo->login, $userInfo->exp, $bestSoft, $bestSoftVersion, $clanName, $curRound, $userInfo->timeplaying, $userInfo->hackcount, $userInfo->ddoscount, $userInfo->ipresets, $userInfo->moneyearned, $userInfo->moneytransfered, $userInfo->moneyhardware, $userInfo->moneyresearch, $userInfo->age]);
     $pdo->query($sql);
 
     $pos++;
@@ -140,8 +141,8 @@ $pos = 1;
 
 while($clanInfo = $data->fetch(PDO::FETCH_OBJ)){
     
-    $sql = "INSERT INTO hist_clans (id, rank, name, nick, reputation, owner, ownerID, members, round)
-            VALUES ('', '".$pos."', '".$clanInfo->name."', '".$clanInfo->nick."', '".$clanInfo->power."', '".$clanInfo->login."', '".$clanInfo->userid."', '".$clanInfo->slotsused."', '".$curRound."')";
+    $sql = SqlQuery::make('INSERT INTO hist_clans (id, rank, name, nick, reputation, owner, ownerID, members, round)
+            VALUES (\'\', ?, ?, ?, ?, ?, ?, ?, ?)', [$pos, $clanInfo->name, $clanInfo->nick, $clanInfo->power, $clanInfo->login, $clanInfo->userid, $clanInfo->slotsused, $curRound]);
     $pdo->query($sql);
     
     $pos++;
@@ -165,8 +166,8 @@ $pos = 1;
 
 while($softInfo = $data->fetch(PDO::FETCH_OBJ)){
     
-    $sql = "INSERT INTO hist_software (id, rank, softName, softType, softVersion, owner, ownerID, round)
-            VALUES ('', '".$pos."', '".$softInfo->softname."', '".$softInfo->softtype."', '".$softInfo->softversion."', '".$softInfo->login."', '".$softInfo->userid."', '".$curRound."')";
+    $sql = SqlQuery::make('INSERT INTO hist_software (id, rank, softName, softType, softVersion, owner, ownerID, round)
+            VALUES (\'\', ?, ?, ?, ?, ?, ?, ?)', [$pos, $softInfo->softname, $softInfo->softtype, $softInfo->softversion, $softInfo->login, $softInfo->userid, $curRound]);
     $pdo->query($sql);
     
     $pos++;

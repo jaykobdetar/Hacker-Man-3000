@@ -1,8 +1,8 @@
-import MySQLdb
+import gamedb
 import time
 start_time = time.time()
 
-db = MySQLdb.connect(host="localhost",user="he",passwd="REDACTED",db="game")
+db = gamedb.connect()
 cur = db.cursor()
 
 def adiciona_badge(badgeID, userID, clanBadge = False):
@@ -265,4 +265,4 @@ if __name__ == "__main__":
 		adiciona_badge(68, userID)
 
 
-print time.strftime("%d/%m/%y %H:%M:%S"),' - ',__file__,' - ',round(time.time() - start_time, 4), "s\n"
+print(time.strftime("%d/%m/%y %H:%M:%S"),' - ',__file__,' - ',round(time.time() - start_time, 4), "s\n")

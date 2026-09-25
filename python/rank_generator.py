@@ -44,22 +44,20 @@ def getType(softType):
     return typeDict.get(str(softType), 'Unknown')
 
 def dotVersion(version):
-	return str(version / 10)+'.'+ str(version % 10)
+	return str(version // 10)+'.'+ str(version % 10)
 
 def save(html, rank, page, preview = False):
 
 	if preview:
-		path = '/var/www/html/fame/rank_'+rank+'_preview.html'
+		path = gamedb.path('html/fame/rank_')+rank+'_preview.html'
 	else:
-		path = '/var/www/html/ranking/'+rank+'_'+str(page)+'.html'
+		path = gamedb.path('html/ranking/')+rank+'_'+str(page)+'.html'
 
-	f = open(path, 'w')
-	f.write(html)
-	f.close()
+	gamedb.write_file(path, html)
 
 def createRankUsers():
 
-	cur.execute("	SELECT ranking_user.userID, clan_users.clanID, users.login, users_premium.id, users_online.id,  users_stats.exp, clan.nick, clan.name,\
+	cur.execute("	SELECT ranking_user.userID, clan_users.clanID, users.login, users_online.id,  users_stats.exp, clan.nick, clan.name,\
 						(	SELECT COUNT(*)\
 							FROM lists\
 							WHERE lists.userID = ranking_user.userID\
@@ -71,8 +69,6 @@ def createRankUsers():
 					ON ranking_user.userID = users_stats.uid\
 					LEFT JOIN users_online\
 					ON ranking_user.userID = users_online.id\
-					LEFT JOIN users_premium\
-					ON ranking_user.userID = users_premium.id\
 					LEFT JOIN clan_users\
 					ON ranking_user.userID = clan_users.userID\
 					LEFT JOIN clan\
@@ -89,24 +85,21 @@ def createRankUsers():
 	previewLimit = 10
 	limite = 100
 
-	for userID, clanID, username, premium, online, exp, clanNick, clanName, hackCount in cur.fetchall():
+	for userID, clanID, username, online, exp, clanNick, clanName, hackCount in cur.fetchall():
 
 		i += 1
 
 		pos = '<center>'+str(i)+'</center>'
 
-		clan = premiumImg = onlineImg = ''
+		clan = onlineImg = ''
 
 		if clanID:
-			clan = '<a href="clan?id='+str(clanID)+'">['+str(clanNick)+'] '+str(clanName)+'</a>'
-
-		if premium:
-			premiumImg = '<span class="r-premium"></span>'
+			clan = '<a href="clan?id='+str(clanID)+'">['+escape(str(clanNick))+'] '+escape(str(clanName))+'</a>'
 
 		if online:
 			onlineImg = '<span class="r-online"></span>'
 
-		user = '<a href="profile?id='+str(userID)+'">'+str(username)+'</a>'+onlineImg+premiumImg	
+		user = '<a href="profile?id='+str(userID)+'">'+escape(str(username))+'</a>'+onlineImg	
 
 		power = '<center>'+str(exp)+'</center>'
 
@@ -319,9 +312,9 @@ def createRankDDoS():
 	if preview == 0:
 		save(html, 'ddos', '', True)
 
-import MySQLdb
-
-db = MySQLdb.connect(host="localhost",user="he",passwd="REDADCTED",db="game")
+import gamedb
+from html import escape
+db = gamedb.connect()
 cur = db.cursor()
 
 createRankUsers()
@@ -332,4 +325,4 @@ createRankSoft()
 
 createRankDDoS()
 
-print time.strftime("%d/%m/%y %H:%M:%S"),' - ',__file__,' - ',round(time.time() - start_time, 4), "s\n"
+print(time.strftime("%d/%m/%y %H:%M:%S"),' - ',__file__,' - ',round(time.time() - start_time, 4), "s\n")

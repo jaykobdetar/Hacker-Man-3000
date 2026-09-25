@@ -7,8 +7,10 @@ class Purifier {
     
     public function __construct(){
         
-        require_once 'HTMLPurifier/HTMLPurifier.standalone.php';
+        // ezyang/htmlpurifier, installed with Composer
         $this->config = HTMLPurifier_Config::createDefault();
+        $this->config->set('Cache.SerializerPath', sys_get_temp_dir());
+        $this->config->set('URI.AllowedSchemes', ['http' => true, 'https' => true, 'mailto' => true]);
         
         
     }

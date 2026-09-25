@@ -2,14 +2,14 @@
 
 // 2019: This is the most complex part of Legacy and HE2.
 
-require_once '/var/www/classes/Session.class.php';
-require_once '/var/www/classes/Player.class.php';
-require_once '/var/www/classes/PC.class.php';
-require_once '/var/www/classes/System.class.php';
-require_once '/var/www/classes/NPC.class.php';
-require_once '/var/www/classes/List.class.php';
-require_once '/var/www/classes/Finances.class.php';
-require_once '/var/www/classes/Ranking.class.php';
+require_once __DIR__.'/Session.class.php';
+require_once __DIR__.'/Player.class.php';
+require_once __DIR__.'/PC.class.php';
+require_once __DIR__.'/System.class.php';
+require_once __DIR__.'/NPC.class.php';
+require_once __DIR__.'/List.class.php';
+require_once __DIR__.'/Finances.class.php';
+require_once __DIR__.'/Ranking.class.php';
 
 class Process {
 
@@ -116,7 +116,7 @@ class Process {
         if($this->player->verifyID($uid)){
 
             $this->session->newQuery();
-            $sqlSelect = "SELECT pid, pvictimid, paction, psoftid, pinfo, plocal, pnpc, isPaused, TIMESTAMPDIFF(SECOND, NOW(), pTimeEnd) AS pTimeLeft $str2 FROM processes WHERE pcreatorid = $uid $str ORDER BY ptimeend DESC";
+            $sqlSelect = SqlQuery::make('SELECT pid, pvictimid, paction, psoftid, pinfo, plocal, pnpc, isPaused, TIMESTAMPDIFF(SECOND, NOW(), pTimeEnd) AS pTimeLeft '.$str2.' FROM processes WHERE pcreatorid = ? '.$str.' ORDER BY ptimeend DESC', [SqlQuery::num($uid)]);
             $data = $this->pdo->query($sqlSelect);
             
             if($data->rowCount() != '0'){
@@ -718,9 +718,9 @@ class Process {
 
                 $this->session->newQuery();
                 $sqlQuery = "INSERT INTO processes (pid, pCreatorID, pVictimID, pAction, pSoftID, pInfo, pInfoStr, pTimeStart, pTimeEnd, pTimeIdeal, pLocal, pNPC, ".$resInfo['COLUMN_ACTIVE'].", ".$resInfo['COLUMN_INACTIVE'].") 
-                            VALUES ('', ?, ?, ?, ?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL '".$pDuration."' SECOND), ?, ?, ?, ?, '0')";
+                            VALUES ('', ?, ?, ?, ?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL ? SECOND), ?, ?, ?, ?, '0')";
                 $sqlReg = $this->pdo->prepare($sqlQuery);
-                $sqlReg->execute(array($userID, $victimID, $pNumericAction, $pSoftID, $pInfo, $pInfoStr, $pInformation['pTime'], $numericHost, $pNPC, $usageInfo['COLUMN_USAGE']));
+                $sqlReg->execute(array($userID, $victimID, $pNumericAction, $pSoftID, $pInfo, $pInfoStr, $pDuration, $pInformation['pTime'], $numericHost, $pNPC, $usageInfo['COLUMN_USAGE']));
 
                 if($sqlReg->rowCount() == '1'){
 
@@ -763,11 +763,11 @@ class Process {
         }
                 
         $this->session->newQuery();
-        $sql = "SELECT pid, pAction, pSoftID, cpuUsage, netUsage, pVictimID, pLocal, pNPC, pTimeIdeal,
+        $sql = SqlQuery::make('SELECT pid, pAction, pSoftID, cpuUsage, netUsage, pVictimID, pLocal, pNPC, pTimeIdeal,
                 TIMESTAMPDIFF(SECOND, NOW(), pTimeEnd) AS pTimeLeft, TIMESTAMPDIFF(SECOND, pTimeStart, NOW()) AS pDuration
                 FROM processes 
-                WHERE (pCreatorID = '".$id."' OR (pVictimID = '".$id."' AND pNPC <> 1))
-                HAVING pTimeLeft > 0";
+                WHERE (pCreatorID = ? OR (pVictimID = ? AND pNPC <> 1))
+                HAVING pTimeLeft > 0', [$id, $id]);
         $data = $this->pdo->query($sql)->fetchAll();
 
         if(sizeof($data) > 0){ //com processos para alterar
@@ -814,18 +814,18 @@ class Process {
                             
                             $finalTime = $data[$i]['ptimeleft'] - $newTime;
                             
-                            $query = 'pTimeEnd = DATE_SUB(pTimeEnd, INTERVAL '.$finalTime.' SECOND)';
+                            $query = 'pTimeEnd = DATE_SUB(pTimeEnd, INTERVAL '.(float)$finalTime.' SECOND)';
                             
                         } else { //o processo ficou mais demorado, termina depois, dateadd
                             
                             $finalTime = $newTime - $data[$i]['pduration'];
                             
-                            $query = 'pTimeEnd = DATE_ADD(pTimeEnd, INTERVAL '.$finalTime.' SECOND)';
+                            $query = 'pTimeEnd = DATE_ADD(pTimeEnd, INTERVAL '.(float)$finalTime.' SECOND)';
                             
                         }
 
                         $this->session->newQuery();
-                        $sql = "UPDATE processes SET $query, pTimeIdeal = $pTime WHERE pid = ".$data[$i]['pid'];
+                        $sql = SqlQuery::make('UPDATE processes SET '.$query.', pTimeIdeal = ? WHERE pid = ?', [SqlQuery::num($pTime), SqlQuery::num($data[$i]['pid'])]);
                         $this->pdo->query($sql);
                         
                     }
@@ -868,8 +868,8 @@ class Process {
                     $additionalTime = ($pInfo[$i]['ptimeideal']*100)/$newUsage - $pInfo[$i]['pduration'];
                     
                     $this->session->newQuery();
-                    $sql = "UPDATE processes SET ".$column." = '".$newUsage."', pTimeEnd = DATE_ADD(NOW(), INTERVAL $additionalTime SECOND) 
-                            WHERE pid = '".$pInfo[$i]['pid']."' LIMIT 1";
+                    $sql = SqlQuery::make('UPDATE processes SET '.$column.' = ?, pTimeEnd = DATE_ADD(NOW(), INTERVAL '.(float)$additionalTime.' SECOND) 
+                            WHERE pid = ? LIMIT 1', [$newUsage, $pInfo[$i]['pid']]);
 
                     $this->pdo->query($sql);
                     
@@ -892,7 +892,7 @@ class Process {
             
             //estudar qual a coluna
             if($column == ''){
-                $sql = "SELECT pAction FROM processes WHERE pid = $pid";
+                $sql = SqlQuery::make('SELECT pAction FROM processes WHERE pid = ?', [SqlQuery::num($pid)]);
                 $data = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
 
                 $resourceInfo = self::resourceableInfo($data->paction);
@@ -981,15 +981,15 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
 			    if($replace){
 
 				        $this->session->newQuery();
-					    $sql = "UPDATE processes SET ".$resourceInfo['COLUMN_ACTIVE']." = '".$newUsage."', pTimeEnd = DATE_ADD(NOW(), INTERVAL $newTime SECOND)
-						                WHERE pid = '".$pInfo[$i]['pid']."' LIMIT 1";
+					    $sql = SqlQuery::make('UPDATE processes SET '.$resourceInfo['COLUMN_ACTIVE'].' = ?, pTimeEnd = DATE_ADD(NOW(), INTERVAL '.(float)$newTime.' SECOND)
+						                WHERE pid = ? LIMIT 1', [$newUsage, $pInfo[$i]['pid']]);
 					    $this->pdo->query($sql); 
 
 			    } else {
 
 				        $this->session->newQuery();
-					    $sql = "UPDATE processes SET ".$resourceInfo['COLUMN_ACTIVE']." = '".$newUsage."', pTimeEnd = DATE_SUB(pTimeEnd, INTERVAL $newTime SECOND) 
-						                WHERE pid = '".$pInfo[$i]['pid']."' LIMIT 1";
+					    $sql = SqlQuery::make('UPDATE processes SET '.$resourceInfo['COLUMN_ACTIVE'].' = ?, pTimeEnd = DATE_SUB(pTimeEnd, INTERVAL '.(float)$newTime.' SECOND) 
+						                WHERE pid = ? LIMIT 1', [$newUsage, $pInfo[$i]['pid']]);
 					    $this->pdo->query($sql); 
 
 			    }
@@ -1371,7 +1371,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
     public function getProcessInfo($pid){
         
 	$this->session->newQuery();
-        $sqlSelect = "SELECT COUNT(*) AS total, pcreatorid, pvictimid, paction, psoftid, pinfo, pinfostr, cpuUsage, netUsage, plocal, pnpc, TIMESTAMPDIFF(SECOND, NOW(), pTimeEnd) AS pTimeLeft FROM processes WHERE pid = $pid LIMIT 1";
+        $sqlSelect = SqlQuery::make('SELECT COUNT(*) AS total, pcreatorid, pvictimid, paction, psoftid, pinfo, pinfostr, cpuUsage, netUsage, plocal, pnpc, TIMESTAMPDIFF(SECOND, NOW(), pTimeEnd) AS pTimeLeft FROM processes WHERE pid = ? LIMIT 1', [SqlQuery::num($pid)]);
         $pInfo =  $this->pdo->query($sqlSelect)->fetch(PDO::FETCH_OBJ);
         
         if($pInfo->total == 0){
@@ -1448,7 +1448,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
         if(is_numeric($pid)){
 
             $this->session->newQuery();
-            $sqlSelect = "SELECT pcreatorid FROM processes WHERE pid = $pid LIMIT 1";
+            $sqlSelect = SqlQuery::make('SELECT pcreatorid FROM processes WHERE pid = ? LIMIT 1', [SqlQuery::num($pid)]);
             $pInfo = $this->pdo->query($sqlSelect)->fetchAll();
 
             if(count($pInfo) == '1'){
@@ -1855,7 +1855,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
         
         $playerInfo = $this->player->getPlayerInfo($this->pCreatorID);
 
-        require_once '/var/www/classes/Mission.class.php'; 
+        require_once __DIR__.'/Mission.class.php'; 
 
         $this->mission = new Mission();
         
@@ -1875,7 +1875,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                         }
                         
                         $this->session->newQuery();
-                        $sqlSelect = "SELECT id FROM software WHERE userId = '".$_SESSION['id']."' AND softType = $softInfo->softtype AND softVersion = $softInfo->softversion AND isNPC = 0 AND softName = '".$softInfo->softname."' AND softHidden = 0 LIMIT 1";
+                        $sqlSelect = SqlQuery::make('SELECT id FROM software WHERE userId = ? AND softType = ? AND softVersion = ? AND isNPC = 0 AND softName = ? AND softHidden = 0 LIMIT 1', [$_SESSION['id'], SqlQuery::num($softInfo->softtype), SqlQuery::num($softInfo->softversion), $softInfo->softname]);
                         $rowsReturned = $this->pdo->query($sqlSelect)->fetchAll();
 
                         if(count($rowsReturned) != '1'){
@@ -1901,7 +1901,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                                     
                                     if($valid){
                                     
-                                        require_once '/var/www/classes/Mission.class.php';
+                                        require_once __DIR__.'/Mission.class.php';
                                         $mission = new Mission();                                    
 
                                         if($this->session->issetMissionSession()){
@@ -1918,7 +1918,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                                 
                                 if($softInfo->softtype == 29){
 
-                                    require_once '/var/www/classes/Mission.class.php';
+                                    require_once __DIR__.'/Mission.class.php';
                                     $mission = new Mission();                                    
                                     
                                     if($this->session->issetMissionSession()){
@@ -1934,12 +1934,12 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                                 if($softInfo->softtype == 30){
 
                                     $this->session->newQuery();                                    
-                                    $sql = "SELECT text FROM software_texts WHERE id = '".$this->pSoftID."'";
+                                    $sql = SqlQuery::make('SELECT text FROM software_texts WHERE id = ?', [$this->pSoftID]);
                                     $oldTextInfo = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
                                     
                                     $this->session->newQuery();
-                                    $sql = "INSERT INTO software_texts (id, userID, isNPC, text, lastEdit)
-                                            VALUES ('".$softInsertID."', '".$_SESSION['id']."', '0', '".$oldTextInfo->text."', NOW())";
+                                    $sql = SqlQuery::make('INSERT INTO software_texts (id, userID, isNPC, text, lastEdit)
+                                            VALUES (?, ?, \'0\', ?, NOW())', [$softInsertID, $_SESSION['id'], $oldTextInfo->text]);
                                     $this->pdo->query($sql);
                                     
                                 }
@@ -2005,7 +2005,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                         if($softInfo->softhidden == '0'){
 	
                             $this->session->newQuery();
-                            $sqlSelect = "SELECT id FROM software WHERE userId = '".$this->pVictimID."' AND softType = $softInfo->softtype AND softVersion = $softInfo->softversion AND isNPC = $this->pNPC AND softName = '".$softInfo->softname."' LIMIT 1";
+                            $sqlSelect = SqlQuery::make('SELECT id FROM software WHERE userId = ? AND softType = ? AND softVersion = ? AND isNPC = ? AND softName = ? LIMIT 1', [$this->pVictimID, SqlQuery::num($softInfo->softtype), SqlQuery::num($softInfo->softversion), SqlQuery::num($this->pNPC), $softInfo->softname]);
                             $sqlQuery = "INSERT INTO software (id, softHidden, softHiddenWith, softLastEdit, softName, softSize, softType, softVersion, userID, isNPC, originalFrom, licensedTo) VALUES ('', '0', '0', NOW(), ?, ?, ?, ?, ?, ?, ?, ?)";
                             
                             $rowsReturned = $this->pdo->query($sqlSelect)->fetchAll();
@@ -2022,7 +2022,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                                     
                                     if($softInfo->softtype == 1 && $softInfo->softversion >= 9200 && $this->pNPC == 0){
                                     
-                                        require_once '/var/www/classes/Mission.class.php';
+                                        require_once __DIR__.'/Mission.class.php';
                                         $mission = new Mission();                                    
 
                                         
@@ -2043,7 +2043,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                                         
                                         if($this->pNPC == 0){ //upando em um VPC
                                         
-                                            require_once '/var/www/classes/Mission.class.php';
+                                            require_once __DIR__.'/Mission.class.php';
                                             $mission = new Mission();                                             
                                             
                                             if($mission->playerOnMission($this->pVictimID)){
@@ -2066,7 +2066,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                                                     
                                                     if($this->mission->issetMission($_SESSION['MISSION_ID'])){
 
-                                                        require '/var/www/classes/Clan.class.php';
+                                                        require __DIR__.'/Clan.class.php';
                                                         $clan = new Clan();
 
                                                         if($clan->playerHaveClan()){
@@ -2090,12 +2090,12 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                                     if($softInfo->softtype == 30){
 
                                         $this->session->newQuery();                                    
-                                        $sql = "SELECT text FROM software_texts WHERE id = '".$this->pSoftID."'";
+                                        $sql = SqlQuery::make('SELECT text FROM software_texts WHERE id = ?', [$this->pSoftID]);
                                         $oldTextInfo = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
 
                                         $this->session->newQuery();
-                                        $sql = "INSERT INTO software_texts (id, userID, isNPC, text, lastEdit)
-                                                VALUES ('".$softInsertID."', '".$this->pVictimID."', '".$this->pNPC."', '".$oldTextInfo->text."', NOW())";
+                                        $sql = SqlQuery::make('INSERT INTO software_texts (id, userID, isNPC, text, lastEdit)
+                                                VALUES (?, ?, ?, ?, NOW())', [$softInsertID, $this->pVictimID, $this->pNPC, $oldTextInfo->text]);
                                         $this->pdo->query($sql);
 
                                     }
@@ -2161,7 +2161,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                         } else {
                             
                             $this->session->newQuery();
-                            $sql = "DELETE FROM software_texts WHERE id = '".$this->pSoftID."' LIMIT 1";
+                            $sql = SqlQuery::make('DELETE FROM software_texts WHERE id = ? LIMIT 1', [$this->pSoftID]);
                             $this->pdo->query($sql);
                             
                             if(isset($_SESSION['TEXT'])){
@@ -2203,7 +2203,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                                 $uid = $this->pVictimID;
                                 $npc = $this->pNPC;
                                 
-                                require_once '/var/www/classes/Storyline.class.php';
+                                require_once __DIR__.'/Storyline.class.php';
                                 $storyline = new Storyline();
   
                                 $odds = (5 + (($softInfo->softversion)/10))*10;
@@ -2314,7 +2314,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                                 
                                 if($softInfo->softtype == 18){
 
-                                    require_once '/var/www/classes/Internet.class.php';
+                                    require_once __DIR__.'/Internet.class.php';
                                     $internet = new Internet();
                                     
                                     $internet->webserver_shutdown($uid);
@@ -2322,13 +2322,13 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                                 }
                                 
                                 $this->session->newQuery();
-                                $sql = "DELETE FROM software_running WHERE softID = '".$this->pSoftID."' LIMIT 1"; 
+                                $sql = SqlQuery::make('DELETE FROM software_running WHERE softID = ? LIMIT 1', [$this->pSoftID]); 
                                 $this->pdo->query($sql);                                
 
                             }
                             
                             $this->session->newQuery();
-                            $sql = "DELETE FROM software WHERE userID = '".$uid."'  AND id = '".$this->pSoftID."' AND isNPC = '".$npc."' LIMIT 1";
+                            $sql = SqlQuery::make('DELETE FROM software WHERE userID = ?  AND id = ? AND isNPC = ? LIMIT 1', [$uid, $this->pSoftID, $npc]);
                             $this->pdo->query($sql);
 
                         } else {
@@ -2367,7 +2367,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                             }
 
                             $this->session->newQuery();
-                            $sql = "UPDATE software SET softHidden = 1, softHiddenWith = $hdrVersion, softLastEdit = NOW() WHERE id = $this->pSoftID AND userID = $this->pCreatorID AND isNPC = '0' LIMIT 1";
+                            $sql = SqlQuery::make('UPDATE software SET softHidden = 1, softHiddenWith = ?, softLastEdit = NOW() WHERE id = ? AND userID = ? AND isNPC = \'0\' LIMIT 1', [SqlQuery::num($hdrVersion), SqlQuery::num($this->pSoftID), SqlQuery::num($this->pCreatorID)]);
                             $this->pdo->query($sql);
 
                             $param = Array(0, $softName);
@@ -2383,7 +2383,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                             $hdrVersion = $bestSoft['0']['softversion'];
 
                             $this->session->newQuery();
-                            $sql = "UPDATE software SET softHidden = 1, softHiddenWith = $hdrVersion, softLastEdit = NOW() WHERE id = $this->pSoftID AND userID = $this->pVictimID AND isNPC = $this->pNPC LIMIT 1";
+                            $sql = SqlQuery::make('UPDATE software SET softHidden = 1, softHiddenWith = ?, softLastEdit = NOW() WHERE id = ? AND userID = ? AND isNPC = ? LIMIT 1', [SqlQuery::num($hdrVersion), SqlQuery::num($this->pSoftID), SqlQuery::num($this->pVictimID), SqlQuery::num($this->pNPC)]);
                             $this->pdo->query($sql);
 
                             $paramHacked = Array(1, $softName, long2ip($playerInfo->gameip));
@@ -2413,7 +2413,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                         if($this->pLocal == '1'){ //seek em localhost
 
                             $this->session->newQuery();
-                            $sql = "UPDATE software SET softHidden = 0, softHiddenWith = 0 WHERE id = $this->pSoftID AND userID = $this->pCreatorID AND isNPC = 0 LIMIT 1";
+                            $sql = SqlQuery::make('UPDATE software SET softHidden = 0, softHiddenWith = 0 WHERE id = ? AND userID = ? AND isNPC = 0 LIMIT 1', [SqlQuery::num($this->pSoftID), SqlQuery::num($this->pCreatorID)]);
                             $this->pdo->query($sql);
 
                             $param = Array(0, $softName);
@@ -2425,7 +2425,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                         } else {//seek remoto
                             
                             $this->session->newQuery();
-                            $sql = "UPDATE software SET softHidden = 0, softHiddenWith = 0 WHERE id = $this->pSoftID AND userID = $this->pVictimID AND isNPC = $this->pNPC LIMIT 1";
+                            $sql = SqlQuery::make('UPDATE software SET softHidden = 0, softHiddenWith = 0 WHERE id = ? AND userID = ? AND isNPC = ? LIMIT 1', [SqlQuery::num($this->pSoftID), SqlQuery::num($this->pVictimID), SqlQuery::num($this->pNPC)]);
                             $this->pdo->query($sql);
 
                             $paramHacked = Array(1, $softName, long2ip($playerInfo->gameip));
@@ -2476,7 +2476,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                     $avInfo = $this->software->getSoftware($this->pSoftID, $victimID, $pcType);
                     
                     $this->session->newQuery();
-                    $sql = "SELECT id, softVersion, softname, originalFrom FROM software WHERE userID = '".$victimID."' AND softType > 95 AND isNPC = '".$isNPC."'";
+                    $sql = SqlQuery::make('SELECT id, softVersion, softname, originalFrom FROM software WHERE userID = ? AND softType > 95 AND isNPC = ?', [$victimID, $isNPC]);
                     $data = $this->pdo->query($sql);
 
                     $total = '0';
@@ -2485,23 +2485,23 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                         if($virusInfo->softversion <= $avInfo->softversion){
 
                             $this->session->newQuery();
-                            $sql = "SELECT active FROM virus WHERE virusID = '".$virusInfo->id."' LIMIT 1";
+                            $sql = SqlQuery::make('SELECT active FROM virus WHERE virusID = ? LIMIT 1', [$virusInfo->id]);
                             $activeVirus = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->active;                            
                             
                             $this->session->newQuery();
-                            $sql = "DELETE FROM virus WHERE virusID = $virusInfo->id AND installedIp = $ip LIMIT 1";
+                            $sql = SqlQuery::make('DELETE FROM virus WHERE virusID = ? AND installedIp = ? LIMIT 1', [SqlQuery::num($virusInfo->id), SqlQuery::num($ip)]);
                             $this->pdo->query($sql);
                             
                             $this->session->newQuery();
-                            $sql = "DELETE FROM software WHERE id = $virusInfo->id AND isNPC = '".$isNPC."'";
+                            $sql = SqlQuery::make('DELETE FROM software WHERE id = ? AND isNPC = ?', [SqlQuery::num($virusInfo->id), $isNPC]);
                             $this->pdo->query($sql);
 
                             $this->session->newQuery();
-                            $sql = "UPDATE lists SET virusID = 0 WHERE virusID = '".$virusInfo->id."'";
+                            $sql = SqlQuery::make('UPDATE lists SET virusID = 0 WHERE virusID = ?', [$virusInfo->id]);
                             $this->pdo->query($sql);
                             
                             $this->session->newQuery();
-                            $sql = "DELETE FROM virus_ddos WHERE ddosID = '".$virusInfo->id."'";
+                            $sql = SqlQuery::make('DELETE FROM virus_ddos WHERE ddosID = ?', [$virusInfo->id]);
                             $this->pdo->query($sql);
                             
                             $total++;
@@ -2822,9 +2822,9 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                                             if($this->virus->alreadyInstalled($_SESSION['LOGGED_IN'], '')){
                                                 
                                                 $this->session->newQuery();
-                                                $sql = "UPDATE virus 
+                                                $sql = SqlQuery::make('UPDATE virus 
                                                         SET active = 0 
-                                                        WHERE installedBy = '".$_SESSION['id']."' AND installedIp = '".$_SESSION['LOGGED_IN']."' LIMIT 1";
+                                                        WHERE installedBy = ? AND installedIp = ? LIMIT 1', [$_SESSION['id'], $_SESSION['LOGGED_IN']]);
                                                 $this->pdo->query($sql);
                                                 
                                             }
@@ -2835,11 +2835,11 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                                             $sqlReg->execute(array($_SESSION['LOGGED_IN'], $_SESSION['id'], $this->pSoftID, $softInfo->softversion, $softInfo->originalfrom, $virusType));
 
                                             $this->session->newQuery();
-                                            $sql = "UPDATE software SET softType = $softType, originalFrom = '".$_SESSION['id']."' WHERE userID = $id AND id = $this->pSoftID AND isNPC = $this->pNPC LIMIT 1";
+                                            $sql = SqlQuery::make('UPDATE software SET softType = ?, originalFrom = ? WHERE userID = ? AND id = ? AND isNPC = ? LIMIT 1', [SqlQuery::num($softType), $_SESSION['id'], SqlQuery::num($id), SqlQuery::num($this->pSoftID), SqlQuery::num($this->pNPC)]);
                                             $this->pdo->query($sql);
 
                                             $this->session->newQuery();
-                                            $sql = "UPDATE lists SET virusID = $this->pSoftID WHERE userID = ".$_SESSION['id']." AND ip = ".$_SESSION['LOGGED_IN']." LIMIT 1";
+                                            $sql = SqlQuery::make('UPDATE lists SET virusID = ? WHERE userID = ? AND ip = ? LIMIT 1', [SqlQuery::num($this->pSoftID), SqlQuery::num($_SESSION['id']), SqlQuery::num($_SESSION['LOGGED_IN'])]);
                                             $this->pdo->query($sql);
 
                                             if($virusType == 3){ //é ddos, adiciono no virus_ddos
@@ -2847,8 +2847,8 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                                                 $hardware = $this->hardware->getHardwareInfo($id, $pcType);
                                                 
                                                 $this->session->newQuery();
-                                                $sql = "INSERT INTO virus_ddos (userID, ip, ddosID, ddosName, ddosVersion, cpu, active)
-                                                        VALUES ('".$_SESSION['id']."', '".$_SESSION['LOGGED_IN']."', '".$this->pSoftID."', '".$softInfo->softname."', '".$softInfo->softversion."', '".$hardware['CPU']."', 1)";
+                                                $sql = SqlQuery::make('INSERT INTO virus_ddos (userID, ip, ddosID, ddosName, ddosVersion, cpu, active)
+                                                        VALUES (?, ?, ?, ?, ?, ?, 1)', [$_SESSION['id'], $_SESSION['LOGGED_IN'], $this->pSoftID, $softInfo->softname, $softInfo->softversion, $hardware['CPU']]);
                                                 $this->pdo->query($sql);
                                                 
                                             }
@@ -2942,7 +2942,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                                     
                                     if($softInfo->softtype == 18){
                                         
-                                        require_once '/var/www/classes/Internet.class.php';
+                                        require_once __DIR__.'/Internet.class.php';
                                         $internet = new Internet();
                                         
                                         $internet->webserver_shutdown($id);
@@ -3234,7 +3234,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                     if($this->software->issetSoftware($this->pSoftID, $_SESSION['id'], 'VPC')){
 
                         $this->session->newQuery();
-                        $sqlSelect = "SELECT id FROM software_external WHERE userId = '".$_SESSION['id']."' AND softType = $softInfo->softtype AND softVersion = $softInfo->softversion AND softName = '".$softInfo->softname."' LIMIT 1";
+                        $sqlSelect = SqlQuery::make('SELECT id FROM software_external WHERE userId = ? AND softType = ? AND softVersion = ? AND softName = ? LIMIT 1', [$_SESSION['id'], SqlQuery::num($softInfo->softtype), SqlQuery::num($softInfo->softversion), $softInfo->softname]);
                         $rowsReturned = $this->pdo->query($sqlSelect)->fetchAll();
 
                         if(count($rowsReturned) != '1'){
@@ -3244,8 +3244,8 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                             if($this->hardware->xhd >= $this->hardware->getXHDUsage() + $softInfo->softsize){
 
                                 $this->session->newQuery();
-                                $sql = "INSERT INTO software_external (id, userID, softName, softVersion, softSize, softRam, softType, uploadDate, licensedTo)
-                                        VALUES ('".$this->pSoftID."', '".$_SESSION['id']."', '".$softInfo->softname."', '".$softInfo->softversion."', '".$softInfo->softsize."', '".$softInfo->softram."', '".$softInfo->softtype."', NOW(), '".$softInfo->licensedto."')";
+                                $sql = SqlQuery::make('INSERT INTO software_external (id, userID, softName, softVersion, softSize, softRam, softType, uploadDate, licensedTo)
+                                        VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?)', [$this->pSoftID, $_SESSION['id'], $softInfo->softname, $softInfo->softversion, $softInfo->softsize, $softInfo->softram, $softInfo->softtype, $softInfo->licensedto]);
                                 $this->pdo->query($sql);
 
                                 $this->session->addMsg('Software uploaded to external HD.', 'notice');
@@ -3284,16 +3284,16 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                             if($hddUsage['AVAILABLE'] >= $softInfo->softsize){
 
                                 $this->session->newQuery();
-                                $sqlSelect = "SELECT id FROM software WHERE userId = '".$_SESSION['id']."' AND isNPC = 0 AND softType = $softInfo->softtype AND softVersion = $softInfo->softversion AND softName = '".$softInfo->softname."' AND softHidden = 0 LIMIT 1";
+                                $sqlSelect = SqlQuery::make('SELECT id FROM software WHERE userId = ? AND isNPC = 0 AND softType = ? AND softVersion = ? AND softName = ? AND softHidden = 0 LIMIT 1', [$_SESSION['id'], SqlQuery::num($softInfo->softtype), SqlQuery::num($softInfo->softversion), $softInfo->softname]);
                                 $rowsReturned = $this->pdo->query($sqlSelect)->fetchAll();
 
                                 if(count($rowsReturned) != '1'){
                                     
                                     $this->session->newQuery();
 
-                                    $sql = "INSERT INTO software (id, userID, softName, softVersion, softSize, softRam, softType, softLastEdit, isNPC, licensedTo)
-                                            VALUES ('', '".$_SESSION['id']."', '".$softInfo->softname."', '".$softInfo->softversion."', '".$softInfo->softsize."',
-                                            '".$softInfo->softram."', '".$softInfo->softtype."', NOW(), '0', '".$softInfo->licensedto."')";
+                                    $sql = SqlQuery::make('INSERT INTO software (id, userID, softName, softVersion, softSize, softRam, softType, softLastEdit, isNPC, licensedTo)
+                                            VALUES (\'\', ?, ?, ?, ?,
+                                            ?, ?, NOW(), \'0\', ?)', [$_SESSION['id'], $softInfo->softname, $softInfo->softversion, $softInfo->softsize, $softInfo->softram, $softInfo->softtype, $softInfo->licensedto]);
                                     $this->pdo->query($sql);
 
                                     $this->session->addMsg('Software downloaded from external HD.', 'notice');
@@ -3329,7 +3329,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                     if($this->software->issetExternalSoftware($this->pSoftID)){
 
                         $this->session->newQuery();
-                        $sql = "DELETE FROM software_external WHERE id = '".$this->pSoftID."' LIMIT 1";
+                        $sql = SqlQuery::make('DELETE FROM software_external WHERE id = ? LIMIT 1', [$this->pSoftID]);
                         $this->pdo->query($sql);
 
                         $this->session->addMsg('Software deleted.', 'notice');
@@ -3363,7 +3363,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                         if($bestNmap['0']['exists'] == 1){
                                                         
                             $this->session->newQuery();
-                            $sql = "SELECT userID, TIMESTAMPDIFF(SECOND, NOW(), expires) AS connectionTime FROM internet_connections WHERE ip = ".$playerInfo->gameip." ORDER BY connectionTime DESC";
+                            $sql = SqlQuery::make('SELECT userID, TIMESTAMPDIFF(SECOND, NOW(), expires) AS connectionTime FROM internet_connections WHERE ip = ? ORDER BY connectionTime DESC', [SqlQuery::num($playerInfo->gameip)]);
                             $data = $this->pdo->query($sql)->fetchAll();
 
                         } else {
@@ -3377,7 +3377,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                         if($bestNmap['0']['exists'] == 1){
                             
                             $this->session->newQuery();
-                            $sql = "SELECT userID, TIMESTAMPDIFF(SECOND, NOW(), expires) AS connectionTime FROM internet_connections WHERE ip = ".$victimIP." ORDER BY connectionTime DESC";
+                            $sql = SqlQuery::make('SELECT userID, TIMESTAMPDIFF(SECOND, NOW(), expires) AS connectionTime FROM internet_connections WHERE ip = ? ORDER BY connectionTime DESC', [SqlQuery::num($victimIP)]);
                             $data = $this->pdo->query($sql)->fetchAll();
                             
                         } else {
@@ -3566,10 +3566,10 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                                 $ip = ip2long(rand(1,255).'.'.rand(1,255).'.'.rand(1,255).'.'.rand(1,255));
 
                                 $this->session->newQuery();
-                                $searchUsers = "SELECT users.id FROM users WHERE gameIP = '".$ip."' LIMIT 1";
+                                $searchUsers = SqlQuery::make('SELECT users.id FROM users WHERE gameIP = ? LIMIT 1', [$ip]);
 
                                 $this->session->newQuery();
-                                $searchNPC = "SELECT npc.id FROM npc WHERE npcIP = '".$ip."' LIMIT 1";
+                                $searchNPC = SqlQuery::make('SELECT npc.id FROM npc WHERE npcIP = ? LIMIT 1', [$ip]);
 
                                 if(sizeof($this->pdo->query($searchUsers)->fetchAll()) == 0 & sizeof($this->pdo->query($searchNPC)->fetchAll()) == 0){
                                     break;
@@ -3579,13 +3579,13 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
 
                             //mudo ip da tabela users
                             $this->session->newQuery();
-                            $sql = "UPDATE users SET gameIP = '".$ip."' WHERE id = '".$_SESSION['id']."' LIMIT 1";
+                            $sql = SqlQuery::make('UPDATE users SET gameIP = ? WHERE id = ? LIMIT 1', [$ip, $_SESSION['id']]);
                             $this->pdo->query($sql);
 
                             // 2019: Remove those who had my old ip in the hackedDb, and also notify them
                             //deleto quem me tinha na hacked database, e notifico
                             $this->session->newQuery();
-                            $sql = "SELECT userID FROM lists WHERE ip = '".$playerInfo->gameip."'";
+                            $sql = SqlQuery::make('SELECT userID FROM lists WHERE ip = ?', [$playerInfo->gameip]);
                             $data = $this->pdo->query($sql)->fetchAll();
 
                             for($i=0;$i<sizeof($data);$i++){
@@ -3595,58 +3595,58 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                             }
 
                             $this->session->newQuery();
-                            $sql = "DELETE lists, lists_specs 
+                            $sql = SqlQuery::make('DELETE lists, lists_specs 
                                     FROM lists
                                     LEFT JOIN lists_specs
                                     ON lists_specs.listID = lists.id
-                                    WHERE ip = '".$playerInfo->gameip."'";
+                                    WHERE ip = ?', [$playerInfo->gameip]);
                             $this->pdo->query($sql);
 
                             $this->session->newQuery();
-                            $sql = "UPDATE virus SET active = 0, installedIp = '".$ip."' WHERE installedIp = '".$playerInfo->gameip."'";
+                            $sql = SqlQuery::make('UPDATE virus SET active = 0, installedIp = ? WHERE installedIp = ?', [$ip, $playerInfo->gameip]);
                             $this->pdo->query($sql);
 
                             $this->session->newQuery();
-                            $sql = "DELETE FROM internet_connections WHERE ip = '".$playerInfo->gameip."'";
+                            $sql = SqlQuery::make('DELETE FROM internet_connections WHERE ip = ?', [$playerInfo->gameip]);
                             $this->pdo->query($sql);
 
                             $this->session->newQuery();
-                            $sql = "UPDATE users_stats SET ipResets = ipResets + 1, lastIpReset = NOW() WHERE uid = '".$_SESSION['id']."'";
+                            $sql = SqlQuery::make('UPDATE users_stats SET ipResets = ipResets + 1, lastIpReset = NOW() WHERE uid = ?', [$_SESSION['id']]);
                             $this->pdo->query($sql);
 
                             $this->session->newQuery();
-                            $sql = "UPDATE virus_ddos SET active = 0 WHERE ip = '".$playerInfo->gameip."'";
+                            $sql = SqlQuery::make('UPDATE virus_ddos SET active = 0 WHERE ip = ?', [$playerInfo->gameip]);
                             $this->pdo->query($sql);
                             
                             // 2019: Remove IP from clan war history (in case there's one), otherwise my new IP would leak there
                             //removo o ip do histórico de clan war (caso esteja acontecendo), senão o novo ip vai aparecer lá
                             $this->session->newQuery();
-                            $sql = "SELECT COUNT(*) AS total
+                            $sql = SqlQuery::make('SELECT COUNT(*) AS total
                                     FROM clan_users 
                                     INNER JOIN clan_war
                                     ON (
                                         clan_war.clanID1 = clan_users.clanID OR
                                         clan_war.clanID2 = clan_users.clanID
                                     )
-                                    WHERE userID = '".$_SESSION['id']."'";
+                                    WHERE userID = ?', [$_SESSION['id']]);
                             if($this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->total > 0){
                                 
                                 $this->session->newQuery();
-                                $sql = "UPDATE clan_ddos
+                                $sql = SqlQuery::make('UPDATE clan_ddos
                                         INNER JOIN round_ddos
                                         ON clan_ddos.ddosID = round_ddos.id
                                         SET displayAttacker = 0
-                                        WHERE round_ddos.attID = '".$_SESSION['id']."'";
+                                        WHERE round_ddos.attID = ?', [$_SESSION['id']]);
                                 $this->pdo->query($sql);
                                 
                                 $this->session->newQuery();
-                                $sql = "UPDATE clan_ddos
+                                $sql = SqlQuery::make('UPDATE clan_ddos
                                         INNER JOIN round_ddos
                                         ON clan_ddos.ddosID = round_ddos.id
                                         SET displayVictim = 0
                                         WHERE
-                                            round_ddos.vicID = '".$_SESSION['id']."' AND
-                                            round_ddos.vicNPC = 0";
+                                            round_ddos.vicID = ? AND
+                                            round_ddos.vicNPC = 0', [$_SESSION['id']]);
                                 $this->pdo->query($sql);
                                 
                             }
@@ -3654,7 +3654,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                             // 2019: Remove processes currently active on this IP, otherwise people would figure out my new one
                             //removo processos que estão ativos nesse ip, caso contrário pessoas descobrirão o novo ip
                             $this->session->newQuery();
-                            $sql = "DELETE FROM processes WHERE pVictimID = '".$_SESSION['id']."'";
+                            $sql = SqlQuery::make('DELETE FROM processes WHERE pVictimID = ?', [$_SESSION['id']]);
                             $this->pdo->query($sql);
                            
                             $bankIP = '';
@@ -3721,11 +3721,11 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                             $newPassword = randString(8);
                             
                             $this->session->newQuery();
-                            $sql = "UPDATE users SET gamePass = '".$newPassword."' WHERE id = '".$_SESSION['id']."'";
+                            $sql = SqlQuery::make('UPDATE users SET gamePass = ? WHERE id = ?', [$newPassword, $_SESSION['id']]);
                             $this->pdo->query($sql);
                             
                             $this->session->newQuery();
-                            $sql = "SELECT userID FROM lists WHERE ip = '".$playerInfo->gameip."' AND pass <> 'unknown' AND pass <> 'exploited'";
+                            $sql = SqlQuery::make('SELECT userID FROM lists WHERE ip = ? AND pass <> \'unknown\' AND pass <> \'exploited\'', [$playerInfo->gameip]);
                             $data = $this->pdo->query($sql)->fetchAll();
 
                             for($i=0;$i<sizeof($data);$i++){
@@ -3735,25 +3735,25 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                             }
                             
                             $this->session->newQuery();
-                            $sql = "UPDATE lists SET pass = 'unknown', virusID = '0' WHERE ip = '".$playerInfo->gameip."' AND pass <> 'exploited'";
+                            $sql = SqlQuery::make('UPDATE lists SET pass = \'unknown\', virusID = \'0\' WHERE ip = ? AND pass <> \'exploited\'', [$playerInfo->gameip]);
                             $this->pdo->query($sql);
 
                             $this->session->newQuery();
-                            $sql = "UPDATE virus, lists
+                            $sql = SqlQuery::make('UPDATE virus, lists
                                     SET virus.active = 0 
-                                    WHERE virus.installedIp = '".$playerInfo->gameip."' AND lists.pass <> 'exploited'";
+                                    WHERE virus.installedIp = ? AND lists.pass <> \'exploited\'', [$playerInfo->gameip]);
                             $this->pdo->query($sql);                            
                             
                             $this->session->newQuery();
-                            $sql = "DELETE FROM internet_connections WHERE ip = '".$playerInfo->gameip."'";
+                            $sql = SqlQuery::make('DELETE FROM internet_connections WHERE ip = ?', [$playerInfo->gameip]);
                             $this->pdo->query($sql);
                             
                             $this->session->newQuery();
-                            $sql = "UPDATE users_stats SET pwdResets = pwdResets + 1, lastPwdReset = NOW() WHERE uid = '".$_SESSION['id']."'";
+                            $sql = SqlQuery::make('UPDATE users_stats SET pwdResets = pwdResets + 1, lastPwdReset = NOW() WHERE uid = ?', [$_SESSION['id']]);
                             $this->pdo->query($sql);    
                             
                             $this->session->newQuery();
-                            $sql = "UPDATE virus_ddos SET active = 0 WHERE ip = '".$playerInfo->gameip."'";
+                            $sql = SqlQuery::make('UPDATE virus_ddos SET active = 0 WHERE ip = ?', [$playerInfo->gameip]);
                             $this->pdo->query($sql);
                             
                             $this->session->addMsg('Password changed.', 'notice');
@@ -3787,7 +3787,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
                     break;
                 case '28': //edit webserver
                     
-                    require '/var/www/classes/Internet.class.php';
+                    require __DIR__.'/Internet.class.php';
                     $internet = new Internet();
                     
                     if($this->pVictimID == 0){
@@ -3831,7 +3831,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
             }
 
             $this->session->newQuery();
-            $sql = "DELETE FROM processes WHERE pid = '".$pid."' LIMIT 1";
+            $sql = SqlQuery::make('DELETE FROM processes WHERE pid = ? LIMIT 1', [$pid]);
             $this->pdo->exec($sql);
 
         }
@@ -3844,10 +3844,10 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
             $this->system->handleError('Sorry, the option to pause processes is temporarily disabled. They wont be automatically completed if you are at the Task Manager tab.', 'processes');
 
         $this->session->newQuery();
-        $sql = "SELECT TIMESTAMPDIFF(SECOND, NOW(), pTimeEnd) AS pTimeLeft
+        $sql = SqlQuery::make('SELECT TIMESTAMPDIFF(SECOND, NOW(), pTimeEnd) AS pTimeLeft
                 FROM processes 
-                WHERE pid = '".$pid."' 
-                LIMIT 1";
+                WHERE pid = ? 
+                LIMIT 1', [$pid]);
         $data = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
 
         if($data->ptimeleft > 0){
@@ -3855,11 +3855,11 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
             self::updateProcessUsage(2, $pid, '', '');            
             
             $this->session->newQuery();
-            $sql = "UPDATE processes SET isPaused = 1 WHERE pid = '".$pid."' LIMIT 1";
+            $sql = SqlQuery::make('UPDATE processes SET isPaused = 1 WHERE pid = ? LIMIT 1', [$pid]);
             $this->pdo->query($sql);
             
             $this->session->newQuery();
-            $sql = "INSERT INTO processes_paused (pid, timeLeft, userID) VALUES ('".$pid."', '".$data->ptimeleft."', '".$_SESSION['id']."')";
+            $sql = SqlQuery::make('INSERT INTO processes_paused (pid, timeLeft, userID) VALUES (?, ?, ?)', [$pid, $data->ptimeleft, $_SESSION['id']]);
             $this->pdo->query($sql);
             
         } else {
@@ -3871,15 +3871,15 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
     public function resumeProcess($pid){
         
         $this->session->newQuery();
-        $sql = "
+        $sql = SqlQuery::make('
                 SELECT processes_paused.timeLeft, processes.pAction, processes.pVictimID, processes.plocal, processes.pNPC, processes.pSoftID,
                 TIMESTAMPDIFF(SECOND, processes.pTimeStart, processes_paused.timePaused) AS pDuration, 
                 TIMESTAMPDIFF(SECOND, processes_paused.timePaused, NOW()) AS pTimePaused
                 FROM processes_paused
                 INNER JOIN processes ON processes_paused.pid = processes.pid
-                WHERE processes_paused.pid = '".$pid."'
+                WHERE processes_paused.pid = ?
                 LIMIT 1 
-                ";
+                ', [$pid]);
 
         $data = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
                 
@@ -3916,12 +3916,12 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
         $totalDur = $realTime - $data->pduration; //timeleft      
                 
         $this->session->newQuery();
-        $sql = "DELETE FROM processes_paused WHERE pid = '".$pid."' LIMIT 1";
+        $sql = SqlQuery::make('DELETE FROM processes_paused WHERE pid = ? LIMIT 1', [$pid]);
         $this->pdo->query($sql);
         
         $sum = $data->ptimepaused + ($totalDur - $data->timeleft);
         
-        $sql = "UPDATE processes SET isPaused = 0, pTimeStart = DATE_ADD(pTimeStart, INTERVAL '".$data->ptimepaused."' SECOND), pTimeEnd = DATE_ADD(pTimeEnd, INTERVAL '".$sum."' SECOND), ".$resInfo['COLUMN_ACTIVE']." = '".$usageInfo['COLUMN_USAGE']."' WHERE pid = '".$pid."'";
+        $sql = SqlQuery::make('UPDATE processes SET isPaused = 0, pTimeStart = DATE_ADD(pTimeStart, INTERVAL ? SECOND), pTimeEnd = DATE_ADD(pTimeEnd, INTERVAL ? SECOND), '.$resInfo['COLUMN_ACTIVE'].' = ? WHERE pid = ?', [$data->ptimepaused, $sum, $usageInfo['COLUMN_USAGE'], $pid]);
         $this->pdo->query($sql);
                 
     }
@@ -3929,7 +3929,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
     public function isPaused($pid){
         
         $this->session->newQuery();
-        $sql = "SELECT isPaused FROM processes WHERE pid = '".$pid."'";
+        $sql = SqlQuery::make('SELECT isPaused FROM processes WHERE pid = ?', [$pid]);
         
         if($this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->ispaused == 1){
             return TRUE;
@@ -4438,7 +4438,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
         $return['ISSET'] = 0;
         
         $this->session->newQuery();
-        $sql = "SELECT pAction, TIMESTAMPDIFF(SECOND, NOW(), pTimeEnd) AS pTimeLeft FROM processes WHERE pCreatorID = $id";
+        $sql = SqlQuery::make('SELECT pAction, TIMESTAMPDIFF(SECOND, NOW(), pTimeEnd) AS pTimeLeft FROM processes WHERE pCreatorID = ?', [SqlQuery::num($id)]);
         $data = $this->pdo->query($sql)->fetchAll();
 
         if(sizeof($data) > 0){
@@ -4480,7 +4480,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
     public function totalProcesses(){
         
         $this->session->newQuery();
-        $sql = "SELECT COUNT(*) AS total FROM processes WHERE pCreatorID = '".$_SESSION['id']."' AND isPaused = 0";
+        $sql = SqlQuery::make('SELECT COUNT(*) AS total FROM processes WHERE pCreatorID = ? AND isPaused = 0', [$_SESSION['id']]);
         
         return $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->total;
         
@@ -4489,7 +4489,7 @@ if($this->pAction == 27){ $replace = TRUE; $newTime = 300 - $pInfo[$i]['pduratio
     public function issetDDoSProcess(){
         
         $this->session->newQuery();
-        $sql = "SELECT pid FROM processes WHERE pAction = 27 AND pCreatorID = '".$_SESSION['id']."' LIMIT 1";
+        $sql = SqlQuery::make('SELECT pid FROM processes WHERE pAction = 27 AND pCreatorID = ? LIMIT 1', [$_SESSION['id']]);
         $data = $this->pdo->query($sql)->fetchAll();
         
         if(sizeof($data) == 1){

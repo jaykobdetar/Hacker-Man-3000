@@ -1,6 +1,9 @@
 <?php
 
-require '/var/www/classes/PDO.class.php';
+require_once __DIR__.'/../bootstrap.php';
+// Cron/maintenance script: never reachable as a web page.
+if (PHP_SAPI !== 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) { http_response_code(404); exit; }
+require __DIR__.'/../classes/PDO.class.php';
 
 $pdo = PDO_DB::factory();
 
@@ -70,38 +73,38 @@ $totalServers = $pdo->query($sql)->fetch(PDO::FETCH_OBJ)->total;
 
 
 
-$sql = "UPDATE round_stats 
+$sql = SqlQuery::make('UPDATE round_stats 
         SET
-            totalUsers = '".$totalUsers."', 
-            activeUsers = '".$activeUsers."',
-            onlineUsers = '".$onlineUsers."',
-            usersClicks = '".$totalInfo->tclicks."',
-            warezSent = '".$totalInfo->twarez."', 
-            spamSent = '".$totalInfo->tspam."',
-            bitcoinSent = '".$totalInfo->tbitcoin."',
-            mailSent = '".$totalMails."', 
-            ddosCount = '".$totalInfo->tddos."', 
-            hackCount = '".$totalInfo->thack."', 
-            clans = '".$totalClan."',
-            clansWar = '".$totalClanWar."',
-            clansMembers = '".$totalClanMembers."',
-            clansClicks = '".$totalClanClicks."',
-            timePlaying = '".$totalInfo->ttime."', 
-            totalListed = '".$totalListed."', 
-            totalVirus = '".$totalVirus."', 
-            totalMoney = '".$totalMoney."',
-            moneyHardware = '".$totalInfo->mhardware."',
-            moneyEarned = '".$totalInfo->mearned."',
-            moneyTransfered = '".$totalInfo->mtransfered."',
-            moneyResearch = '".$totalInfo->mresearch."',
-            missionCount = '".$totalMissions."',
-            totalConnections = '".$totalConnections."',
-            researchCount = '".$totalResearched."',
-            totalTasks = '".$totalTasks."',
-            totalSoftware = '".$totalSoftware."',
-            totalRunning = '".$totalSoftwareRunning."',
-            totalServers = '".$totalServers."'
-        ORDER BY id DESC LIMIT 1";
+            totalUsers = ?, 
+            activeUsers = ?,
+            onlineUsers = ?,
+            usersClicks = ?,
+            warezSent = ?, 
+            spamSent = ?,
+            bitcoinSent = ?,
+            mailSent = ?, 
+            ddosCount = ?, 
+            hackCount = ?, 
+            clans = ?,
+            clansWar = ?,
+            clansMembers = ?,
+            clansClicks = ?,
+            timePlaying = ?, 
+            totalListed = ?, 
+            totalVirus = ?, 
+            totalMoney = ?,
+            moneyHardware = ?,
+            moneyEarned = ?,
+            moneyTransfered = ?,
+            moneyResearch = ?,
+            missionCount = ?,
+            totalConnections = ?,
+            researchCount = ?,
+            totalTasks = ?,
+            totalSoftware = ?,
+            totalRunning = ?,
+            totalServers = ?
+        ORDER BY id DESC LIMIT 1', [$totalUsers, $activeUsers, $onlineUsers, $totalInfo->tclicks, $totalInfo->twarez, $totalInfo->tspam, $totalInfo->tbitcoin, $totalMails, $totalInfo->tddos, $totalInfo->thack, $totalClan, $totalClanWar, $totalClanMembers, $totalClanClicks, $totalInfo->ttime, $totalListed, $totalVirus, $totalMoney, $totalInfo->mhardware, $totalInfo->mearned, $totalInfo->mtransfered, $totalInfo->mresearch, $totalMissions, $totalConnections, $totalResearched, $totalTasks, $totalSoftware, $totalSoftwareRunning, $totalServers]);
 $pdo->query($sql);
 
 ?>

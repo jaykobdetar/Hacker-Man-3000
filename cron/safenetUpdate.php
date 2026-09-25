@@ -1,6 +1,9 @@
 <?php
 
-require '/var/www/classes/PDO.class.php';
+require_once __DIR__.'/../bootstrap.php';
+// Cron/maintenance script: never reachable as a web page.
+if (PHP_SAPI !== 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) { http_response_code(404); exit; }
+require __DIR__.'/../classes/PDO.class.php';
 
 $pdo = PDO_DB::factory();
 
@@ -35,11 +38,11 @@ if(sizeof($data) > 0){
     $safeNetID = $pdo->query($sql)->fetch(PDO::FETCH_OBJ)->id;
     
     //delete old txt if exists
-    $sql = "SELECT software_texts.id 
+    $sql = SqlQuery::make('SELECT software_texts.id 
             FROM software_texts
             INNER JOIN software
             ON software.id = software_texts.id
-            WHERE software.userID = '".$safeNetID."' AND software.isNPC = '1' AND softType = '30'";
+            WHERE software.userID = ? AND software.isNPC = \'1\' AND softType = \'30\'', [$safeNetID]);
 
     $data = $pdo->query($sql)->fetchAll();    
     
@@ -47,23 +50,23 @@ if(sizeof($data) > 0){
 
         for($i=0;$i<sizeof($data);$i++){
             
-            $sql = "DELETE FROM software WHERE id = '".$data[$i]['id']."' LIMIT 1";
+            $sql = SqlQuery::make('DELETE FROM software WHERE id = ? LIMIT 1', [$data[$i]['id']]);
             $pdo->query($sql);
             
-            $sql = "DELETE FROM software_texts WHERE id = '".$data[$i]['id']."' LIMIT 1";
+            $sql = SqlQuery::make('DELETE FROM software_texts WHERE id = ? LIMIT 1', [$data[$i]['id']]);
             $pdo->query($sql);
             
         }
         
     }
 
-    $sql = "INSERT INTO software (id, userID, softName, softVersion, softSize, softRam, softType, softLastEdit, softHidden, softHiddenWith, isNPC, licensedTo)
-            VALUES ('', '".$safeNetID."', 'Fwd to FBI', '0', '1', '0', '30', NOW(), '0', '0', '1', '0')";
+    $sql = SqlQuery::make('INSERT INTO software (id, userID, softName, softVersion, softSize, softRam, softType, softLastEdit, softHidden, softHiddenWith, isNPC, licensedTo)
+            VALUES (\'\', ?, \'Fwd to FBI\', \'0\', \'1\', \'0\', \'30\', NOW(), \'0\', \'0\', \'1\', \'0\')', [$safeNetID]);
     $pdo->query($sql);
 
     $txtID = $pdo->lastInsertID();
 
-    $sql = "INSERT INTO software_texts (id, userID, isNPC, text, lastEdit) VALUES ('".$txtID."', '".$safeNetID."', '1', '".$txt."', NOW())";
+    $sql = SqlQuery::make('INSERT INTO software_texts (id, userID, isNPC, text, lastEdit) VALUES (?, ?, \'1\', ?, NOW())', [$txtID, $safeNetID, $txt]);
     $pdo->query($sql);    
     
 }

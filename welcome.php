@@ -1,12 +1,14 @@
 <?php
-require '/var/www/classes/System.class.php';
-require '/var/www/classes/Session.class.php';
-//require '/var/www/classes/Player.class.php';
+
+require_once __DIR__.'/bootstrap.php';
+require __DIR__.'/classes/System.class.php';
+require __DIR__.'/classes/Session.class.php';
+//require __DIR__.'/classes/Player.class.php';
 
 $session = new Session();
 $system = new System();
 
-require '/var/www/classes/EmailVerification.class.php';
+require __DIR__.'/classes/EmailVerification.class.php';
 $emailVerification = new EmailVerification();
 
 if($_SERVER['REQUEST_METHOD'] != 'POST' && !isset($_GET['code'])){
@@ -109,7 +111,7 @@ if($_SERVER['REQUEST_METHOD'] != 'POST' && !isset($_GET['code'])){
             die("Ops. This code is not valid. Please verify the link on your email or <a href=\"index.php\">login</a> and enter it manually.");
         } else {
             
-            require '/var/www/classes/Database.class.php';
+            require __DIR__.'/classes/Database.class.php';
             $database = new LRSys();
             $player = new Player();
             

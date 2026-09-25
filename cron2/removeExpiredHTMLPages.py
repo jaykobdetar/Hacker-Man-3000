@@ -1,10 +1,13 @@
-import MySQLdb
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..', 'python'))
+import gamedb
 import os
 import time
 
 start_time = time.time()
 
-db = MySQLdb.connect(host="localhost",user="he",passwd="REDACTED",db="game")
+db = gamedb.connect()
 cur = db.cursor()
 
 #Remove /html/profile/id.html pages
@@ -22,7 +25,7 @@ for userID in cur.fetchall():
 	userID = userID[0]
 
 	try: 
-		os.remove('/var/www/html/profile/'+str(userID)+'.html')
+		os.remove(gamedb.path('html/profile/')+str(userID)+'.html')
 	except:
 		pass
 
@@ -34,4 +37,4 @@ for userID in cur.fetchall():
 
 db.commit()
 
-print time.strftime("%d/%m/%y %H:%M:%S"),' - ',__file__,' - ',round(time.time() - start_time, 4), "s"
+print(time.strftime("%d/%m/%y %H:%M:%S"),' - ',__file__,' - ',round(time.time() - start_time, 4), "s")

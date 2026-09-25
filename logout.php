@@ -1,34 +1,20 @@
 <?php
 
-require '/var/www/classes/Session.class.php';
-require '/var/www/classes/Ranking.class.php';
-require '/var/www/classes/Forum.class.php';
+require_once __DIR__.'/bootstrap.php';
+require __DIR__.'/classes/Session.class.php';
+require __DIR__.'/classes/Ranking.class.php';
+require __DIR__.'/classes/RememberMe.class.php';
 
+// Logging out changes state, so it must be a same-site request (see SESSION_SAMESITE).
 $session  = new Session();
-$ranking = new Ranking();
-$forum = new Forum();
 
-$ranking->updateTimePlayed();
-
-$forum->logout();
-
-
-$session->logout();
-
-
-
-if($session->issetFBLogin()){
-    
-    require_once '/var/www/classes/Facebook.class.php';
-
-    $facebook = new Facebook(array(
-        'appId' => 'REDACTED',
-        'secret' => 'REDACTED'
-    ));
-
-    $facebook->destroySession();
-    
+if($session->issetLogin()){
+    $ranking = new Ranking();
+    $ranking->updateTimePlayed();
 }
+
+RememberMe::forget();
+$session->logout();
 
 header("Location:index.php");
 exit();

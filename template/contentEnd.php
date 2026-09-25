@@ -21,48 +21,6 @@ if($crudePage != 'internet' && $crudePage != 'processes'){
 
 
 
-switch($crudePage){
-    
-    case 'processes':
-    case 'mail':
-    case 'university':
-        if(isset($_GET['learn'])) break;
-    case 'software':
-    case 'hardware':
-    case 'finances':
-    case 'list':
-    case 'clan':
-        if($_SESSION['premium'] == 1) break;
-    ?>
-                
-        <div class="center" style="margin-bottom: 20px;">
-
-            <div id="lower-ad">
-<style type="text/css">
-@media (min-width : 320px) and (max-width : 480px) { .adslot_lower { width: 300px; height: 50px; } }
-@media (min-width : 768px) and (max-width : 1024px) { .adslot_lower { width: 320px; height: 100px; } }
-@media (min-width:1024px) { .adslot_lower { width: 728px; height: 90px; } }
-@media (min-width:1280px) { .adslot_lower { width: 728px; height: 90px; } }
-@media (min-width:1366px) { .adslot_lower { width: 970px; height: 90px; } }
-@media (min-width:1824px) { .adslot_lower { width: 970px; height: 90px; } }
-</style>
-<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<!-- lower responsive -->
-<ins class="adsbygoogle adslot_lower"
-     style="display:inline-block"
-     data-ad-client="ca-pub-7193007468156667"
-     data-ad-slot="4300176557"></ins>
-<script>
-(adsbygoogle = window.adsbygoogle || []).push({});
-</script>
-            </div>
-            
-        </div>
-                
-    <?php
-        break;
-    
-}
 
 
 $queries = 0;
@@ -78,14 +36,15 @@ if(isset($_SESSION['EXEC_TIME'])){
 
         <div id="breadcrumb" class="center">
             <span class="pull-left hide-phone" style="margin-left: 10px;"><a href="legal" ><font color=""><?php echo _("Terms of Use"); ?></font></a></span>
-            <span class="pull-left hide-phone"><a href="https://forum.hackerexperience.com/" ><font color=""><?php echo _("Forum"); ?></font></a></span>
+<?php if(Config::get('FORUM_URL')){ ?>
+            <span class="pull-left hide-phone"><a href="<?php echo htmlspecialchars(Config::get('FORUM_URL'), ENT_QUOTES); ?>" ><font color=""><?php echo _("Forum"); ?></font></a></span>
+<?php } ?>
             <span class="pull-left hide-phone"><a href="stats" ><?php echo _("Stats"); ?></a></span>
             
-            <span class="center">2014 &copy; <b>NeoArt Labs</b><a href="https://status.hackerexperience.com/"><?php echo $queries; ?> <?php echo _("queries in"); ?> <?php echo $time; ?> ms</a></span>
+            <span class="center">2014 &copy; <b>NeoArt Labs</b><a href="status/"><?php echo $queries; ?> <?php echo _("queries in"); ?> <?php echo $time; ?> ms</a></span>
             
             <span id="credits" class="pull-right hide-phone link"><a><?php echo _("Credits"); ?></a></span>
             <span id="report-bug" class="pull-right hide-phone link"><a><?php echo _("Report Bug"); ?></a></span>
-            <span class="pull-right hide-phone"><a href="premium" ><font color=""><?php echo _("Premium"); ?></font></a></span>
             <span class="pull-right hide-phone"><a href="changelog">v1.0.12</a></span>
 <?php
 }
@@ -151,7 +110,7 @@ if($queryProcess || $issetPLoad || $issetPDoom){
         if($issetPDoom){
             $sql = "SELECT doomID, TIMESTAMPDIFF(SECOND, NOW(), doomDate) AS pTimeLeft FROM virus_doom WHERE status = 1 ORDER BY doomDate DESC";
         } else {
-            $sql = "SELECT pid, isPaused, TIMESTAMPDIFF(SECOND, NOW(), pTimeEnd) AS pTimeLeft FROM processes WHERE pcreatorid = $uid $strProcess ORDER BY ptimeend DESC";
+            $sql = SqlQuery::make('SELECT pid, isPaused, TIMESTAMPDIFF(SECOND, NOW(), pTimeEnd) AS pTimeLeft FROM processes WHERE pcreatorid = ? '.$strProcess.' ORDER BY ptimeend DESC', [SqlQuery::num($uid)]);
         }
 
         $pData = $pdo->query($sql)->fetchAll();  
@@ -331,7 +290,8 @@ if($crudePage == 'internet'){
 
 if(array_key_exists('BUFFER_QUERY', $_SESSION)){
     if($_SESSION['BUFFER_QUERY'] >= 500 || rand(1,20) == 1){
-        exec('/usr/bin/env python /var/www/python/query_counter.py '.$_SESSION['BUFFER_QUERY']);
+        require_once BASE_PATH.'/classes/Python.class.php';
+        Python::run('query_counter.py', [(int) $_SESSION['BUFFER_QUERY']]);
         $_SESSION['BUFFER_QUERY'] = 0;
     }
 }

@@ -1,8 +1,11 @@
 <?php
 
+require_once __DIR__.'/../bootstrap.php';
+// Cron/maintenance script: never reachable as a web page.
+if (PHP_SAPI !== 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) { http_response_code(404); exit; }
 //function: restore npc software according to originalsoftware table on mysql
 
-require '/var/www/classes/PDO.class.php';
+require __DIR__.'/../classes/PDO.class.php';
 
 $pdo = PDO_DB::factory();
 
@@ -13,7 +16,7 @@ $query = $pdo->query($sql);
 
 while($row = $query->fetch(PDO::FETCH_OBJ)){
  
-    $newSql = "SELECT id FROM software WHERE userID = $row->npcid AND isNPC = 1 AND softName = '".$row->softname."' AND softVersion = $row->softversion";
+    $newSql = SqlQuery::make('SELECT id FROM software WHERE userID = ? AND isNPC = 1 AND softName = ? AND softVersion = ?', [SqlQuery::num($row->npcid), $row->softname, SqlQuery::num($row->softversion)]);
     $newQuery = $pdo->query($newSql)->fetchAll();
 
     if(count($newQuery) == 0){

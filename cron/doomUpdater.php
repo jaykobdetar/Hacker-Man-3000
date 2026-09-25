@@ -1,6 +1,9 @@
 <?php
 
-require_once '/var/www/classes/PDO.class.php';
+require_once __DIR__.'/../bootstrap.php';
+// Cron/maintenance script: never reachable as a web page.
+if (PHP_SAPI !== 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) { http_response_code(404); exit; }
+require_once __DIR__.'/../classes/PDO.class.php';
 
 $pdo = PDO_DB::factory();
 
@@ -20,7 +23,7 @@ if(sizeof($data2) > 0){
             
             if($data2[$i]['timeleft'] < 0){ //FINISH ROUND
                 
-                $sql = "UPDATE virus_doom SET status = 3 WHERE doomID = '".$data2[$i]['doomid']."'";
+                $sql = SqlQuery::make('UPDATE virus_doom SET status = 3 WHERE doomID = ?', [$data2[$i]['doomid']]);
                 $pdo->query($sql);
                 
                 require 'finishRound.php';

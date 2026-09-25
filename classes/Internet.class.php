@@ -20,15 +20,15 @@ class Internet {
 
     function __construct() {
 
-        require_once '/var/www/classes/Player.class.php';
-        require_once '/var/www/classes/Session.class.php';
-        require_once '/var/www/classes/System.class.php';
-        require_once '/var/www/classes/PC.class.php';
-        require_once '/var/www/classes/Process.class.php';
-        require_once '/var/www/classes/NPC.class.php';
-        require_once '/var/www/classes/List.class.php';
-        require_once '/var/www/classes/Finances.class.php';
-        require_once '/var/www/classes/Ranking.class.php';
+        require_once __DIR__.'/Player.class.php';
+        require_once __DIR__.'/Session.class.php';
+        require_once __DIR__.'/System.class.php';
+        require_once __DIR__.'/PC.class.php';
+        require_once __DIR__.'/Process.class.php';
+        require_once __DIR__.'/NPC.class.php';
+        require_once __DIR__.'/List.class.php';
+        require_once __DIR__.'/Finances.class.php';
+        require_once __DIR__.'/Ranking.class.php';
 
         $this->pdo = PDO_DB::factory();
         $this->player = new Player();
@@ -984,7 +984,7 @@ if($xpDisable){
 
                                                         if ($this->session->issetMissionSession()) {
 
-                                                            require_once '/var/www/classes/Mission.class.php';
+                                                            require_once __DIR__.'/Mission.class.php';
                                                             $this->mission = new Mission();
 
                                                             if ($this->mission->issetMission($_SESSION['MISSION_ID'])) {
@@ -1177,7 +1177,7 @@ if($xpDisable){
 
                 if(isset($_SESSION['MISSION_ID'])){
                     if($_SESSION['MISSION_TYPE'] == 81){
-                        require '/var/www/classes/Mission.class.php';
+                        require __DIR__.'/Mission.class.php';
                         $mission = new Mission();
                         
                         $mission->tutorial_update(82);
@@ -1406,7 +1406,7 @@ if($xpDisable){
                                                                 $npcInfo = self::gatherInfo($ip);
                                                                 if($npcInfo['NPCTYPE'] == 10){
 
-                                                                    require_once '/var/www/classes/Clan.class.php';
+                                                                    require_once __DIR__.'/Clan.class.php';
                                                                     $clan = new Clan();
 
                                                                     if($clan->playerHaveClan()){
@@ -1628,7 +1628,7 @@ if($xpDisable){
                                 $this->system->handleError('No can do', 'internet');
                             }
                             
-                            require '/var/www/classes/Riddle.class.php';
+                            require __DIR__.'/Riddle.class.php';
                             $riddle = new Riddle();
 
                             $riddle->show($hackedInfo['0']['id'], $_SESSION['LOGGED_IN']);
@@ -1888,7 +1888,7 @@ if($xpDisable){
                 return 2; //logando com download em um NPC que nÃ£o Ã© o download center.
             }
 
-            require 'classes/Clan.class.php';
+            require __DIR__.'/Clan.class.php';
             $clan = new Clan();
 
             if(!$clan->playerHaveClan()){
@@ -2332,7 +2332,7 @@ if($xpDisable){
 
                 if($ipInfo['PCTYPE'] == 'NPC'){                
                     if($ipInfo['NPCTYPE'] == 10){
-                        require 'classes/Clan.class.php';
+                        require __DIR__.'/Clan.class.php';
                         $clan = new Clan();
                         if($clan->playerHaveClan()){
                             if($clan->getClanInfo($clan->getPlayerClan())->clanip == $ip){
@@ -2387,7 +2387,6 @@ if($xpDisable){
                                 
                             </div>
                             
-<?php self::show_ad(); ?>
 
 
                         </div>
@@ -2444,26 +2443,6 @@ if($xpDisable){
 ?>
                     </div>
                         <div style="text-align: center;">
-<?php if($_SESSION['premium'] != 1) { ?>
-<style type="text/css">
-@media (min-width : 320px) { .adslot_internet_un { width: 234px; height: 60px;} }
-@media (min-width : 360px) and (max-width : 480px) { .adslot_internet_un { width: 320px; height: 50px;} }
-@media (min-width : 768px) and (max-width : 1024px) { .adslot_internet_un { width: 320px; height: 50px; } }
-@media (min-width:1024px) { .adslot_internet_un { width: 125px; height: 125px;} }
-@media (min-width:1280px) { .adslot_internet_un { width: 234px; height: 60px; margin-top: 20px} }
-@media (min-width:1366px) { .adslot_internet_un { width: 234px; height: 60px; margin-top: 20px} }
-@media (min-width:1824px) { .adslot_internet_un { width: 320px; height: 100px; margin-top: 0px} }
-</style>
-<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<!-- internet responsive -->
-<ins class="adsbygoogle adslot_internet_un"
-     style="display:inline-block"
-     data-ad-client="ca-pub-7193007468156667"
-     data-ad-slot="5776909757"></ins>
-<script>
-(adsbygoogle = window.adsbygoogle || []).push({});
-</script>
-<?php } ?>
                         </div>
 <div class="widget-box">
                         <div class="widget-title">
@@ -2656,7 +2635,7 @@ if($xpDisable){
                             $scriptStr .= 'var dctitle = "'._('Download more softwares.').'";var dcdesc="'._('Need more softwares? You might want to take a look at the ').'<a class=\"notify-link\" href=\"internet?ip='.$dcIP.'\">'._('Download Center').'</a>.'.'";';
                         }
 
-                        require '/var/www/classes/Riddle.class.php';
+                        require __DIR__.'/Riddle.class.php';
                         $riddle = new Riddle();
 
                         if($riddle->getLatestSolved() == 0){
@@ -2693,7 +2672,7 @@ if($xpDisable){
                             break;
                         case 50:
                         
-                            require '/var/www/classes/Storyline.class.php';
+                            require __DIR__.'/Storyline.class.php';
                             $storyline = new Storyline();
 
                             $storyline->safenet_list();
@@ -2701,7 +2680,7 @@ if($xpDisable){
                             break;
                         case 51:
                             
-                            require '/var/www/classes/Storyline.class.php';
+                            require __DIR__.'/Storyline.class.php';
                             $storyline = new Storyline();
 
                             $storyline->fbi_list();
@@ -2747,7 +2726,6 @@ if($xpDisable){
                         <div style="clear: both;" class="nav nav-tabs">&nbsp;</div>
                     </div>
 
-                    <?php self::show_ad(); ?>
                                 
                 </div>
 <?php
@@ -2904,7 +2882,6 @@ if($bankAcc == ''){
                         <div style="clear: both;" class="nav nav-tabs">&nbsp;</div>
                     </div>
     
-                    <?php self::show_ad(); ?>
     
                 </div>
 
@@ -3086,7 +3063,6 @@ if($bankAcc == ''){
         <div style="clear: both;" class="nav nav-tabs"></div>
         </div>
         
-        <?php self::show_ad(); ?>
         
     </div>
 
@@ -3096,50 +3072,23 @@ if($bankAcc == ''){
 
     }
     
-    public function show_ad(){
-        if($_SESSION['premium'] == 1) return;
-?>
-    
-                            <div class="center" style="margin-bottom: 20px;">
-<style type="text/css">
-@media (min-width : 320px) and (max-width : 480px) { .adslot_internet_un { width: 250px; height: 250px; } }
-@media (min-width : 768px) and (max-width : 1024px) { .adslot_internet_un { width: 336px; height: 280px; } }
-@media (min-width:1024px) { .adslot_internet_un { width: 728px; height: 90px; } }
-@media (min-width:1280px) { .adslot_internet_un { width: 728px; height: 90px; } }
-@media (min-width:1366px) { .adslot_internet_un { width: 728px; height: 90px; } }
-@media (min-width:1824px) { .adslot_internet_un { width: 970px; height: 90px; } }
-</style>
-<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<!-- internet responsive -->
-<ins class="adsbygoogle adslot_internet_un"
-     style="display:inline-block"
-     data-ad-client="ca-pub-7193007468156667"
-     data-ad-slot="5776909757"></ins>
-<script>
-(adsbygoogle = window.adsbygoogle || []).push({});
-</script>
-                            </div>
-    
-<?php
-        
-    }
     
     private function addConection($ip){
         
         $this->session->newQuery();
-        $sql = "SELECT COUNT(userID) AS total FROM internet_connections WHERE userID = '".$_SESSION['id']."' LIMIT 1";
+        $sql = SqlQuery::make('SELECT COUNT(userID) AS total FROM internet_connections WHERE userID = ? LIMIT 1', [$_SESSION['id']]);
         $data = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
         
         if($data->total == 1){
             
             $this->session->newQuery();
-            $sql = "DELETE FROM internet_connections WHERE userID = '".$_SESSION['id']."' LIMIT 1";
+            $sql = SqlQuery::make('DELETE FROM internet_connections WHERE userID = ? LIMIT 1', [$_SESSION['id']]);
             $this->pdo->query($sql);
             
         }
         
         $this->session->newQuery();
-        $sql = "INSERT INTO internet_connections (userID, ip) VALUES ('".$_SESSION['id']."', '".$ip."')";
+        $sql = SqlQuery::make('INSERT INTO internet_connections (userID, ip) VALUES (?, ?)', [$_SESSION['id'], $ip]);
         $this->pdo->query($sql);
         
     }
@@ -3147,7 +3096,7 @@ if($bankAcc == ''){
     private function issetConnection(){
         
         $this->session->newQuery();
-        $sql = "SELECT COUNT(userID) AS total FROM internet_connections WHERE userID = '".$_SESSION['id']."' LIMIT 1";
+        $sql = SqlQuery::make('SELECT COUNT(userID) AS total FROM internet_connections WHERE userID = ? LIMIT 1', [$_SESSION['id']]);
         $data = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
 
         if($data->total == 1){
@@ -3161,7 +3110,7 @@ if($bankAcc == ''){
     public function deleteConnection(){
         
         $this->session->newQuery();
-        $sql = "DELETE FROM internet_connections WHERE userID = '".$_SESSION['id']."' LIMIT 1";
+        $sql = SqlQuery::make('DELETE FROM internet_connections WHERE userID = ? LIMIT 1', [$_SESSION['id']]);
         $this->pdo->query($sql);
         
     }
@@ -3402,7 +3351,7 @@ if($bankAcc == ''){
         $arr = Array();
         
         $this->session->newQuery();
-        $sql = "SELECT webDesc, active FROM internet_webserver WHERE id = '".$userID."' LIMIT 1";
+        $sql = SqlQuery::make('SELECT webDesc, active FROM internet_webserver WHERE id = ? LIMIT 1', [$userID]);
         $data = $this->pdo->query($sql)->fetchAll();        
         
         if(sizeof($data) == 1){
@@ -3432,21 +3381,6 @@ if($bankAcc == ''){
             $back = 'internet?view=software';
         }
         
-        if(!$this->player->isPremium($id)){
-            
-            $errorMsg = _('Only <a href="premium">premium</a> users can have active webservers');
-            $redirect = 'software';
-            
-            if($local == 0){
-                $errorMsg .= _(', and the user you are logged at is not premium.');
-                $redirect = 'internet?view=software';
-            }
-            
-            $errorMsg .= '.';
-            
-            $this->system->handleError($errorMsg, $redirect);
-            
-        }
 
         $webInfo = self::webserver_getInfo($id);
 
@@ -3542,7 +3476,7 @@ if($bankAcc == ''){
     public function webserver_shutdown($uid){
         
         $this->session->newQuery();
-        $sql = "UPDATE internet_webserver SET active = 0 WHERE id = '".$uid."'";
+        $sql = SqlQuery::make('UPDATE internet_webserver SET active = 0 WHERE id = ?', [$uid]);
         $this->pdo->query($sql);
         
     }
@@ -3615,7 +3549,7 @@ if($bankAcc == ''){
     public function important_add($ip){
         
         $this->session->newQuery();
-        $sql = 'INSERT INTO internet_important (id, userID, ip) VALUES (\'\', \''.$_SESSION['id'].'\', \''.$ip.'\')';
+        $sql = SqlQuery::make('INSERT INTO internet_important (id, userID, ip) VALUES (\'\', ?, ?)', [$_SESSION['id'], $ip]);
         $this->pdo->query($sql);
         
     }
@@ -3623,7 +3557,7 @@ if($bankAcc == ''){
     public function important_isset($ip){
         
         $this->session->newQuery();
-        $sql = 'SELECT COUNT(*) AS total FROM internet_important WHERE userID = \''.$_SESSION['id'].'\' AND ip = \''.$ip.'\'';
+        $sql = SqlQuery::make('SELECT COUNT(*) AS total FROM internet_important WHERE userID = ? AND ip = ?', [$_SESSION['id'], $ip]);
         $total = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->total;
 
         
@@ -3644,19 +3578,19 @@ if($bankAcc == ''){
         }
         
         $this->session->newQuery();
-        $sql = 'SELECT internet_important.ip, '.$language_table.'.name
+        $sql = SqlQuery::make('SELECT internet_important.ip, '.$language_table.'.name
                 FROM internet_important
                 INNER JOIN npc
                 ON npc.npcIP = internet_important.ip
                 INNER JOIN '.$language_table.'
                 ON '.$language_table.'.npcID = npc.id
-                WHERE userID = \''.$_SESSION['id'].'\'';
+                WHERE userID = ?', [$_SESSION['id']]);
         $important = $this->pdo->query($sql)->fetchAll();
 
         $total = sizeof($important);        
         
         if($total == 15){
-            require '/var/www/classes/Social.class.php';
+            require __DIR__.'/Social.class.php';
             $social = new Social();
             $social->badge_add(53, $_SESSION['id']);
         }
@@ -3713,11 +3647,20 @@ if($bankAcc == ''){
 
     public function history_get(){
         
-        if(isset($_COOKIE['ip-data'])){
-            return unserialize(stripslashes($_COOKIE['ip-data']));
-        } else {
-            return Array();
+        // JSON, not unserialize(): the cookie is attacker-controlled.
+        if(isset($_COOKIE['ip-data']) && is_string($_COOKIE['ip-data'])){
+            $data = json_decode($_COOKIE['ip-data'], true);
+            if(is_array($data)){
+                $valid = Array();
+                foreach($data as $ip => $time){
+                    if(filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && is_string($time) && preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/', $time)){
+                        $valid[$ip] = $time;
+                    }
+                }
+                return array_slice($valid, -5, 5, TRUE);
+            }
         }
+        return Array();
         
     }
     
@@ -3742,7 +3685,7 @@ if($bankAcc == ''){
 
         $curArray = Array(long2ip($ip) => $time);
           
-        setcookie('ip-data',serialize(array_merge($visitedArray, $curArray)));
+        setcookie('ip-data', json_encode(array_merge($visitedArray, $curArray)), ['path' => '/', 'httponly' => true, 'samesite' => 'Lax', 'secure' => Config::isHttps()]);
                 
     }
     
@@ -3750,18 +3693,12 @@ if($bankAcc == ''){
         
         $visitedArray = self::history_get();
 
-        $JSON = '[';
-        
+        $list = Array();
         foreach($visitedArray as $ip => $data){
+            $list[] = Array('ip' => $ip, 'time' => $data);
+        }
 
-            $JSON .= '{"ip":"'.$ip.'","time":"'.$data.'"},';
-
-        }        
-        
-        $JSON = substr($JSON, 0, -1);
-        $JSON .= ']';
-        
-        return $JSON;
+        return json_encode($list);
         
     }
 
@@ -3904,7 +3841,7 @@ if($bankAcc == ''){
 
                 if ($this->session->issetMissionSession()) {
 
-                    require '/var/www/classes/Mission.class.php';
+                    require __DIR__.'/Mission.class.php';
                     $this->mission = new Mission();
 
                     if ($this->mission->issetMission($_SESSION['MISSION_ID'])) {
@@ -3938,7 +3875,7 @@ if($bankAcc == ''){
                 
                 $this->session->exp_add('TRANSFER', Array($amount));                               
                 
-                require_once '/var/www/classes/Storyline.class.php';
+                require_once __DIR__.'/Storyline.class.php';
                 $storyline = new Storyline();
 
                 if($amount > 10000){

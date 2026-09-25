@@ -1,11 +1,11 @@
-import MySQLdb
+import gamedb
 import json
 import string
 
-db = MySQLdb.connect(host="localhost",user="he",passwd="REDADCTED",db="game")
+db = gamedb.connect()
 cur = db.cursor()
 
-json_data = open('/var/www/json/npc.json').read()
+json_data = open(gamedb.path('json/npc.json')).read()
 npcList = json.loads(json_data)
 
 def match_slash(txt):
@@ -85,7 +85,7 @@ def web_format(txt, language):
 		except KeyError:
 			value = getInfo(match_slash(match), match, language)
 
-		print value
+		print(value)
 
 		if value:
 			txt = txt.replace('::'+match+'::', value)
@@ -119,12 +119,12 @@ def add(npcType, npcInfo, key):
 								web = %s,
 								name = %s
 							WHERE npcID = %s
-						""", (npcWeb.encode('utf-8').decode('cp1252'), npcName.encode('utf-8').decode('cp1252'), npcID))
+						""", (npcWeb, npcName, npcID))
 
 		db.commit()
 
 	except:
-		print 'Rolling back ' + key
+		print('Rolling back ' + key)
 		db.rollback()
 
 for npcType in npcList:

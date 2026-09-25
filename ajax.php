@@ -1,8 +1,9 @@
 <?php
 
+require_once __DIR__.'/bootstrap.php';
 session_start();
 
-require '/var/www/classes/Session.class.php';
+require __DIR__.'/classes/Session.class.php';
 $session = new Session();
 
 $result = Array();
@@ -63,7 +64,7 @@ if($session->issetLogin() || $loggedOut){
                         break;
                     case 'tutorial_install_cracker':
                         $title = 'Install your cracker';
-                        $text = sprintf(_('%sInstall%s the highlighted software, so you can hack the victim.'), '<a class=\"notify-link\" href=\"software?action=install&id='.$_POST['info'].'\">', '</a>');
+                        $text = sprintf(_('%sInstall%s the highlighted software, so you can hack the victim.'), '<a class=\"notify-link\" href=\"software?action=install&id='.esc($_POST['info']).'\">', '</a>');
                         break;
                     case 'tutorial_goto_vic_80':
                         $title = 'Navigate to the victim';
@@ -75,7 +76,7 @@ if($session->issetLogin() || $loggedOut){
                         break;
                     case 'tutorial_goto_vic':
                         $title = 'Navigate to the victim';
-                        $text = sprintf(_('Now that you are here, enter the victim IP address: %s%s%s'), '<a class=\"notify-link\" href=\"internet?ip='.$_POST['info'].'\">', $_POST['info'], '</a>');
+                        $text = sprintf(_('Now that you are here, enter the victim IP address: %s%s%s'), '<a class=\"notify-link\" href=\"internet?ip='.esc($_POST['info']).'\">', esc($_POST['info']), '</a>');
                         break;
                     case 'tutorial_hacktab':
                         $title = 'Good!';
@@ -114,7 +115,7 @@ if($session->issetLogin() || $loggedOut){
                         break;
                     case 'tutorial_upload2':
                         $title = 'Almost there.';
-                        $text = sprintf(_('Now %sinstall%s the virus.'), '<a class=\"notify-link\" href=\"internet?view=software&cmd=install&id='.$_POST['info'].'\">', '</a>');
+                        $text = sprintf(_('Now %sinstall%s the virus.'), '<a class=\"notify-link\" href=\"internet?view=software&cmd=install&id='.esc($_POST['info']).'\">', '</a>');
                         break;
                     case 'tutorial_end':
                         $title = 'Hurray!';
@@ -140,7 +141,7 @@ if($session->issetLogin() || $loggedOut){
                         break;
                     case 'm_completed_inform':
                         $title = 'Complete mission';
-                        $text = sprintf(_('You completed the mission. Inform the account you want to add your %s. %s'), '<font color=\"red\"><strong>$'.$_POST['info'].'</strong></font>', '<br/><br/><div id=\"loading\"><img src=\"images/ajax-money.gif\">'._('Loading...').'</div><input type=\"hidden\" id=\"accSelect\" value=\"\"><span id=\"desc-money\"></span>');
+                        $text = sprintf(_('You completed the mission. Inform the account you want to add your %s. %s'), '<font color=\"red\"><strong>$'.esc($_POST['info']).'</strong></font>', '<br/><br/><div id=\"loading\"><img src=\"images/ajax-money.gif\">'._('Loading...').'</div><input type=\"hidden\" id=\"accSelect\" value=\"\"><span id=\"desc-money\"></span>');
                         $btn = '<input id=\"modal-submit\" type=\"submit\" class=\"btn btn-success\" value=\"'._('Complete Mission').'\" DISABLED>';
                         break;
                     case 'certdiv':
@@ -175,7 +176,7 @@ if($session->issetLogin() || $loggedOut){
                         break;
                     case 'certbuy':
                         
-                        $key = $_POST['info'];
+                        $key = (string) $_POST['info'];
                         if(!ctype_digit($key) || $key <= 0 || $key > 5){
                             $result['status'] = 'ERROR';
                             break;
@@ -210,7 +211,7 @@ if($session->issetLogin() || $loggedOut){
                             $disabled = '';
                         }
 
-                        require '/var/www/classes/Finances.class.php';
+                        require __DIR__.'/classes/Finances.class.php';
                         $finances = new Finances();
 
                         $totalMoney = $finances->totalMoney();
@@ -233,11 +234,6 @@ if($session->issetLogin() || $loggedOut){
                         $ph = _('Choose a software...');
                         
                         $extra = ',"loading":"'.$loading.'","placeholder":"'.$ph.'"';
-                        
-                        break;
-                    case 'adb':
-
-                        $title = sprintf(_('Hey, looks like you are using AdBlock. <br/>We hate ads too, and we totally support your right to not be tracked! However, ads keep this game free.<br/> Please, consider disabling AdBlock for this site or purchasing a %spremium account</a> to get rid of them.<br/>'), '<a href=\"premium\">');
                         
                         break;
                         
@@ -295,14 +291,6 @@ if($session->issetLogin() || $loggedOut){
                 
                 
                 break;
-            case 'getBRLvalue':
-                
-                require '/var/www/classes/Premium.class.php';
-                $premium = new Premium();
-                
-                $result['msg'] = $premium->exchange_rate('USD', 'BRL', 1, 2);
-                
-                break;
             case 'deleteDdos':
             
                 $title = 'Delete DDoS reports';
@@ -328,7 +316,7 @@ if($session->issetLogin() || $loggedOut){
                     break;
                 }
                 
-                require '/var/www/classes/Finances.class.php';
+                require __DIR__.'/classes/Finances.class.php';
                 
                 $finances = new Finances();
                 
@@ -369,9 +357,9 @@ if($session->issetLogin() || $loggedOut){
                     break;
                 }
                 
-                require '/var/www/classes/Player.class.php';
-                require '/var/www/classes/PC.class.php';
-                require '/var/www/classes/Finances.class.php';
+                require __DIR__.'/classes/Player.class.php';
+                require __DIR__.'/classes/PC.class.php';
+                require __DIR__.'/classes/Finances.class.php';
                 
                 $software = new SoftwareVPC();
                 $finances = new Finances();
@@ -441,15 +429,24 @@ if($session->issetLogin() || $loggedOut){
                     
                     $sessionDB = '';
                     foreach($_SESSION as $key => $value){
+                        if ($key === 'CSRF_TOKEN') {
+                            continue;
+                        }
                         if ($value instanceof DateTime) {
                           $value = $value->format('Y-m-d H:i:s');
                         }
-                        $sessionDB .= '<strong>'.$key.'</strong> - '.$value.'<br/>';
+                        if (!is_scalar($value) && $value !== null) {
+                            $value = json_encode($value);
+                        }
+                        $sessionDB .= '<strong>'.esc($key).'</strong> - '.esc($value).'<br/>';
                     }
                     
+                    // Only request details, never the whole $_SERVER (it can hold secrets).
                     $server = '';
-                    foreach($_SERVER as $key => $value){
-                        $server .= '<strong>'.$key.'</strong> - '.$value.'<br/>';
+                    foreach(['REQUEST_METHOD', 'REQUEST_URI', 'HTTP_REFERER', 'HTTP_USER_AGENT', 'HTTP_ACCEPT_LANGUAGE', 'REQUEST_TIME'] as $key){
+                        if(isset($_SERVER[$key])){
+                            $server .= '<strong>'.$key.'</strong> - '.esc($_SERVER[$key]).'<br/>';
+                        }
                     }
                     
                     $pdo = PDO_DB::factory();
@@ -565,15 +562,15 @@ if($session->issetLogin() || $loggedOut){
 
                             if($clan){
                                 $session->newQuery();
-                                $sql = "SELECT round, dateAdd
+                                $sql = SqlQuery::make('SELECT round, dateAdd
                                         FROM clan_badge
-                                        WHERE badgeID = '".$badgeID."' AND clanID = '".$userID."'";
+                                        WHERE badgeID = ? AND clanID = ?', [$badgeID, $userID]);
                                 $data = $pdo->query($sql);
                             } else {
                                 $session->newQuery();
-                                $sql = "SELECT round, dateAdd
+                                $sql = SqlQuery::make('SELECT round, dateAdd
                                         FROM users_badge
-                                        WHERE badgeID = '".$badgeID."' AND userID = '".$userID."'";
+                                        WHERE badgeID = ? AND userID = ?', [$badgeID, $userID]);
                                 $data = $pdo->query($sql);
                             }
 
@@ -596,11 +593,11 @@ if($session->issetLogin() || $loggedOut){
                     if($clan){
 
                         $session->newQuery();
-                        $sql = "SELECT COUNT(*)
+                        $sql = SqlQuery::make('SELECT COUNT(*)
                                 FROM clan_badge
-                                WHERE badgeID = '".$badgeID."'
+                                WHERE badgeID = ?
                                 GROUP BY clanID
-                                HAVING clanID <> '".$userID."'";
+                                HAVING clanID <> ?', [$badgeID, $userID]);
                         $totalPlayers = sizeof($pdo->query($sql)->fetchAll());
 
                         if($totalPlayers == 0){
@@ -614,11 +611,11 @@ if($session->issetLogin() || $loggedOut){
                     } else {
                         
                         $session->newQuery();
-                        $sql = "SELECT COUNT(*)
+                        $sql = SqlQuery::make('SELECT COUNT(*)
                                 FROM users_badge
-                                WHERE badgeID = '".$badgeID."'
+                                WHERE badgeID = ?
                                 GROUP BY userID
-                                HAVING userID <> '".$userID."'";
+                                HAVING userID <> ?', [$badgeID, $userID]);
                         $totalPlayers = sizeof($pdo->query($sql)->fetchAll());
 
                         if($totalPlayers == 0){
@@ -646,7 +643,7 @@ if($session->issetLogin() || $loggedOut){
             case 'check-user':
             case 'check-mail':
                 
-                require '/var/www/classes/System.class.php';
+                require __DIR__.'/classes/System.class.php';
                 
                 $pdo = PDO_DB::factory();
                 $system = new System();
@@ -730,13 +727,13 @@ if($session->issetLogin() || $loggedOut){
                 }
                 
                 $session->newQuery();
-                $sql = 'SELECT '.$select.' FROM round_stats '.$where;
+                $sql = SqlQuery::make('SELECT '.$select.' FROM round_stats '.$where, []);
                 $info = $pdo->query($sql)->fetch(PDO::FETCH_OBJ);
                 
                 $moneySpent = $info->moneyresearch;
                 $totalResearched = $info->researchcount;
                 
-                require '/var/www/classes/Ranking.class.php';
+                require __DIR__.'/classes/Ranking.class.php';
                 $ranking = new Ranking();
                 
                 $rankInfo = $ranking->getResearchRank($_SESSION['id']);
@@ -806,11 +803,11 @@ if($session->issetLogin() || $loggedOut){
                             case 'edit':
                            
                                 $session->newQuery();
-                                $sql = "SELECT software_texts.text, software.softName
+                                $sql = SqlQuery::make('SELECT software_texts.text, software.softName
                                         FROM software_texts 
                                         INNER JOIN software ON software.id = software_texts.id
-                                        WHERE software_texts.id = '".$id."' 
-                                        LIMIT 1";
+                                        WHERE software_texts.id = ? 
+                                        LIMIT 1', [$id]);
                                 $txtInfo = $pdo->query($sql)->fetchAll();     
 
                                 if(sizeof($txtInfo) == 0){
@@ -852,7 +849,7 @@ if($session->issetLogin() || $loggedOut){
                             case 'edit':
                                 
                                 $session->newQuery();
-                                $sql = "SELECT softname FROM software WHERE id = '".$id."' LIMIT 1";
+                                $sql = SqlQuery::make('SELECT softname FROM software WHERE id = ? LIMIT 1', [$id]);
                                 $folderInfo = $pdo->query($sql)->fetchAll();                                
                                 
                                 if(sizeof($folderInfo) == 0){
@@ -870,7 +867,7 @@ if($session->issetLogin() || $loggedOut){
                             case 'delete':
                                 
                                 $session->newQuery();
-                                $sql = "SELECT softname, softversion FROM software WHERE id = '".$id."' LIMIT 1";
+                                $sql = SqlQuery::make('SELECT softname, softversion FROM software WHERE id = ? LIMIT 1', [$id]);
                                 $data = $pdo->query($sql)->fetchAll();
 
                                 if(sizeof($data) == 0){
@@ -920,7 +917,7 @@ if($session->issetLogin() || $loggedOut){
                 break;
             case 'getPwdInfo':
                 
-                require '/var/www/classes/Process.class.php';
+                require __DIR__.'/classes/Process.class.php';
                 $process = new Process();
                 $player = new Player();
                 
@@ -983,7 +980,7 @@ if($session->issetLogin() || $loggedOut){
                     exit();
                 }                
                 
-                require '/var/www/classes/Finances.class.php';
+                require __DIR__.'/classes/Finances.class.php';
                 $finances = new Finances();
                 
                 $totalMoney = $finances->totalMoney();
@@ -1011,13 +1008,13 @@ if($session->issetLogin() || $loggedOut){
                 $pdo = PDO_DB::factory();
                 
                 $session->newQuery();
-                $sql = "SELECT gameip, login, cache.reputation, ranking_user.rank
+                $sql = SqlQuery::make('SELECT gameip, login, cache.reputation, ranking_user.rank
                         FROM users
                         LEFT JOIN cache
                         ON cache.userID = users.id
                         LEFT JOIN ranking_user
                         ON ranking_user.userID = users.id
-                        WHERE id = '".$_SESSION['id']."'";
+                        WHERE id = ?', [$_SESSION['id']]);
                 $staticInfo = $pdo->query($sql)->fetch(PDO::FETCH_OBJ);
                 
                 $return = '[{"ip":"'.long2ip($staticInfo->gameip).'","user":"'.$staticInfo->login.'","reputation":"'.number_format($staticInfo->reputation).'","rank":"'.number_format($staticInfo->rank).'","rep_title":"'._('Reputation').'","rank_title":"'._('Ranking').'"}]';
@@ -1027,8 +1024,8 @@ if($session->issetLogin() || $loggedOut){
                 break;
             case 'getCommon':
                 
-                require '/var/www/classes/Mail.class.php';
-                require '/var/www/classes/Finances.class.php';
+                require __DIR__.'/classes/Mail.class.php';
+                require __DIR__.'/classes/Finances.class.php';
                 
                 $mail = new Mail();
                 $player = new Player();
@@ -1040,7 +1037,7 @@ if($session->issetLogin() || $loggedOut){
                 $common['finances'] = number_format($finances->totalMoney());
                 
                 if($session->issetMissionSession()){
-                    require '/var/www/classes/Mission.class.php';
+                    require __DIR__.'/classes/Mission.class.php';
                     $mission = new Mission();
                     
                     if($mission->missionStatus($_SESSION['MISSION_ID']) == 3){
@@ -1064,7 +1061,7 @@ if($session->issetLogin() || $loggedOut){
                 break;
             case 'getTutorialVirusID':
                 
-                require '/var/www/classes/Mission.class.php';
+                require __DIR__.'/classes/Mission.class.php';
                 $mission = new Mission();
                 
                 $return = '[{"id":"0","ip":"0"}]';
@@ -1086,7 +1083,7 @@ if($session->issetLogin() || $loggedOut){
                 break;            
             case 'getTutorialFirstVictim':
             
-                require '/var/www/classes/Mission.class.php';
+                require __DIR__.'/classes/Mission.class.php';
                 $mission = new Mission();
                                 
                 if(isset($_SESSION['MISSION_ID'])){
@@ -1115,7 +1112,7 @@ if($session->issetLogin() || $loggedOut){
                 break;
             case 'getTotalMoney':
             
-                require '/var/www/classes/Finances.class.php';
+                require __DIR__.'/classes/Finances.class.php';
                 $finances = new Finances();
                 
                 $result['msg'] = $finances->totalMoney();
@@ -1123,7 +1120,7 @@ if($session->issetLogin() || $loggedOut){
                 break;
             case 'getBankAccs':
                 
-                require '/var/www/classes/Finances.class.php';
+                require __DIR__.'/classes/Finances.class.php';
                 $finances = new Finances();
 
                 $acc = $finances->htmlSelectBankAcc(1);
@@ -1139,7 +1136,7 @@ if($session->issetLogin() || $loggedOut){
                 break;
             case 'manageViruses':
                 
-                require '/var/www/classes/System.class.php';
+                require __DIR__.'/classes/System.class.php';
                 $system = new System();
                 
                 $listID = $_POST['id'];
@@ -1156,7 +1153,7 @@ if($session->issetLogin() || $loggedOut){
                     break;
                 }
 
-                require_once '/var/www/classes/List.class.php';
+                require_once __DIR__.'/classes/List.class.php';
                 $list = new Lists();
 
                 if(!$list->issetID($listID, 1)){
@@ -1167,11 +1164,11 @@ if($session->issetLogin() || $loggedOut){
                 $pdo = PDO_DB::factory();
                 
                 $session->newQuery();
-                $sql = "SELECT virus.virusID, virus.virusType, software.softname
+                $sql = SqlQuery::make('SELECT virus.virusID, virus.virusType, software.softname
                         FROM virus
                         INNER JOIN software
                         ON virus.virusID = software.id
-                        WHERE installedIp = '".$listIP."' AND installedBy = '".$_SESSION['id']."'";
+                        WHERE installedIp = ? AND installedBy = ?', [$listIP, $_SESSION['id']]);
                 $data = $pdo->query($sql)->fetchAll();
                 
                 if(sizeof($data) <= 1){
@@ -1231,7 +1228,7 @@ if($session->issetLogin() || $loggedOut){
                     $pdo = PDO_DB::factory();
 
                     $session->newQuery();
-                    $sql = 'SELECT clanID, name, nick, power, slotsUsed FROM clan WHERE name LIKE "%'.$query.'%" OR nick LIKE "%'.$query.'%" LIMIT 10';
+                    $sql = SqlQuery::make('SELECT clanID, name, nick, power, slotsUsed FROM clan WHERE name LIKE ? OR nick LIKE ? LIMIT 10', ['%'.$query.'%', '%'.$query.'%']);
 
                     $data = $pdo->query($sql)->fetchAll();
 
@@ -1291,10 +1288,10 @@ if($session->issetLogin() || $loggedOut){
 
             case 'warHistory':
 
-                require '/var/www/classes/Player.class.php';
+                require __DIR__.'/classes/Player.class.php';
                 $player = new Player();
 
-                require '/var/www/classes/Clan.class.php';
+                require __DIR__.'/classes/Clan.class.php';
                 $clan = new Clan();
 
                 $npc = new NPC();
@@ -1313,7 +1310,7 @@ if($session->issetLogin() || $loggedOut){
                     //hist_clans_war
 
                     $session->newQuery();
-                    $sql = 'SELECT COUNT(*) AS total, idWinner, idLoser, scoreWinner, scoreLoser, startDate, endDate, bounty, round, TIMESTAMPDIFF(DAY, startDate, endDate) AS duration FROM hist_clans_war WHERE id = '.$wid.' LIMIT 1';
+                    $sql = SqlQuery::make('SELECT COUNT(*) AS total, idWinner, idLoser, scoreWinner, scoreLoser, startDate, endDate, bounty, round, TIMESTAMPDIFF(DAY, startDate, endDate) AS duration FROM hist_clans_war WHERE id = ? LIMIT 1', [SqlQuery::num($wid)]);
                     $warInfo = $pdo->query($sql)->fetch(PDO::FETCH_OBJ);
 
                     if($warInfo->total == 1){
@@ -1380,7 +1377,7 @@ if($session->issetLogin() || $loggedOut){
 
                         $string .= $html;
 
-                        $sql = 'SELECT COUNT(*) AS total, attackerClan, victimClan, ddosID FROM clan_ddos_history WHERE warID = '.$wid;
+                        $sql = SqlQuery::make('SELECT COUNT(*) AS total, attackerClan, victimClan, ddosID FROM clan_ddos_history WHERE warID = ?', [SqlQuery::num($wid)]);
                         $ddosHistInfo = $pdo->query($sql)->fetchAll();
 
                         if(sizeof($ddosHistInfo) > 0){
@@ -1390,13 +1387,13 @@ if($session->issetLogin() || $loggedOut){
                                 if($warInfo->round == $curRound){
 
                                     $session->newQuery();
-                                    $sql = 'SELECT COUNT(*) AS total, attID, vicID, power, servers, date, vicNPC FROM round_ddos WHERE id = '.$ddosHistInfo[$i]['ddosid'];
+                                    $sql = SqlQuery::make('SELECT COUNT(*) AS total, attID, vicID, power, servers, date, vicNPC FROM round_ddos WHERE id = ?', [SqlQuery::num($ddosHistInfo[$i]['ddosid'])]);
                                     $ddosInfo = $pdo->query($sql)->fetch(PDO::FETCH_OBJ);
 
                                 } else {
 
                                     $session->newQuery();
-                                    $sql = 'SELECT COUNT(*) AS total, attID, vicID, power, servers, date, vicNPC FROM round_ddos WHERE id = '.$ddosHistInfo[$i]['ddosid'].' AND round = '.$ddosHistInfo[$i]['round'];
+                                    $sql = SqlQuery::make('SELECT COUNT(*) AS total, attID, vicID, power, servers, date, vicNPC FROM round_ddos WHERE id = ? AND round = ?', [SqlQuery::num($ddosHistInfo[$i]['ddosid']), SqlQuery::num($ddosHistInfo[$i]['round'])]);
                                     $ddosInfo = $pdo->query($sql)->fetch(PDO::FETCH_OBJ);
 
                                 }
@@ -1444,7 +1441,7 @@ if($session->issetLogin() || $loggedOut){
                     $result['msg'] = '';
                 }
 
-                require_once '/var/www/classes/Process.class.php';
+                require_once __DIR__.'/classes/Process.class.php';
                 $process = new Process();
 
                 if($process->issetPID($id)){
@@ -1476,7 +1473,7 @@ if($session->issetLogin() || $loggedOut){
 
             case 'loadSoftware':
                 
-                require '/var/www/classes/Player.class.php';
+                require __DIR__.'/classes/Player.class.php';
                 
                 if(isset($_POST['external'])){
                     $isExternal = TRUE;
@@ -1517,30 +1514,30 @@ if($session->issetLogin() || $loggedOut){
                     $id = $_SESSION['id'];
                 }
                 
-                require '/var/www/classes/PC.class.php';
+                require __DIR__.'/classes/PC.class.php';
                 $software = new SoftwareVPC();
 
                 $pdo = PDO_DB::factory();
 
                 if(!$isFolder){
                     if(!$isExternal){
-                        $sql = "SELECT id, softname, softversion, softsize, softtype, softhidden, softhiddenwith, isFolder, originalFrom
+                        $sql = SqlQuery::make('SELECT id, softname, softversion, softsize, softtype, softhidden, softhiddenwith, isFolder, originalFrom
                                 FROM software 
-                                WHERE userid = $id AND isNPC = 0 AND isFolder = 0 
-                                GROUP BY softType, softVersion DESC, softLastEdit ASC";
+                                WHERE userid = ? AND isNPC = 0 AND isFolder = 0 
+                                GROUP BY softType, softVersion DESC, softLastEdit ASC', [SqlQuery::num($id)]);
                     } else {
-                        $sql = "SELECT software.id, software.softName, software.softType, software.softVersion, software.softhidden
+                        $sql = SqlQuery::make('SELECT software.id, software.softName, software.softType, software.softVersion, software.softhidden
                                 FROM software 
                                 LEFT JOIN software_external
                                 ON software.id = software_external.id
-                                WHERE software.userID = '".$id."' AND software_external.id IS NULL AND software.isNPC = 0
-                                ORDER BY software.softType, software.softVersion DESC";
+                                WHERE software.userID = ? AND software_external.id IS NULL AND software.isNPC = 0
+                                ORDER BY software.softType, software.softVersion DESC', [$id]);
                     }
                 } else {
-                    $sql = "SELECT id, softname, softversion, softType, softhidden
+                    $sql = SqlQuery::make('SELECT id, softname, softversion, softType, softhidden
                             FROM software 
-                            WHERE userid = $id AND isNPC = $npc AND isFolder = 0 AND softHidden = 0 AND softType <> 31
-                            GROUP BY softType, softVersion DESC, softLastEdit ASC";
+                            WHERE userid = ? AND isNPC = ? AND isFolder = 0 AND softHidden = 0 AND softType <> 31
+                            GROUP BY softType, softVersion DESC, softLastEdit ASC', [SqlQuery::num($id), SqlQuery::num($npc)]);
                 }
            
                 $session->newQuery();
@@ -1557,7 +1554,7 @@ if($session->issetLogin() || $loggedOut){
                     if($session->issetMissionSession()){
                         if ($_SESSION['MISSION_TYPE'] == 2 || $_SESSION['MISSION_TYPE'] == 83) {
 
-                            require '/var/www/classes/Mission.class.php';
+                            require __DIR__.'/classes/Mission.class.php';
                             $mission = new Mission();
 
                             if($_SESSION['MISSION_TYPE'] == 2){
@@ -1658,7 +1655,7 @@ if($session->issetLogin() || $loggedOut){
                 break;
             case 'loadHistory':
 
-                require '/var/www/classes/Internet.class.php';
+                require __DIR__.'/classes/Internet.class.php';
                 $internet = new Internet();
 
                 $result['msg'] = $internet->history_getJSON();

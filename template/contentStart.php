@@ -738,18 +738,6 @@ switch($crudePage){
         $headerArr[0]['link'] = 'legal';
                 
         break;
-    case 'premium':
-        
-        $sub = 'Premium';
-        
-        $headerArr[0]['name'] = 'Premium';
-        $headerArr[0]['link'] = 'premium';
-                
-        if(isset($_GET['plan'])){
-            $bodyClass .= ' payment';
-        }
-        
-        break;
     case 'settings':
         
         $sub = 'Settings';
@@ -775,15 +763,15 @@ if(isset($_SESSION['MISSION_ID'])){
                 $pdo = PDO_DB::factory();
                 $_SESSION['QUERY_COUNT'] += 2;
 
-                $sql = 'SELECT COUNT(*) AS total, software.id, COUNT(software_running.id) AS totalRunning
+                $sql = SqlQuery::make('SELECT COUNT(*) AS total, software.id, COUNT(software_running.id) AS totalRunning
                         FROM software
                         LEFT JOIN software_running
                         ON software.id = software_running.softID
-                        WHERE softType = \'1\' AND software.userID = \''.$_SESSION['id'].'\' AND software.isNPC = \'0\' 
-                        LIMIT 1';
+                        WHERE softType = \'1\' AND software.userID = ? AND software.isNPC = \'0\' 
+                        LIMIT 1', [$_SESSION['id']]);
                 $softInfo = $pdo->query($sql)->fetch(PDO::FETCH_OBJ);
 
-                $sql = 'SELECT COUNT(*) AS total, id, isRead FROM mails WHERE mails.from = \'-1\' AND mails.to = \''.$_SESSION['id'].'\' LIMIT 1';
+                $sql = SqlQuery::make('SELECT COUNT(*) AS total, id, isRead FROM mails WHERE mails.from = \'-1\' AND mails.to = ? LIMIT 1', [$_SESSION['id']]);
                 $mailInfo = $pdo->query($sql)->fetch(PDO::FETCH_OBJ);
 
                 if($mailInfo->isread == 1){
@@ -813,7 +801,7 @@ if(isset($_SESSION['MISSION_ID'])){
                             $session = new Session();
 
                             $session->newQuery();
-                            $sql = 'SELECT victim FROM missions WHERE type = \'80\' AND userID = \''.$_SESSION['id'].'\'';
+                            $sql = SqlQuery::make('SELECT victim FROM missions WHERE type = \'80\' AND userID = ?', [$_SESSION['id']]);
                             $netInfo = $pdo->query($sql)->fetch(PDO::FETCH_OBJ);
 
                             if($session->isInternetLogged()){
@@ -831,13 +819,13 @@ if(isset($_SESSION['MISSION_ID'])){
                                 if($curPage == 'logs' && $_SESSION['LOGGED_IN'] == $netInfo->victim){
                                     
                                     $session->newQuery();
-                                    $sql = 'SELECT gameIP FROM users WHERE id = \''.$_SESSION['id'].'\'';
+                                    $sql = SqlQuery::make('SELECT gameIP FROM users WHERE id = ?', [$_SESSION['id']]);
                                     $userIP = long2ip($pdo->query($sql)->fetch(PDO::FETCH_OBJ)->gameip);
                                                                         
                                     $session->newQuery();
-                                    $sql = 'SELECT text FROM log WHERE isNPC = 1 AND userID = (
-                                                SELECT id FROM npc WHERE npcIP = \''.$netInfo->victim.'\' LIMIT 1
-                                            )';
+                                    $sql = SqlQuery::make('SELECT text FROM log WHERE isNPC = 1 AND userID = (
+                                                SELECT id FROM npc WHERE npcIP = ? LIMIT 1
+                                            )', [$netInfo->victim]);
                                     $logText = $pdo->query($sql)->fetch(PDO::FETCH_OBJ)->text;
                                     
                                     if(strpos($logText, $userIP) !== FALSE){
@@ -859,7 +847,7 @@ if(isset($_SESSION['MISSION_ID'])){
                                 if($curIP == $netInfo->victim){
 
                                     $session->newQuery();
-                                    $sql = 'SELECT COUNT(*) AS total FROM lists WHERE ip = \''.$netInfo->victim.'\' AND userID = \''.$_SESSION['id'].'\' LIMIT 1';
+                                    $sql = SqlQuery::make('SELECT COUNT(*) AS total FROM lists WHERE ip = ? AND userID = ? LIMIT 1', [$netInfo->victim, $_SESSION['id']]);
                                     $listed = $pdo->query($sql)->fetch(PDO::FETCH_OBJ)->total;
 
                                     if($listed == 1){
@@ -960,7 +948,7 @@ if(isset($_SESSION['MISSION_ID'])){
                 }
                 
                 $session->newQuery();
-                $sql = 'SELECT victim FROM missions WHERE type = \'83\' AND userID = \''.$_SESSION['id'].'\'';
+                $sql = SqlQuery::make('SELECT victim FROM missions WHERE type = \'83\' AND userID = ?', [$_SESSION['id']]);
                 $netInfo = $pdo->query($sql)->fetch(PDO::FETCH_OBJ);                
                 
                 if($session->isInternetLogged()){
@@ -982,13 +970,13 @@ if(isset($_SESSION['MISSION_ID'])){
                     } else {
 
                         $session->newQuery();
-                        $sql = 'SELECT gameIP FROM users WHERE id = \''.$_SESSION['id'].'\'';
+                        $sql = SqlQuery::make('SELECT gameIP FROM users WHERE id = ?', [$_SESSION['id']]);
                         $userIP = long2ip($pdo->query($sql)->fetch(PDO::FETCH_OBJ)->gameip);
 
                         $session->newQuery();
-                        $sql = 'SELECT text FROM log WHERE isNPC = 1 AND userID = (
-                                    SELECT id FROM npc WHERE npcIP = \''.$netInfo->victim.'\' LIMIT 1
-                                )';
+                        $sql = SqlQuery::make('SELECT text FROM log WHERE isNPC = 1 AND userID = (
+                                    SELECT id FROM npc WHERE npcIP = ? LIMIT 1
+                                )', [$netInfo->victim]);
                         $logText = $pdo->query($sql)->fetch(PDO::FETCH_OBJ)->text;
 
                         if(strpos($logText, $userIP) !== FALSE){
@@ -1010,7 +998,7 @@ if(isset($_SESSION['MISSION_ID'])){
                     if($curIP == $netInfo->victim){
                         
                         $session->newQuery();
-                        $sql = 'SELECT COUNT(*) AS total FROM lists WHERE ip = \''.$netInfo->victim.'\' AND userID = \''.$_SESSION['id'].'\' LIMIT 1';
+                        $sql = SqlQuery::make('SELECT COUNT(*) AS total FROM lists WHERE ip = ? AND userID = ? LIMIT 1', [$netInfo->victim, $_SESSION['id']]);
                         $listed = $pdo->query($sql)->fetch(PDO::FETCH_OBJ)->total;
 
                         if($listed == 1){
@@ -1079,17 +1067,17 @@ if($doomCurrent + $doomFailed > 0){
 $clanBadge = '';
 if($_SESSION['CLAN_ID'] != 0){
     $session->newQuery();
-    $sql = 'SELECT authLevel FROM clan_users WHERE userID = '.$_SESSION['id'];
+    $sql = SqlQuery::make('SELECT authLevel FROM clan_users WHERE userID = ?', [SqlQuery::num($_SESSION['id'])]);
     if($pdo->query($sql)->fetch(PDO::FETCH_OBJ)->authlevel == 4){
         $session->newQuery();
-        $sql = 'SELECT COUNT(*) AS total FROM clan_requests WHERE clanID = '.$_SESSION['CLAN_ID'];
+        $sql = SqlQuery::make('SELECT COUNT(*) AS total FROM clan_requests WHERE clanID = ?', [SqlQuery::num($_SESSION['CLAN_ID'])]);
         $total = $pdo->query($sql)->fetch(PDO::FETCH_OBJ)->total;
         if($total > 0){
             $clanBadge = '<span class="label">'.$total.'</span>';
         }
     }
     $session->newQuery();
-    $sql = 'SELECT COUNT(*) AS total FROM clan_war WHERE clanID1 = '.$_SESSION['CLAN_ID'].' OR clanID2 = '.$_SESSION['CLAN_ID'];
+    $sql = SqlQuery::make('SELECT COUNT(*) AS total FROM clan_war WHERE clanID1 = ? OR clanID2 = ?', [SqlQuery::num($_SESSION['CLAN_ID']), SqlQuery::num($_SESSION['CLAN_ID'])]);
     if($pdo->query($sql)->fetch(PDO::FETCH_OBJ)->total > 0){
         if(strlen($clanBadge) > 0){
             $str = '!';
@@ -1146,7 +1134,7 @@ if($css['wysiwyg'] == 1){
 if($css['fa'] == 1){
     //fa completo
 ?>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.min.css" />
+        <link rel="stylesheet" href="font-awesome/css/font-awesome.min.css" />
 <?php
 } else {
     //fa customizado (menu)
@@ -1217,7 +1205,7 @@ if($css['fa'] == 1){
                         $cur = 'class="current"';
                     }
 ?>                    
-                <a href="<?php echo $headerArr[$i]['link']; ?>" id="link<?php echo $i; ?>" <?php echo $cur; ?>> <?php echo _($headerArr[$i]['name']); ?></a>
+                <a href="<?php echo esc($headerArr[$i]['link']); ?>" id="link<?php echo $i; ?>" <?php echo $cur; ?>> <?php echo esc(_($headerArr[$i]['name'])); ?></a>
 <?php
                 }
       

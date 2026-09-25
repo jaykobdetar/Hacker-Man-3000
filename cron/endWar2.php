@@ -1,12 +1,16 @@
 <?php
 
+require_once __DIR__.'/../bootstrap.php';
+// Cron/maintenance script: never reachable as a web page.
+if (PHP_SAPI !== 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) { http_response_code(404); exit; }
+require_once __DIR__.'/../classes/Python.class.php';
 // 2019: TODO: What if there's a tie?
 //TODO: e se empatar?
 
 
 $start = microtime(true);
 
-require '/var/www/classes/PDO.class.php';
+require __DIR__.'/../classes/PDO.class.php';
 
 $pdo = PDO_DB::factory();
 
@@ -53,14 +57,14 @@ if($total > 0){
             continue;
         }
         
-        $sql = "SELECT r.attID, r.power
+        $sql = SqlQuery::make('SELECT r.attID, r.power
                 FROM round_ddos r
                 INNER JOIN clan_ddos d
                 ON d.ddosID = r.id
                 WHERE 
-                    d.attackerClan = '".$winnerID."' AND 
-                    d.victimClan = '".$loserID."' AND 
-                    TIMESTAMPDIFF(SECOND, r.date, '".$startDate."') < 0";
+                    d.attackerClan = ? AND 
+                    d.victimClan = ? AND 
+                    TIMESTAMPDIFF(SECOND, r.date, ?) < 0', [$winnerID, $loserID, $startDate]);
         $ddosList = $pdo->query($sql)->fetchAll();
         
         $ddoserArr = Array();
@@ -109,13 +113,13 @@ if($total > 0){
                 $mostInfluentID = $ddoserArr[$k]['userID'];
             }
                       
-            $sql = "SELECT bankAcc FROM bankAccounts WHERE bankUser = '".$ddoserArr[$k]['userID']."' ORDER BY cash ASC LIMIT 1";
+            $sql = SqlQuery::make('SELECT bankAcc FROM bankAccounts WHERE bankUser = ? ORDER BY cash ASC LIMIT 1', [$ddoserArr[$k]['userID']]);
             $bankacc = $pdo->query($sql)->fetch(PDO::FETCH_OBJ)->bankacc;
             
-            $sql = "UPDATE bankAccounts SET cash = cash + '".$earned."' WHERE bankAcc = '".$bankacc."'";
+            $sql = SqlQuery::make('UPDATE bankAccounts SET cash = cash + ? WHERE bankAcc = ?', [$earned, $bankacc]);
             $pdo->query($sql);
             
-            $sql = "UPDATE users_stats SET moneyEarned = moneyEarned + '".$earned."' WHERE uid = '".$ddoserArr[$k]['userID']."'";
+            $sql = SqlQuery::make('UPDATE users_stats SET moneyEarned = moneyEarned + ? WHERE uid = ?', [$earned, $ddoserArr[$k]['userID']]);
             $pdo->query($sql);
             
             $split++;
@@ -127,34 +131,34 @@ if($total > 0){
         // 2019: Updates related to the end of the clan war
         //ATUALIZAÇÕES RELATIVAS AO FIM DA CLAN WAR \/
         
-        $sql = "UPDATE clan
+        $sql = SqlQuery::make('UPDATE clan
                 INNER JOIN clan_stats
                 ON clan.clanID = clan_stats.cid
-                SET clan_stats.won = clan_stats.won + 1, clan.power = clan.power + '". $totalPower ."'
-                WHERE clan.clanID = '".$winnerID."'
-                ";
+                SET clan_stats.won = clan_stats.won + 1, clan.power = clan.power + ?
+                WHERE clan.clanID = ?
+                ', [$totalPower, $winnerID]);
         $pdo->query($sql);
         
-        $sql = "UPDATE clan_stats SET lost = lost + 1 WHERE cid = '".$loserID."'";
+        $sql = SqlQuery::make('UPDATE clan_stats SET lost = lost + 1 WHERE cid = ?', [$loserID]);
         $pdo->query($sql);
         
-        $sql = "DELETE FROM clan_war WHERE (clanID1 = '".$winnerID."' and clanID2 = '".$loserID."') OR (clanID2 = '".$winnerID."' and clanID1 = '".$loserID."')";
+        $sql = SqlQuery::make('DELETE FROM clan_war WHERE (clanID1 = ? and clanID2 = ?) OR (clanID2 = ? and clanID1 = ?)', [$winnerID, $loserID, $winnerID, $loserID]);
         $pdo->query($sql);
         
-        $sql = "INSERT INTO clan_war_history (id, idWinner, idLoser, scoreWinner, scoreLoser, startDate, endDate, bounty)
-                VALUES ('', '".$winnerID."', '".$loserID."', '".$winnerScore."', '".$loserScore."', '".$startDate."', NOW(), '".$bounty."')";
+        $sql = SqlQuery::make('INSERT INTO clan_war_history (id, idWinner, idLoser, scoreWinner, scoreLoser, startDate, endDate, bounty)
+                VALUES (\'\', ?, ?, ?, ?, ?, NOW(), ?)', [$winnerID, $loserID, $winnerScore, $loserScore, $startDate, $bounty]);
         $pdo->query($sql);
         $warID = $pdo->lastInsertId();
         
-        $sql = "SELECT attackerClan, victimClan, ddosID FROM clan_ddos WHERE (attackerClan = '".$winnerID."' AND victimClan = '".$loserID."') OR (attackerClan = '".$loserID."' AND victimClan = '".$winnerID."')";
+        $sql = SqlQuery::make('SELECT attackerClan, victimClan, ddosID FROM clan_ddos WHERE (attackerClan = ? AND victimClan = ?) OR (attackerClan = ? AND victimClan = ?)', [$winnerID, $loserID, $loserID, $winnerID]);
         $data2 = $pdo->query($sql)->fetchAll();
         
         if(sizeof($data2) > 0){
             
             for($j=0; $j<sizeof($data2); $j++){
                 
-                $sql = "INSERT INTO clan_ddos_history (attackerClan, victimClan, ddosID, warID) 
-                        VALUES ('".$data2[$j]['attackerclan']."', '".$data2[$j]['victimclan']."', '".$data2[$j]['ddosid']."', '".$warID."')";
+                $sql = SqlQuery::make('INSERT INTO clan_ddos_history (attackerClan, victimClan, ddosID, warID) 
+                        VALUES (?, ?, ?, ?)', [$data2[$j]['attackerclan'], $data2[$j]['victimclan'], $data2[$j]['ddosid'], $warID]);
                 $pdo->query($sql);
                 
             }
@@ -164,7 +168,7 @@ if($total > 0){
         // 2019: "Social" updates notifying the end of the war
         //ATUALIZAÇÕES "SOCIAIS" AVISANDO O FIM DA GUERRA \/
         
-        $sql = "SELECT login FROM users WHERE id = '".$mostInfluentID."' LIMIT 1";
+        $sql = SqlQuery::make('SELECT login FROM users WHERE id = ? LIMIT 1', [$mostInfluentID]);
         $playerName = $pdo->query($sql)->fetch(PDO::FETCH_OBJ)->login;
         
         $title = $winnerName.' won clan battle against '.$loserName;
@@ -182,11 +186,11 @@ if($total > 0){
         
         $newsID = $pdo->lastInsertId();
         
-        $sql = "INSERT INTO news_history (newsID, info1, info2) 
-                VALUES ('".$newsID."', '".$winnerID."', '".$bounty."')";
+        $sql = SqlQuery::make('INSERT INTO news_history (newsID, info1, info2) 
+                VALUES (?, ?, ?)', [$newsID, $winnerID, $bounty]);
         $pdo->query($sql);
         
-        $sql = "SELECT r.attID, clan_users.clanID, users.login
+        $sql = SqlQuery::make('SELECT r.attID, clan_users.clanID, users.login
                 FROM round_ddos r
                 INNER JOIN clan_ddos d
                 ON d.ddosID = r.id
@@ -195,8 +199,8 @@ if($total > 0){
                 INNER JOIN users
                 ON users.id = r.attID
                 WHERE 
-                    (d.attackerClan = '".$winnerID."' AND d.victimClan = '".$loserID."') OR 
-                    (d.attackerClan = '".$loserID."' AND d.victimClan = '".$winnerID."')";
+                    (d.attackerClan = ? AND d.victimClan = ?) OR 
+                    (d.attackerClan = ? AND d.victimClan = ?)', [$winnerID, $loserID, $loserID, $winnerID]);
         $usersInvolved = $pdo->query($sql)->fetchAll();
         
         $from = -5;
@@ -230,17 +234,17 @@ if($total > 0){
                 $sqlMail = $pdo->prepare($sql);
                 $sqlMail->execute(array($from, $to, $type, $subject, $text));
                 
-                exec('/usr/bin/env python /var/www/python/badge_add.py user '.$to.' 60');
+                Python::run('badge_add.py', ['user', $to, '60']);
                 
             }
             
         }
         
-        $sql = "DELETE FROM clan_ddos WHERE (attackerClan = '".$winnerID."' AND victimClan = '".$loserID."') OR (attackerClan = '".$loserID."' AND victimClan = '".$winnerID."')";
+        $sql = SqlQuery::make('DELETE FROM clan_ddos WHERE (attackerClan = ? AND victimClan = ?) OR (attackerClan = ? AND victimClan = ?)', [$winnerID, $loserID, $loserID, $winnerID]);
         $pdo->query($sql);
         
-        exec('/usr/bin/env python /var/www/python/badge_add.py user '.$mostInfluentID.' 61');
-        exec('/usr/bin/env python /var/www/python/badge_add.py user '.$mostInfluentID.' 71');
+        Python::run('badge_add.py', ['user', $mostInfluentID, '61']);
+        Python::run('badge_add.py', ['user', $mostInfluentID, '71']);
         
     }
     

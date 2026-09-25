@@ -1,8 +1,9 @@
 <?php
 
+require_once __DIR__.'/bootstrap.php';
 session_start();
 
-require '/var/www/classes/Session.class.php';
+require __DIR__.'/classes/Session.class.php';
 $session = new Session();
 
 $result = Array();
@@ -28,7 +29,7 @@ if($session->issetLogin()){
                     break;
                 }
                 
-                require '/var/www/classes/Finances.class.php';
+                require __DIR__.'/classes/Finances.class.php';
                 $finances = new Finances();
                 
                 $walletInfo = $finances->getWalletInfoByAddress($_SESSION['WALLET_ADDR']);
@@ -78,7 +79,7 @@ if($session->issetLogin()){
                     
                     $session->addMsg(sprintf(_('%s BTC transfered from %s to %s.'), $amountToTransfer, $walletInfo->address, $destination), 'notice');
                     
-                    require '/var/www/classes/PC.class.php';
+                    require __DIR__.'/classes/PC.class.php';
                     $log = new LogVPC();
                     
                     $log->addLog($finances->bitcoin_getID(), $amountToTransfer.' BTC transfered from '.$walletInfo->address.' to '.$destination, 'NPC');
@@ -116,7 +117,7 @@ if($session->issetLogin()){
                     break;
                 }
                 
-                require '/var/www/classes/Finances.class.php';
+                require __DIR__.'/classes/Finances.class.php';
                 $finances = new Finances();
                 
                 $walletInfo = $finances->getWalletInfoByAddress($_SESSION['WALLET_ADDR']);
@@ -171,7 +172,7 @@ if($session->issetLogin()){
                     
                     $session->addMsg(sprintf(_('%s BTC bought for $%s.'), $amountToBuy, number_format($amountToBuy * $btcValue)), 'notice');
                     
-                    require '/var/www/classes/PC.class.php';
+                    require __DIR__.'/classes/PC.class.php';
                     $log = new LogVPC();
                     
                     $log->addLog($finances->bitcoin_getID(), $walletInfo->address.' bought '.$amountToBuy.' BTC for $'.number_format(ceil($amountToBuy * $btcValue)), 'NPC');
@@ -195,7 +196,7 @@ if($session->issetLogin()){
                     break;
                 }
                 
-                require '/var/www/classes/Finances.class.php';
+                require __DIR__.'/classes/Finances.class.php';
                 $finances = new Finances();
                 
                 $walletInfo = $finances->getWalletInfoByAddress($_SESSION['WALLET_ADDR']);
@@ -250,7 +251,7 @@ if($session->issetLogin()){
                     
                     $session->addMsg(sprintf(_('$%s transfered to account #%s'), number_format(ceil($amountToSell * $btcValue)), $acc), 'notice');
                     
-                    require '/var/www/classes/PC.class.php';
+                    require __DIR__.'/classes/PC.class.php';
                     $log = new LogVPC();
                     
                     $log->addLog($finances->bitcoin_getID(), $walletInfo->address.' sold '.$amountToSell.' BTC for $'.number_format(ceil($amountToSell * $btcValue)), 'NPC');
@@ -318,7 +319,7 @@ if($session->issetLogin()){
                     break;
                 }
                 
-                require '/var/www/classes/Finances.class.php';
+                require __DIR__.'/classes/Finances.class.php';
                 $finances = new Finances();
                 
                 if(!$finances->issetWallet($addr)){
@@ -331,8 +332,8 @@ if($session->issetLogin()){
                     break;
                 }
                                 
-                require '/var/www/classes/NPC.class.php';
-                require '/var/www/classes/PC.class.php';
+                require __DIR__.'/classes/NPC.class.php';
+                require __DIR__.'/classes/PC.class.php';
                 
                 $npc = new NPC();
                 $btcInfo = $npc->getNPCByKey('BITCOIN');
@@ -358,7 +359,7 @@ if($session->issetLogin()){
             
                 $result['status'] = 'OK';
                 
-                require '/var/www/classes/Finances.class.php';
+                require __DIR__.'/classes/Finances.class.php';
                 $finances = new Finances();
                 
                 $btcID = $finances->bitcoin_getID();

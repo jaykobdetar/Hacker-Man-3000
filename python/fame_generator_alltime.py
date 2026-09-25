@@ -1,4 +1,4 @@
-import MySQLdb
+import gamedb
 import sys
 
 extensionDict = {
@@ -43,9 +43,7 @@ def save(html, rank, page):
 	if type(page) != int:
 		page = 'preview'
 
-	f = open('/var/www/html/fame/top_'+rank+'_'+str(page)+'.html', 'w')
-	f.write(html)
-	f.close()
+	gamedb.write_file(gamedb.path('html/fame/top_')+rank+'_'+str(page)+'.html', html)
 
 def getExtension(softType):
     return extensionDict.get(str(softType), '.todo')
@@ -372,7 +370,7 @@ def createRankDDoS(preview):
 
 		save(html, 'ddos', page)
 
-db = MySQLdb.connect(host="localhost",user="he",passwd="REDADCTED",db="game")
+db = gamedb.connect()
 cur = db.cursor()
 
 try:

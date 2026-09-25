@@ -40,14 +40,14 @@ class HardwareVPC extends Player {
         }
 
         $this->session->newQuery();
-        $sqlSelect = "  SELECT 
+        $sqlSelect = SqlQuery::make('  SELECT 
                             COUNT(*) AS total, 
                             SUM(cpu) AS cpu, 
                             SUM(hdd) AS hdd,  
                             SUM(ram) AS ram, 
                             net
                         FROM hardware
-                        WHERE hardware.userID = $id AND isNPC = $npc";
+                        WHERE hardware.userID = ? AND isNPC = ?', [SqlQuery::num($id), SqlQuery::num($npc)]);
         $hardwareInfo = $this->pdo->query($sqlSelect)->fetch(PDO::FETCH_OBJ);
         
         $totalPCs = $hardwareInfo->total;
@@ -62,9 +62,9 @@ class HardwareVPC extends Player {
         $totalNET = $hardwareInfo->net;
 
         $this->session->newQuery();
-        $sqlSelect = "  SELECT SUM(size) AS xhd
+        $sqlSelect = SqlQuery::make('  SELECT SUM(size) AS xhd
                         FROM hardware_external
-                        WHERE userID = $id";
+                        WHERE userID = ?', [SqlQuery::num($id)]);
         $totalXHD = $this->pdo->query($sqlSelect)->fetch(PDO::FETCH_OBJ)->xhd;
         
         $values = Array(
@@ -221,7 +221,7 @@ class HardwareVPC extends Player {
         }
 
         $this->session->newQuery();
-        $sqlSelect = "SELECT COUNT(*) AS total FROM hardware WHERE userID = $id AND isNPC = $isNPC LIMIT 1";
+        $sqlSelect = SqlQuery::make('SELECT COUNT(*) AS total FROM hardware WHERE userID = ? AND isNPC = ? LIMIT 1', [SqlQuery::num($id), SqlQuery::num($isNPC)]);
         $totalPCs = $this->pdo->query($sqlSelect)->fetch(PDO::FETCH_OBJ)->total;
         
         if($totalPCs > 0){
@@ -391,7 +391,7 @@ class HardwareVPC extends Player {
         }
         
         $this->session->newQuery();
-        $sql = "SELECT net FROM hardware WHERE userID = '".$id."' AND isNPC = $npc LIMIT 1";
+        $sql = SqlQuery::make('SELECT net FROM hardware WHERE userID = ? AND isNPC = ? LIMIT 1', [$id, SqlQuery::num($npc)]);
         
         return $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
         
@@ -440,7 +440,7 @@ class HardwareVPC extends Player {
         }
         
         $this->session->newQuery();
-        $sqlSelect = "SELECT COUNT(*) AS total FROM hardware WHERE userID = $id AND isNPC = $npc";
+        $sqlSelect = SqlQuery::make('SELECT COUNT(*) AS total FROM hardware WHERE userID = ? AND isNPC = ?', [SqlQuery::num($id), SqlQuery::num($npc)]);
         $this->totalPCs = $this->pdo->query($sqlSelect)->fetch(PDO::FETCH_OBJ)->total;
         
         return $this->totalPCs;
@@ -461,15 +461,17 @@ class HardwareVPC extends Player {
         $offset = '';
         if($unknownID !== ''){
 
-            $where = 'userID = '.$id.' AND isNPC = '.$npc;
+            $where = 'userID = ? AND isNPC = ?';
+            $params = [SqlQuery::num($id), SqlQuery::num($npc)];
             
             if($unknownID > 0){
-                $offset = 'OFFSET '.$unknownID;
+                $offset = 'OFFSET '.(int)$unknownID;
             }
 
         } else {
 
-            $where = 'serverID = '.$serverID;
+            $where = 'serverID = ?';
+            $params = [SqlQuery::num($serverID)];
         }
         
         if($unknownID != 0){
@@ -477,7 +479,7 @@ class HardwareVPC extends Player {
         } else {
         
             $this->session->newQuery();
-            $sqlSelect = "SELECT COUNT(*) AS total FROM hardware WHERE ".$where." LIMIT 1 ".$offset;
+            $sqlSelect = SqlQuery::make('SELECT COUNT(*) AS total FROM hardware WHERE '.$where.' LIMIT 1 '.$offset, $params);
             $totalPCs = $this->pdo->query($sqlSelect)->fetch(PDO::FETCH_OBJ)->total;
 
         }
@@ -486,7 +488,7 @@ class HardwareVPC extends Player {
         if($totalPCs > 0){
         
             $this->session->newQuery();
-            $sqlSelect = "SELECT serverID, userID, name, cpu, ram, hdd, net, isNPC FROM hardware WHERE ".$where." LIMIT 1 ".$offset;
+            $sqlSelect = SqlQuery::make('SELECT serverID, userID, name, cpu, ram, hdd, net, isNPC FROM hardware WHERE '.$where.' LIMIT 1 '.$offset, $params);
             $pcInfo = $this->pdo->query($sqlSelect)->fetch(PDO::FETCH_OBJ);   
             
             if($pcInfo->userid == $id && $pcInfo->isnpc == $npc){
@@ -545,7 +547,7 @@ class HardwareVPC extends Player {
         }
 
         $this->session->newQuery();
-        $sqlSelect = "SELECT ramUsage FROM software_running WHERE userID = $id AND isNPC = $npc";
+        $sqlSelect = SqlQuery::make('SELECT ramUsage FROM software_running WHERE userID = ? AND isNPC = ?', [SqlQuery::num($id), SqlQuery::num($npc)]);
         $data = $this->pdo->query($sqlSelect);
 
         $totalRam = '0';
@@ -574,7 +576,7 @@ class HardwareVPC extends Player {
         }
 
         $this->session->newQuery();
-        $sqlSelect = "SELECT ramUsage FROM software_running WHERE userID = $id AND softID = $softID AND isNPC = $npc";
+        $sqlSelect = SqlQuery::make('SELECT ramUsage FROM software_running WHERE userID = ? AND softID = ? AND isNPC = ?', [SqlQuery::num($id), SqlQuery::num($softID), SqlQuery::num($npc)]);
         $data = $this->pdo->query($sqlSelect)->fetchAll();
 
         $ramInfo = self::calculateRamUsage($id, $pcType);
@@ -591,7 +593,7 @@ class HardwareVPC extends Player {
         }
 
         $this->session->newQuery();
-        $sqlSelect = "SELECT softSize FROM software WHERE userID = $id AND isNPC = $npc";
+        $sqlSelect = SqlQuery::make('SELECT softSize FROM software WHERE userID = ? AND isNPC = ?', [SqlQuery::num($id), SqlQuery::num($npc)]);
         $data = $this->pdo->query($sqlSelect);
 
         $totalSize = '0';
@@ -743,7 +745,7 @@ class HardwareVPC extends Player {
 
                     if($isClan == 1){
                         
-                        require '/var/www/classes/Clan.class.php';
+                        require __DIR__.'/Clan.class.php';
                         $clan = new Clan();
 
                         $clanIP = $clan->getClanInfo($clan->getPlayerClan())->clanip;
@@ -758,7 +760,7 @@ class HardwareVPC extends Player {
                         
                     } else {
                         
-                        require '/var/www/classes/Process.class.php';
+                        require __DIR__.'/Process.class.php';
                         
                         $logID = $_SESSION['id'];
                         $cid = '';
@@ -780,7 +782,7 @@ class HardwareVPC extends Player {
                     if($isClan == 0){
                         if(self::getTotalPCs() == 1){
                             
-                            require '/var/www/classes/Social.class.php';
+                            require __DIR__.'/Social.class.php';
                             $social = new Social();
                             
                             //add badge 'buy second pc'
@@ -823,7 +825,7 @@ class HardwareVPC extends Player {
 
                     if($xhdInfo['TOTAL'] == 0){
 
-                        require '/var/www/classes/Social.class.php';
+                        require __DIR__.'/Social.class.php';
                         $social = new Social();
 
                         //add badge 'buy second xhd'
@@ -850,7 +852,7 @@ class HardwareVPC extends Player {
 
                     if($isClan == 1){
                         
-                        require '/var/www/classes/Clan.class.php';
+                        require __DIR__.'/Clan.class.php';
                         $clan = new Clan();
 
                         $clanIP = $clan->getClanInfo($clan->getPlayerClan())->clanip;
@@ -914,7 +916,7 @@ class HardwareVPC extends Player {
                         if($act == 'net'){
                             if(!array_key_exists($partID + 1, $partArray)){
 
-                                require '/var/www/classes/Social.class.php';
+                                require __DIR__.'/Social.class.php';
                                 $social = new Social();
 
                                 //add badge 'max internet upgrade'
@@ -934,7 +936,7 @@ class HardwareVPC extends Player {
                                     
                                     if($hardwareInfo[strtoupper($act)] == $partArray[$partID]['POW'] * 4){
                                         
-                                        require '/var/www/classes/Social.class.php';
+                                        require __DIR__.'/Social.class.php';
                                         $social = new Social();
                                         
                                         if($act == 'cpu'){
@@ -955,7 +957,7 @@ class HardwareVPC extends Player {
                                 
                                 if($pcSpec['CPU'] == 4000 && $pcSpec['HDD'] == 100000 && $pcSpec['RAM'] == 2048){
 
-                                    require_once '/var/www/classes/Social.class.php';
+                                    require_once __DIR__.'/Social.class.php';
                                     $social = new Social();
 
                                     //add badge 'max upgrades de 1 pc'
@@ -984,7 +986,7 @@ class HardwareVPC extends Player {
 
                     if($cid == 0){
                         $cid = '';
-                        require '/var/www/classes/Process.class.php';
+                        require __DIR__.'/Process.class.php';
                     }
                     
                     $process = new Process();
@@ -1284,12 +1286,12 @@ class HardwareVPC extends Player {
                 
                 <?php
                 
-                require_once '/var/www/classes/Finances.class.php';
+                require_once __DIR__.'/Finances.class.php';
                 $finances = new Finances();
                 
                 if($internet != ''){
                     
-                    require '/var/www/classes/Clan.class.php';
+                    require __DIR__.'/Clan.class.php';
                     $clan = new Clan();
                     
                     $clanInfo = parent::getIDByIP($clan->getClanInfo($clan->getPlayerClan())->clanip, 'NPC');
@@ -1351,7 +1353,7 @@ class HardwareVPC extends Player {
         
                 <?php
         
-                require_once '/var/www/classes/Finances.class.php';
+                require_once __DIR__.'/Finances.class.php';
                 $finances = new Finances();                
                 
                 $price = self::getXHDPrice(); 
@@ -1511,7 +1513,7 @@ class HardwareVPC extends Player {
                         
                 if($internet != ''){
                     
-                    require '/var/www/classes/Clan.class.php';
+                    require __DIR__.'/Clan.class.php';
                     $clan = new Clan();
                     
                     $clanInfo = parent::getIDByIP($clan->getClanInfo($clan->getPlayerClan())->clanip, 'NPC');
@@ -1611,7 +1613,7 @@ class HardwareVPC extends Player {
 
         if(isset($_GET['acc'])){
 
-            $input = '<input type="hidden" name="acc" value="'.$_GET['acc'].'">
+            $input = '<input type="hidden" name="acc" value="'.esc($_GET['acc']).'">
                       <input type="hidden" name="price" value="'.$price.'">'."\n";
 
             switch($spec){
@@ -1777,7 +1779,7 @@ class HardwareVPC extends Player {
                                                 
                     } else {
                         
-                        require_once '/var/www/classes/Clan.class.php';
+                        require_once __DIR__.'/Clan.class.php';
                         $clan = new Clan();
 
                         $clanInfo = parent::getIDByIP($clan->getClanInfo($clan->getPlayerClan())->clanip, 'NPC');
@@ -1812,7 +1814,7 @@ class HardwareVPC extends Player {
                     require 'hardwareItens.php';
                     
                     $this->session->newQuery();
-                    $sqlSelect = "SELECT COUNT(*) AS total FROM hardware WHERE userID = $uid AND isNPC = $isNPC";
+                    $sqlSelect = SqlQuery::make('SELECT COUNT(*) AS total FROM hardware WHERE userID = ? AND isNPC = ?', [SqlQuery::num($uid), SqlQuery::num($isNPC)]);
                     $totalPCs = $this->pdo->query($sqlSelect)->fetch(PDO::FETCH_OBJ)->total;                    
 
                     $curName = '';
@@ -2048,7 +2050,7 @@ class HardwareVPC extends Player {
     public function getXHDUsage(){
         
         $this->session->newQuery();
-        $sql = "SELECT SUM(softSize) AS total FROM software_external WHERE userID = ".$_SESSION['id'];
+        $sql = SqlQuery::make('SELECT SUM(softSize) AS total FROM software_external WHERE userID = ?', [SqlQuery::num($_SESSION['id'])]);
         return $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->total;
         
     }
@@ -2056,7 +2058,7 @@ class HardwareVPC extends Player {
     public function getXHDInfo(){
 
         $this->session->newQuery();
-        $sql = "SELECT serverID, name, size FROM hardware_external WHERE userID = '".$_SESSION['id']."'";
+        $sql = SqlQuery::make('SELECT serverID, name, size FROM hardware_external WHERE userID = ?', [$_SESSION['id']]);
         $data = $this->pdo->query($sql)->fetchAll();
 
         $return = Array();
@@ -2084,7 +2086,7 @@ class HardwareVPC extends Player {
     public function getXHD($serverID){
         
         $this->session->newQuery();
-        $sql = "SELECT name, size FROM hardware_external WHERE serverID = '".$serverID."'";
+        $sql = SqlQuery::make('SELECT name, size FROM hardware_external WHERE serverID = ?', [$serverID]);
         $data = $this->pdo->query($sql)->fetchAll();
 
         $return = Array();
@@ -2124,10 +2126,10 @@ class HardwareVPC extends Player {
         }
         
         $this->session->newQuery();
-        $sql = "    INSERT INTO hardware
+        $sql = SqlQuery::make('    INSERT INTO hardware
                         (userID, name, cpu, net, hdd, ram, isNPC)
                     VALUES
-                        ($userID, '".$specs['NAME']."', '".$specs['CPU']."', '', '".$specs['HDD']."', '".$specs['RAM']."', $npc)";
+                        (?, ?, ?, \'\', ?, ?, ?)', [SqlQuery::num($userID), $specs['NAME'], $specs['CPU'], $specs['HDD'], $specs['RAM'], SqlQuery::num($npc)]);
         $this->pdo->query($sql);
         
     }
@@ -2157,7 +2159,7 @@ class HardwareVPC extends Player {
             }            
             
             $this->session->newQuery();
-            $sql = "UPDATE hardware SET ".$field." = '" . $string . "' WHERE serverID = $serverID";
+            $sql = SqlQuery::make('UPDATE hardware SET '.$field.' = ? WHERE serverID = ?', [$string, SqlQuery::num($serverID)]);
             $this->pdo->query($sql);
         
         } else {
@@ -2167,7 +2169,7 @@ class HardwareVPC extends Player {
                 case 'XHD':
                     
                     $this->session->newQuery();
-                    $sql = "UPDATE hardware_external SET size = '" . $string . "' WHERE serverID = $serverID";
+                    $sql = SqlQuery::make('UPDATE hardware_external SET size = ? WHERE serverID = ?', [$string, SqlQuery::num($serverID)]);
                     $this->pdo->query($sql);
                     
                     break;
@@ -2175,7 +2177,7 @@ class HardwareVPC extends Player {
                 case 'NET':
                     
                     $this->session->newQuery();
-                    $sql = "UPDATE hardware SET net = '" . $string . "' WHERE userID = $id AND isNPC = $isNPC";
+                    $sql = SqlQuery::make('UPDATE hardware SET net = ? WHERE userID = ? AND isNPC = ?', [$string, SqlQuery::num($id), SqlQuery::num($isNPC)]);
                     $this->pdo->query($sql);
 
                     break;
@@ -2193,7 +2195,7 @@ class HardwareVPC extends Player {
         }
 
         $this->session->newQuery();
-        $sql = "UPDATE hardware SET net = '" . $netID . "' WHERE userID = $id AND isNPC = $isNPC";
+        $sql = SqlQuery::make('UPDATE hardware SET net = ? WHERE userID = ? AND isNPC = ?', [$netID, SqlQuery::num($id), SqlQuery::num($isNPC)]);
         $this->pdo->query($sql);
     }
 
@@ -2217,17 +2219,17 @@ class HardwareVPC extends Player {
             while ($hddUsage['AVAILABLE'] < '0') {
 
                 $this->session->newQuery();
-                $sql = "SELECT id, softSize, softType, originalFrom, softName, softVersion FROM software WHERE userID = $id AND isNPC = $isNPC ORDER BY softSize DESC LIMIT 1";
+                $sql = SqlQuery::make('SELECT id, softSize, softType, originalFrom, softName, softVersion FROM software WHERE userID = ? AND isNPC = ? ORDER BY softSize DESC LIMIT 1', [SqlQuery::num($id), SqlQuery::num($isNPC)]);
                 $selectedSoft = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
 
                 $this->session->newQuery();
-                $sql = "DELETE FROM software WHERE id = '" . $selectedSoft->id . "' LIMIT 1";
+                $sql = SqlQuery::make('DELETE FROM software WHERE id = ? LIMIT 1', [$selectedSoft->id]);
                 $this->pdo->query($sql);
 
                 if ($software->isInstalled($selectedSoft->id, $id, $pcType)) {
 
                     $this->session->newQuery();
-                    $sql = "DELETE FROM software_running WHERE softID = '" . $selectedSoft->id . "' LIMIT 1";
+                    $sql = SqlQuery::make('DELETE FROM software_running WHERE softID = ? LIMIT 1', [$selectedSoft->id]);
                     $this->pdo->query($sql);
                     
                 }
@@ -2236,26 +2238,26 @@ class HardwareVPC extends Player {
                 if($selectedSoft->softtype > 95){ //é virus
                                         
                     $this->session->newQuery();
-                    $sql = "SELECT installedIp FROM virus WHERE virusID = '".$selectedSoft->id."'";
+                    $sql = SqlQuery::make('SELECT installedIp FROM virus WHERE virusID = ?', [$selectedSoft->id]);
                     $ip = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->installedip;
                     
                     $this->session->newQuery();
-                    $sql = "DELETE FROM virus WHERE virusID = '".$selectedSoft->id."'";
+                    $sql = SqlQuery::make('DELETE FROM virus WHERE virusID = ?', [$selectedSoft->id]);
                     $this->pdo->query($sql);
                     
                     $this->session->newQuery();
-                    $sql = "UPDATE lists SET virusID = 0 WHERE virusID = '".$selectedSoft->id."'";
+                    $sql = SqlQuery::make('UPDATE lists SET virusID = 0 WHERE virusID = ?', [$selectedSoft->id]);
                     $this->pdo->query($sql);
                     
                     $this->session->newQuery();
-                    $sql = "INSERT INTO lists_notifications (userID, ip, notificationType, virusName)
-                            VALUES ('".$selectedSoft->originalfrom."', '".$ip."', '3', '".$selectedSoft->softname.' ('.$software->dotVersion($selectedSoft->softversion).')'."')";
+                    $sql = SqlQuery::make('INSERT INTO lists_notifications (userID, ip, notificationType, virusName)
+                            VALUES (?, ?, \'3\', ?)', [$selectedSoft->originalfrom, $ip, $selectedSoft->softname.' ('.$software->dotVersion($selectedSoft->softversion).')']);
                     $this->pdo->query($sql);
                     
                     if($selectedSoft->softtype == 97){ //vddos
                         
                         $this->session->newQuery();
-                        $sql = "DELETE FROM virus_ddos WHERE ddosID = '".$selectedSoft->id."'";
+                        $sql = SqlQuery::make('DELETE FROM virus_ddos WHERE ddosID = ?', [$selectedSoft->id]);
                         $this->pdo->query($sql);
                         
                     }
@@ -2269,7 +2271,7 @@ class HardwareVPC extends Player {
                 // 2019: Webserver deleted
                 } elseif($selectedSoft->softtype == 18){ //deletou o webserver
                     
-                    require_once '/var/www/classes/Internet.class.php';
+                    require_once __DIR__.'/Internet.class.php';
                     $internet = new Internet();
                     
                     $internet->webserver_shutdown($id);
@@ -2300,11 +2302,11 @@ class HardwareVPC extends Player {
             while ($ramUsage['AVAILABLE'] < '0') {
 
                 $this->session->newQuery();
-                $sql = "SELECT id, ramUsage FROM software_running WHERE userID = $id AND isNPC = $isNPC ORDER BY ramUsage DESC LIMIT 1";
+                $sql = SqlQuery::make('SELECT id, ramUsage FROM software_running WHERE userID = ? AND isNPC = ? ORDER BY ramUsage DESC LIMIT 1', [SqlQuery::num($id), SqlQuery::num($isNPC)]);
                 $selectedSoft = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
 
                 $this->session->newQuery();
-                $sql = "DELETE FROM software_running WHERE id = '" . $selectedSoft->id . "' LIMIT 1";
+                $sql = SqlQuery::make('DELETE FROM software_running WHERE id = ? LIMIT 1', [$selectedSoft->id]);
                 $this->pdo->query($sql);
 
                 $ramUsage['AVAILABLE'] += $selectedSoft->ramusage;
@@ -2319,12 +2321,12 @@ class HardwareVPC extends Player {
         
         $name = 'Server #';
         
-        require_once '/var/www/classes/Ranking.class.php';
+        require_once __DIR__.'/Ranking.class.php';
         $ranking = new Ranking();
 
         $ranking->updateMoneyStats('1', $stdPrice);              
         
-        require_once '/var/www/classes/Finances.class.php';
+        require_once __DIR__.'/Finances.class.php';
         $finances = new Finances();
         
         if($internet != ''){
@@ -2356,16 +2358,16 @@ class HardwareVPC extends Player {
         $name = 'External #'. ($total + 1);
         
         $this->session->newQuery();
-        $sql = "INSERT INTO hardware_external (userID, serverID, name)
-                VALUES ('".$_SESSION['id']."', '', '".$name."')";
+        $sql = SqlQuery::make('INSERT INTO hardware_external (userID, serverID, name)
+                VALUES (?, \'\', ?)', [$_SESSION['id'], $name]);
         $this->pdo->query($sql);
         
-        require_once '/var/www/classes/Finances.class.php';
+        require_once __DIR__.'/Finances.class.php';
         $finances = new Finances();
         
         $finances->debtMoney($price, $bankAcc);
         
-        require_once '/var/www/classes/Ranking.class.php';
+        require_once __DIR__.'/Ranking.class.php';
         $ranking = new Ranking();
 
         $ranking->updateMoneyStats(1, $price);        
@@ -2378,7 +2380,7 @@ class HardwareVPC extends Player {
      
         echo 'This function will stay obsolete soon. 14-10-2013';
         
-        require_once '/var/www/classes/Finances.class.php';
+        require_once __DIR__.'/Finances.class.php';
         $finances = new Finances();
         
         echo "Buy new $part for $".$itemInfo[$id]['PRICE']."<br/><br/>";
@@ -2428,10 +2430,10 @@ class HardwareVPC extends Player {
     
     public function commitUpgrade($id, $itemInfo, $part, $bankAccount, $internet = 0){
         
-        require_once '/var/www/classes/Finances.class.php';
+        require_once __DIR__.'/Finances.class.php';
         $finances = new Finances();
 
-        require_once '/var/www/classes/Ranking.class.php';
+        require_once __DIR__.'/Ranking.class.php';
         $ranking = new Ranking();
 
             
@@ -2741,7 +2743,7 @@ class SoftwareVPC extends Player {
                     $system->handleError('Invaaaalid bank account.', $redirect);
                 }
                 
-                require '/var/www/classes/Finances.class.php';
+                require __DIR__.'/Finances.class.php';
                 $finances = new Finances();
 
                 if($finances->totalMoney() < $price){
@@ -2760,7 +2762,7 @@ class SoftwareVPC extends Player {
                     $system->handleError('This account does not exists.', $redirect);
                 }                                                
                 
-                require '/var/www/classes/Process.class.php';
+                require __DIR__.'/Process.class.php';
                 $process = new Process();
                 
                 if ($process->newProcess($_SESSION['id'], 'RESEARCH', '', 'local', $softID, $name, $acc.'/'.$deleteOldVersion, '0')) {
@@ -2796,7 +2798,7 @@ class SoftwareVPC extends Player {
                     $system->handleError('Invalid text-file name. Allowed are <strong>azAZ09- _</strong>, starting with <strong>azAZ09</strong>.', $redirect);
                 }
                 
-                require '/var/www/classes/Purifier.class.php';
+                require __DIR__.'/Purifier.class.php';
                 $purifier = new Purifier();
                 $purifier->set_config('software-text');
                 
@@ -2843,7 +2845,7 @@ class SoftwareVPC extends Player {
                     $system->handleError('Invalid text-file name. Allowed are <strong>azAZ09- _</strong>, starting with <strong>azAZ09</strong>.', $redirect);
                 }
                 
-                require '/var/www/classes/Purifier.class.php';
+                require __DIR__.'/Purifier.class.php';
                 $purifier = new Purifier();
                 $purifier->set_config('software-text');
                 
@@ -2860,11 +2862,11 @@ class SoftwareVPC extends Player {
                 }
                 
                 $this->session->newQuery();
-                $sql = "SELECT software_texts.text, software.softName, software.userID, software.isNPC
+                $sql = SqlQuery::make('SELECT software_texts.text, software.softName, software.userID, software.isNPC
                         FROM software_texts 
                         INNER JOIN software ON software.id = software_texts.id
-                        WHERE software_texts.id = '".$id."' 
-                        LIMIT 1";
+                        WHERE software_texts.id = ? 
+                        LIMIT 1', [$id]);
                 $txtInfo = $this->pdo->query($sql)->fetchAll();
                 
                 if(sizeof($txtInfo) == 0){
@@ -2949,7 +2951,7 @@ class SoftwareVPC extends Player {
                 }
                 
                 $this->session->newQuery();
-                $sql = "SELECT userID, softname FROM software WHERE id = '".$id."' LIMIT 1";
+                $sql = SqlQuery::make('SELECT userID, softname FROM software WHERE id = ? LIMIT 1', [$id]);
                 $data = $this->pdo->query($sql)->fetchAll();
 
                 if(sizeof($data) == 0){
@@ -3128,7 +3130,7 @@ class SoftwareVPC extends Player {
     public function licensedTo($softID){
         
         $this->session->newQuery();
-        $sql = "SELECT licensedTo FROM software WHERE id = $softID LIMIT 1";
+        $sql = SqlQuery::make('SELECT licensedTo FROM software WHERE id = ? LIMIT 1', [SqlQuery::num($softID)]);
         $data = $this->pdo->query($sql)->fetchAll();
         
         if(sizeof($data) == 1){
@@ -3139,7 +3141,7 @@ class SoftwareVPC extends Player {
         } else { //ou tá no hd externo, ou não existe çaporra
             
             $this->session->newQuery();
-            $sql = "SELECT licensedTo FROM software_external WHERE id = $softID LIMIT 1";
+            $sql = SqlQuery::make('SELECT licensedTo FROM software_external WHERE id = ? LIMIT 1', [SqlQuery::num($softID)]);
             $data = $this->pdo->query($sql)->fetchAll();
             
             if(sizeof($data) == 1){
@@ -3236,7 +3238,7 @@ class SoftwareVPC extends Player {
 
                     } else {
 
-                        require_once '/var/www/classes/Clan.class.php';
+                        require_once __DIR__.'/Clan.class.php';
                         $clan = new Clan();
                         
                         if($clan->playerHaveClan()){
@@ -3266,10 +3268,10 @@ class SoftwareVPC extends Player {
     public function getSpecificSoftwareID($uid, $softInfo){
                 
         $this->session->newQuery();
-        $sql = "SELECT id 
+        $sql = SqlQuery::make('SELECT id 
                 FROM software 
-                WHERE userID = '".$uid."' AND softType = $softInfo->softtype AND softVersion = $softInfo->softversion AND isNPC = '1' AND softName = '".$softInfo->softname."' 
-                LIMIT 1";
+                WHERE userID = ? AND softType = ? AND softVersion = ? AND isNPC = \'1\' AND softName = ? 
+                LIMIT 1', [$uid, SqlQuery::num($softInfo->softtype), SqlQuery::num($softInfo->softversion), $softInfo->softname]);
         $data = $this->pdo->query($sql)->fetchAll();
         
         if(count($data) == 1 && $uid == $softInfo->npcid){
@@ -3283,7 +3285,7 @@ class SoftwareVPC extends Player {
     public function getSoftwareOriginalInfo($softID) {
 
         $this->session->newQuery();
-        $sqlSelect = "SELECT npcID, softName, softVersion, softType FROM software_original WHERE id = $softID LIMIT 1";
+        $sqlSelect = SqlQuery::make('SELECT npcID, softName, softVersion, softType FROM software_original WHERE id = ? LIMIT 1', [SqlQuery::num($softID)]);
 
         return $this->pdo->query($sqlSelect)->fetch(PDO::FETCH_OBJ);
         
@@ -3702,7 +3704,7 @@ class SoftwareVPC extends Player {
     
     public function showSoftware($local, $pcType, $id, $folderID = '') {
 
-        require_once '/var/www/classes/Mission.class.php';
+        require_once __DIR__.'/Mission.class.php';
 
         $this->mission = new Mission();
 
@@ -3731,12 +3733,12 @@ class SoftwareVPC extends Player {
                     
                 } elseif($_SESSION['MISSION_TYPE'] > 49){
 
-                    require '/var/www/classes/Storyline.class.php';
+                    require __DIR__.'/Storyline.class.php';
                     $storyline = new Storyline();
                     
                     if($_SESSION['LOGGED_IN'] != $storyline->nsa_getIP()){
                         
-                        require '/var/www/classes/Clan.class.php';
+                        require __DIR__.'/Clan.class.php';
                         $clan = new Clan();
 
                         if($clan->playerHaveClan()){
@@ -3789,10 +3791,10 @@ class SoftwareVPC extends Player {
             $isFile = 0;
             
             $this->session->newQuery();
-            $sqlSelect = "SELECT id, softname, softversion, softsize, softtype, softhidden, softhiddenwith, isFolder, originalFrom
+            $sqlSelect = SqlQuery::make('SELECT id, softname, softversion, softsize, softtype, softhidden, softhiddenwith, isFolder, originalFrom
                          FROM software 
-                         WHERE userid = $id AND isNPC = $npc AND isFolder = 0 
-                         ORDER BY softType, softVersion DESC, softLastEdit ASC";
+                         WHERE userid = ? AND isNPC = ? AND isFolder = 0 
+                         ORDER BY softType, softVersion DESC, softLastEdit ASC', [SqlQuery::num($id), SqlQuery::num($npc)]);
             $data = $this->pdo->query($sqlSelect);
 
         } else {
@@ -3800,12 +3802,12 @@ class SoftwareVPC extends Player {
             $isFile = 1;
             
             $this->session->newQuery();
-            $sql = "SELECT software_folders.softID AS id, software.softname, software.softversion, software.softsize, software.softtype, software.softhidden, software.softhiddenwith, software.isFolder, software.originalFrom
+            $sql = SqlQuery::make('SELECT software_folders.softID AS id, software.softname, software.softversion, software.softsize, software.softtype, software.softhidden, software.softhiddenwith, software.isFolder, software.originalFrom
                     FROM software_folders
                     INNER JOIN software
                     ON software.id = software_folders.softID
-                    WHERE software_folders.folderID = '".$folderID."' AND software.userID = $id AND software.isNPC = $npc
-                    ORDER BY software.softType, software.softVersion DESC, software.softLastEdit ASC";
+                    WHERE software_folders.folderID = ? AND software.userID = ? AND software.isNPC = ?
+                    ORDER BY software.softType, software.softVersion DESC, software.softLastEdit ASC', [$folderID, SqlQuery::num($id), SqlQuery::num($npc)]);
             $data = $this->pdo->query($sql);
                         
         }
@@ -4096,7 +4098,7 @@ echo $str;
             $porct = round($hdUsage / $hddInfo['HDD'], 3) * 100 ."%";
             
             if($local == 1 && $hdUsage >= 50000 && rand(1,10) == 1){
-                require '/var/www/classes/Social.class.php';
+                require __DIR__.'/Social.class.php';
                 $social = new Social();
                 $social->badge_add(52, $_SESSION['id']);
             }
@@ -4115,7 +4117,7 @@ echo $str;
                 
                 if($haveText && $local == 1){
                     $this->session->newQuery();
-                    $sql = "SELECT COUNT(*) AS total FROM software_texts WHERE userID = ".$_SESSION['id']." AND isNPC = 0 AND ddos = 1";
+                    $sql = SqlQuery::make('SELECT COUNT(*) AS total FROM software_texts WHERE userID = ? AND isNPC = 0 AND ddos = 1', [SqlQuery::num($_SESSION['id'])]);
                     $total = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->total;
                                         
                     if($total > 0){
@@ -4142,8 +4144,8 @@ echo $str;
                 }
 ?>
                                     <div class="hd-usage">
-                                        <!--<div id="chart-me" class="percentage easyPieChart" data-percent="<?php //echo ceil($porct); ?>">-->
-                                        <div class="chart easyPieChart chartpie" data-percent="<?php echo ceil($porct); ?>">
+                                        <!--<div id="chart-me" class="percentage easyPieChart" data-percent="<?php //echo ceil((float)$porct); ?>">-->
+                                        <div class="chart easyPieChart chartpie" data-percent="<?php echo ceil((float)$porct); ?>">
                                             <div id="downmeplz"><span id="percentpie"></span></div>
                                         </div>
                                         <div class="hd-usage-text"><?php echo _("HDD Usage"); ?></div>
@@ -4289,15 +4291,18 @@ if($npc == 1 && $local == 0){
         }
         
         $nameStr = '';
+        $params = [$_SESSION['id']];
         if($softInfo->softtype == 29){
             
             $user = parent::getPlayerInfo($_SESSION['id'])->login;
-            $nameStr = ', softName = \''.$user.'\' ';
+            $nameStr = ', softName = ? ';
+            $params[] = $user;
             
         }
+        $params[] = SqlQuery::num($softInfo->id);
         
         $this->session->newQuery();
-        $sql = "UPDATE software$str SET licensedTo = '".$_SESSION['id']."'$nameStr WHERE id = $softInfo->id";
+        $sql = SqlQuery::make('UPDATE software'.$str.' SET licensedTo = ?'.$nameStr.' WHERE id = ?', $params);
         $this->pdo->query($sql);
 
         $log = new LogVPC();
@@ -4340,7 +4345,7 @@ if($npc == 1 && $local == 0){
     public function text_name($id){
         
         $this->session->newQuery();
-        $sql = "SELECT softName FROM software WHERE id = '".$id."' LIMIT 1";
+        $sql = SqlQuery::make('SELECT softName FROM software WHERE id = ? LIMIT 1', [$id]);
 
         $data = $this->pdo->query($sql)->fetchAll();
         
@@ -4417,11 +4422,11 @@ if($npc == 1 && $local == 0){
         }
         
         $this->session->newQuery();
-        $sql = "SELECT software_texts.text, software_texts.ddos, software.softName
+        $sql = SqlQuery::make('SELECT software_texts.text, software_texts.ddos, software.softName
                 FROM software_texts 
                 INNER JOIN software ON software.id = software_texts.id
-                WHERE software_texts.id = '".$id."'
-                LIMIT 1";
+                WHERE software_texts.id = ?
+                LIMIT 1', [$id]);
         $data = $this->pdo->query($sql)->fetchAll();
         
         if(sizeof($data) == 0){
@@ -4584,7 +4589,7 @@ if($npc == 1 && $local == 0){
     public function folder_used($folderID){
         
         $this->session->newQuery();
-        $sql = "SELECT softVersion FROM software WHERE id = $folderID LIMIT 1";
+        $sql = SqlQuery::make('SELECT softVersion FROM software WHERE id = ? LIMIT 1', [SqlQuery::num($folderID)]);
         if($this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->softversion > 0){
             return TRUE;
         } else {
@@ -4596,11 +4601,11 @@ if($npc == 1 && $local == 0){
     public function folder_delete($folderID, $uid, $npc){
         
         $this->session->newQuery();
-        $sql = "SELECT softName FROM software WHERE id = $folderID LIMIT 1";
+        $sql = SqlQuery::make('SELECT softName FROM software WHERE id = ? LIMIT 1', [SqlQuery::num($folderID)]);
         $folderName = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->softname;        
         
         $this->session->newQuery();
-        $sql = "DELETE FROM software WHERE id = $folderID LIMIT 1";
+        $sql = SqlQuery::make('DELETE FROM software WHERE id = ? LIMIT 1', [SqlQuery::num($folderID)]);
         $this->pdo->query($sql);
         
         $log = new LogVPC();
@@ -4624,7 +4629,7 @@ if($npc == 1 && $local == 0){
     public function folder_name($folderID){
         
         $this->session->newQuery();
-        $sql = "SELECT softname FROM software WHERE id = '".$folderID."' LIMIT 1";
+        $sql = SqlQuery::make('SELECT softname FROM software WHERE id = ? LIMIT 1', [$folderID]);
         $data = $this->pdo->query($sql)->fetchAll();
         
         if(sizeof($data) == 1){
@@ -4651,11 +4656,11 @@ if($npc == 1 && $local == 0){
         //$system->changeHTML($replace, $folderName);        
  
         $this->session->newQuery();
-        $sql = "SELECT software_folders.softID 
+        $sql = SqlQuery::make('SELECT software_folders.softID 
                 FROM software_folders
                 INNER JOIN software
                 ON software.id = software_folders.folderID
-                WHERE software_folders.folderID = '".$folderID."' AND software.userID = $id AND software.isNPC = $npc";
+                WHERE software_folders.folderID = ? AND software.userID = ? AND software.isNPC = ?', [$folderID, SqlQuery::num($id), SqlQuery::num($npc)]);
         $data = $this->pdo->query($sql)->fetchAll();
         
         if(sizeof($data) > 0){
@@ -4827,7 +4832,7 @@ if($npc == 1 && $local == 0){
     public function folder_isset($folderID, $userID, $npc){
 
         $this->session->newQuery();
-        $sql = "SELECT id FROM software WHERE id = '".$folderID."' AND softType = 31 AND userID = '".$userID."' AND isNPC = $npc LIMIT 1";
+        $sql = SqlQuery::make('SELECT id FROM software WHERE id = ? AND softType = 31 AND userID = ? AND isNPC = ? LIMIT 1', [$folderID, $userID, SqlQuery::num($npc)]);
         
         if(sizeof($this->pdo->query($sql)->fetchAll()) == 1){
             return TRUE;
@@ -4840,15 +4845,15 @@ if($npc == 1 && $local == 0){
     public function folder_move($folderID, $softID){
         
         $this->session->newQuery();
-        $sql = "INSERT INTO software_folders (folderID, softID) VALUES ('".$folderID."', '".$softID."')";
+        $sql = SqlQuery::make('INSERT INTO software_folders (folderID, softID) VALUES (?, ?)', [$folderID, $softID]);
         $this->pdo->query($sql);        
         
         $this->session->newQuery();
-        $sql = "UPDATE software SET isFolder = 1 WHERE id = $softID";
+        $sql = SqlQuery::make('UPDATE software SET isFolder = 1 WHERE id = ?', [SqlQuery::num($softID)]);
         $this->pdo->query($sql);
         
         $this->session->newQuery();
-        $sql = "UPDATE software SET softVersion = softVersion + 1 WHERE id = $folderID";
+        $sql = SqlQuery::make('UPDATE software SET softVersion = softVersion + 1 WHERE id = ?', [SqlQuery::num($folderID)]);
         $this->pdo->query($sql);        
         
     }
@@ -4856,19 +4861,19 @@ if($npc == 1 && $local == 0){
     public function folder_moveBack($softID){
         
         $this->session->newQuery();
-        $sql = "SELECT folderID FROM software_folders WHERE softID = '".$softID."' LIMIT 1";
+        $sql = SqlQuery::make('SELECT folderID FROM software_folders WHERE softID = ? LIMIT 1', [$softID]);
         $folderID = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->folderid;
 
         $this->session->newQuery();
-        $sql = "UPDATE software_folders SET softID = 0 WHERE folderID = '".$folderID."' AND softID = '".$softID."' LIMIT 1";
+        $sql = SqlQuery::make('UPDATE software_folders SET softID = 0 WHERE folderID = ? AND softID = ? LIMIT 1', [$folderID, $softID]);
         $this->pdo->query($sql);        
                 
         $this->session->newQuery();
-        $sql = "UPDATE software SET isFolder = 0 WHERE id = $softID";
+        $sql = SqlQuery::make('UPDATE software SET isFolder = 0 WHERE id = ?', [SqlQuery::num($softID)]);
         $this->pdo->query($sql);
          
         $this->session->newQuery();
-        $sql = "UPDATE software SET softVersion = softVersion - 1 WHERE id = $folderID";
+        $sql = SqlQuery::make('UPDATE software SET softVersion = softVersion - 1 WHERE id = ?', [SqlQuery::num($folderID)]);
         $this->pdo->query($sql);      
                
     }
@@ -4886,10 +4891,10 @@ if($npc == 1 && $local == 0){
         }
         
         $this->session->newQuery();
-        $sqlSelect = "SELECT id, softname, softversion, softType
+        $sqlSelect = SqlQuery::make('SELECT id, softname, softversion, softType
                      FROM software 
-                     WHERE userid = $id AND isNPC = $npc AND isFolder = 0 AND softHidden = 0 AND softType <> 31
-                     GROUP BY softType, softVersion DESC, softLastEdit ASC";
+                     WHERE userid = ? AND isNPC = ? AND isFolder = 0 AND softHidden = 0 AND softType <> 31
+                     GROUP BY softType, softVersion DESC, softLastEdit ASC', [SqlQuery::num($id), SqlQuery::num($npc)]);
         $data = $this->pdo->query($sqlSelect)->fetchAll();
         if(sizeof($data) > 0){
 
@@ -4962,7 +4967,7 @@ if($npc == 1 && $local == 0){
         $folderID = $this->pdo->lastInsertID();
         
         $this->session->newQuery();
-        $sql = "INSERT INTO software_folders (folderID) VALUES ('".$folderID."')";
+        $sql = SqlQuery::make('INSERT INTO software_folders (folderID) VALUES (?)', [$folderID]);
         $this->pdo->query($sql);
         
         $log = new LogVPC();
@@ -4991,7 +4996,7 @@ if($npc == 1 && $local == 0){
         }
 
         $this->session->newQuery();
-        $sqlSelect = "SELECT id FROM software_running WHERE userID = $uid AND softID = $softID AND isNPC = $npc LIMIT 1";
+        $sqlSelect = SqlQuery::make('SELECT id FROM software_running WHERE userID = ? AND softID = ? AND isNPC = ? LIMIT 1', [SqlQuery::num($uid), SqlQuery::num($softID), SqlQuery::num($npc)]);
         $info = $this->pdo->query($sqlSelect)->fetchAll();
 
         if (count($info) != '0')
@@ -5011,7 +5016,7 @@ if($npc == 1 && $local == 0){
             }
 
             $this->session->newQuery();
-            $sqlSelect = "SELECT ramUsage FROM software_running WHERE userID = $uid AND softID = $softID AND isNPC = $npc LIMIT 1";
+            $sqlSelect = SqlQuery::make('SELECT ramUsage FROM software_running WHERE userID = ? AND softID = ? AND isNPC = ? LIMIT 1', [SqlQuery::num($uid), SqlQuery::num($softID), SqlQuery::num($npc)]);
             $info = $this->pdo->query($sqlSelect)->fetchAll();
 
             return $info['0']['ramUsage'];
@@ -5423,7 +5428,7 @@ if($npc == 1 && $local == 0){
         }
         
         $this->session->newQuery();
-        $sql = "SELECT COUNT(*) AS total FROM software WHERE userid = $id AND isNPC = $npc";
+        $sql = SqlQuery::make('SELECT COUNT(*) AS total FROM software WHERE userid = ? AND isNPC = ?', [SqlQuery::num($id), SqlQuery::num($npc)]);
         return $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->total;
         
     }
@@ -5441,16 +5446,16 @@ if($npc == 1 && $local == 0){
 
         if ($installed == '1') {
 
-            $sql = "SELECT software.id, software.softVersion, software.softHidden, software.softRam
+            $sql = SqlQuery::make('SELECT software.id, software.softVersion, software.softHidden, software.softRam
                     FROM software
                     INNER JOIN software_running
                     ON software.userID = software_running.userID
-                    WHERE software.userID = $id AND software.softType = $softType AND software.softHidden = 0 AND software.isNPC = $npc AND software_running.softID = software.id
+                    WHERE software.userID = ? AND software.softType = ? AND software.softHidden = 0 AND software.isNPC = ? AND software_running.softID = software.id
                     ORDER BY software.softVersion DESC
                     LIMIT 1
-                    ";
+                    ', [SqlQuery::num($id), SqlQuery::num($softType), SqlQuery::num($npc)]);
         } else {
-            $sql = "SELECT id, softversion, softHidden, softName, softRam FROM software WHERE userid = $id AND softtype = $softType AND softhidden = 0 AND isNPC = $npc ORDER BY softversion DESC";            
+            $sql = SqlQuery::make('SELECT id, softversion, softHidden, softName, softRam FROM software WHERE userid = ? AND softtype = ? AND softhidden = 0 AND isNPC = ? ORDER BY softversion DESC', [SqlQuery::num($id), SqlQuery::num($softType), SqlQuery::num($npc)]);            
         }
 
         $this->session->newQuery();
@@ -5478,7 +5483,7 @@ if($npc == 1 && $local == 0){
         }
 
         $this->session->newQuery();
-        $sql = "SELECT id FROM software WHERE userID = $uid AND softType = $softType AND isNPC = 0 $addSql";
+        $sql = SqlQuery::make('SELECT id FROM software WHERE userID = ? AND softType = ? AND isNPC = 0 '.$addSql, [SqlQuery::num($uid), SqlQuery::num($softType)]);
         $data = $this->pdo->query($sql)->fetchAll();
 
         return count($data);
@@ -5534,13 +5539,15 @@ if($npc == 1 && $local == 0){
         }
         
         if($uid != ''){
-            $where = "WHERE userID = $uid AND id = $softID AND isNPC = $npc";
+            $where = 'WHERE userID = ? AND id = ? AND isNPC = ?';
+            $params = [SqlQuery::num($uid), SqlQuery::num($softID), SqlQuery::num($npc)];
         } else {
-            $where = "WHERE id = $softID";
+            $where = 'WHERE id = ?';
+            $params = [SqlQuery::num($softID)];
         }
         
         $this->session->newQuery();
-        $sqlSelect = "SELECT id, softName, softVersion, softSize, softRam, softType, softHidden, softHiddenWith, originalFrom, softLastEdit, licensedTo, isFolder, originalFrom FROM software $where LIMIT 1";
+        $sqlSelect = SqlQuery::make('SELECT id, softName, softVersion, softSize, softRam, softType, softHidden, softHiddenWith, originalFrom, softLastEdit, licensedTo, isFolder, originalFrom FROM software '.$where.' LIMIT 1', $params);
         
         return $this->pdo->query($sqlSelect)->fetch(PDO::FETCH_OBJ);
         
@@ -5549,7 +5556,7 @@ if($npc == 1 && $local == 0){
     public function getOriginalFrom($softID){
         
         $this->session->newQuery();
-        $sql = "SELECT originalFrom FROM software WHERE id = '".$softID."'";
+        $sql = SqlQuery::make('SELECT originalFrom FROM software WHERE id = ?', [$softID]);
         return $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
         
     }
@@ -5621,14 +5628,14 @@ if($npc == 1 && $local == 0){
 
         $id = $_SESSION['id'];
 
-        $sqlSelect = "
+        $sqlSelect = SqlQuery::make('
             SELECT software_running.id, software_running.softID, software_running.ramUsage, software.softType, software.softVersion, software.softName, software.softRam
             FROM software_running
             INNER JOIN software 
             ON software_running.userID = software.userID
-            WHERE software_running.userID = $id AND software_running.isNPC = '0' AND software_running.softID = software.id
+            WHERE software_running.userID = ? AND software_running.isNPC = \'0\' AND software_running.softID = software.id
             ORDER BY software_running.ramUsage DESC, software.softType, software.softVersion DESC
-        ";
+        ', [SqlQuery::num($id)]);
 
         $this->session->newQuery();
         $data = $this->pdo->query($sqlSelect);
@@ -5771,10 +5778,10 @@ if($npc == 1 && $local == 0){
                     <div class="widget-content padding">                   
 
 <?php                
-        $sql = "SELECT id, softName, softType, softVersion 
+        $sql = SqlQuery::make('SELECT id, softName, softType, softVersion 
                 FROM software 
-                WHERE userID = '".$_SESSION['id']."' AND softHidden = 0 AND softType < 99 AND licensedTo = '".$_SESSION['id']."' 
-                ORDER BY softType, softVersion DESC";
+                WHERE userID = ? AND softHidden = 0 AND softType < 99 AND licensedTo = ? 
+                ORDER BY softType, softVersion DESC', [$_SESSION['id'], $_SESSION['id']]);
         $researchInfo = $this->pdo->query($sql)->fetchAll();        
         
         if(sizeof($researchInfo) > 0){
@@ -5992,7 +5999,7 @@ if($npc == 1 && $local == 0){
             $softwareRankingCategory = '#'.number_format($softwareRankingCategory);
         }
                 
-        require '/var/www/classes/Finances.class.php';
+        require __DIR__.'/Finances.class.php';
         $finances = new Finances();
 
         if($finances->totalMoney() >= $price){
@@ -6192,13 +6199,13 @@ $finances->htmlSelectBankAcc();
         $newSoftID = $this->pdo->lastInsertId();
         
         $this->session->newQuery();
-        $sql = "INSERT INTO ranking_software (softID) VALUES ('".$newSoftID."')";
+        $sql = SqlQuery::make('INSERT INTO ranking_software (softID) VALUES (?)', [$newSoftID]);
         $this->pdo->query($sql);
         
         if($remove == 1){
 
             $this->session->newQuery();
-            $sql = "DELETE FROM software WHERE id = '".$sid."' LIMIT 1";
+            $sql = SqlQuery::make('DELETE FROM software WHERE id = ? LIMIT 1', [$sid]);
             $this->pdo->query($sql);
             
         }
@@ -6215,7 +6222,7 @@ $finances->htmlSelectBankAcc();
     public function external_listSoftware(){
 
         $this->session->newQuery();
-        $sqlSelect = "SELECT id, softName, softVersion, softSize, softRam, softType, uploadDate FROM software_external WHERE userID = '".$_SESSION['id']."' ORDER BY softtype, softversion DESC";
+        $sqlSelect = SqlQuery::make('SELECT id, softName, softVersion, softSize, softRam, softType, uploadDate FROM software_external WHERE userID = ? ORDER BY softtype, softversion DESC', [$_SESSION['id']]);
         $softInfo = $this->pdo->query($sqlSelect)->fetchAll();
 
         if(sizeof($softInfo) > 0){
@@ -6299,7 +6306,7 @@ $finances->htmlSelectBankAcc();
     public function external_have(){
         
         $this->session->newQuery();
-        $sql = "SELECT id FROM software_external WHERE userID = '".$_SESSION['id']."' LIMIT 1";
+        $sql = SqlQuery::make('SELECT id FROM software_external WHERE userID = ? LIMIT 1', [$_SESSION['id']]);
         $tmp = $this->pdo->query($sql)->fetchAll();
         
         if(count($tmp) > '0'){
@@ -6337,7 +6344,7 @@ $finances->htmlSelectBankAcc();
                                         <div id="uploadForm"></div>
                                     </form>
                                     <div class="hd-usage">
-                                        <div class="chart easyPieChart chartpie" data-percent="<?php echo ceil($porct); ?>">
+                                        <div class="chart easyPieChart chartpie" data-percent="<?php echo ceil((float)$porct); ?>">
                                             <div id="downmeplz"><span id="percentpie"></span></div>
                                         </div>
                                         <div class="hd-usage-text"><?php echo _('XHD usage'); ?></div>
@@ -6369,8 +6376,8 @@ class LogVPC extends Player {
             $this->pdo = PDO_DB::factory();
         }
 
-        require_once '/var/www/classes/Session.class.php';
-        require_once '/var/www/classes/NPC.class.php';
+        require_once __DIR__.'/Session.class.php';
+        require_once __DIR__.'/NPC.class.php';
 
         $this->session = new Session();
         $this->npc = new NPC();
@@ -6609,7 +6616,7 @@ class LogVPC extends Player {
         if ($valid == '1') {
 
             $this->session->newQuery();
-            $sqlSelect = "SELECT text FROM log WHERE userID = $id AND isNPC = $npc";
+            $sqlSelect = SqlQuery::make('SELECT text FROM log WHERE userID = ? AND isNPC = ?', [SqlQuery::num($id), SqlQuery::num($npc)]);
             $data = $this->pdo->query($sqlSelect)->fetchAll();
 
             if (count($data) == '0') {
@@ -6634,49 +6641,6 @@ class LogVPC extends Player {
                 ?>
 
                 <div class="span2 center">
-<?php if($local == 1 && $_SESSION['premium'] == 0){ ?>
-<style type="text/css">
-@media (min-width : 320px) { .adslot_log { width: 234px; height: 60px; display: none; } .logleft {display: none;} }
-@media (min-width : 360px) and (max-width : 480px) { .adslot_log { width: 300px; height: 250px; display: none; } .logleft {display: none;} }
-@media (min-width : 768px) and (max-width : 1024px) { .adslot_log { width: 336px; height: 280px; display: none;} .logleft { display:block !important; } }
-@media (min-width:1024px) { .adslot_log { width: 120px; height: 240px; margin-top: 50px; } .logleft { display:block !important; } }
-@media (min-width:1280px) { .adslot_log { width: 120px; height: 240px; margin-top: 50px; } .logleft { display:block !important; } }
-@media (min-width:1366px) { .adslot_log { width: 120px; height: 240px; margin-top: 50px; } .logleft { display:block !important; } }
-@media (min-width:1824px) { .adslot_log { width: 160px; height: 600px; margin-top: 8px;} .logarea{height:500px} .logleft { display:block !important; }} 
-</style>
-<div class="logleft">
-<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<!-- log both responsive -->
-<ins class="adsbygoogle adslot_log"
-     style="display:inline-block"
-     data-ad-client="ca-pub-7193007468156667"
-     data-ad-slot="3338147350"></ins>
-<script>
-(adsbygoogle = window.adsbygoogle || []).push({});
-</script>
-</div>
-<?php } elseif($_SESSION['premium'] == 0) { ?>
-<style type="text/css">
-@media (min-width : 320px) { .adslot_log { width: 234px; height: 60px; display: none; } .logleft {display: none;} }
-@media (min-width : 360px) and (max-width : 480px) { .adslot_log { width: 300px; height: 250px; display: none; } .logleft {display: none;} }
-@media (min-width : 768px) and (max-width : 1024px) { .adslot_log { width: 336px; height: 280px; display: none;} .logleft { display:block !important; } }
-@media (min-width:1024px) { .adslot_log { width: 120px; height: 240px; margin-top: 50px; } .logleft { display:block !important; } }
-@media (min-width:1280px) { .adslot_log { width: 120px; height: 240px; margin-top: 50px; } .logleft { display:block !important; } }
-@media (min-width:1366px) { .adslot_log { width: 120px; height: 240px; margin-top: 50px; } .logleft { display:block !important; } }
-@media (min-width:1824px) { .adslot_log { width: 200px; height: 200px; margin-top: 50px;} .logarea{height:300px}  .logleft { display:block !important; }}
-</style>
-<div class="logleft">
-<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<!-- log both responsive -->
-<ins class="adsbygoogle adslot_log"
-     style="display:inline-block"
-     data-ad-client="ca-pub-7193007468156667"
-     data-ad-slot="3338147350"></ins>
-<script>
-(adsbygoogle = window.adsbygoogle || []).push({});
-</script>
-</div>
-<?php } ?>
                 </div>
                 <div class="span8 center">
                                     
@@ -6689,17 +6653,6 @@ class LogVPC extends Player {
 
                 </div>
                 <div class="span2">
-<?php if($_SESSION['premium'] == 0){ ?>
-<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<!-- log both responsive -->
-<ins class="adsbygoogle adslot_log"
-     style="display:inline-block"
-     data-ad-client="ca-pub-7193007468156667"
-     data-ad-slot="3338147350"></ins>
-<script>
-(adsbygoogle = window.adsbygoogle || []).push({});
-</script>
-<?php } ?>
                 </div>
                                     
                                     
@@ -6769,7 +6722,7 @@ class LogVPC extends Player {
         }
         
         $this->session->newQuery();
-        $sqlSelect = "SELECT text FROM log WHERE userID = $uid AND isNPC = $npc";
+        $sqlSelect = SqlQuery::make('SELECT text FROM log WHERE userID = ? AND isNPC = ?', [SqlQuery::num($uid), SqlQuery::num($npc)]);
         $data = $this->pdo->query($sqlSelect)->fetchAll();
 
         return $data['0']['text'];
@@ -6791,7 +6744,7 @@ class LogVPC extends Player {
     public function deleteTmpLog($logID){
         
         $this->session->newQuery();
-        $sql = "DELETE FROM log_edit WHERE id = '".$logID."' LIMIT 1";
+        $sql = SqlQuery::make('DELETE FROM log_edit WHERE id = ? LIMIT 1', [$logID]);
         $this->pdo->query($sql);
         
     }
@@ -6799,10 +6752,10 @@ class LogVPC extends Player {
     public function getTmpLog($logID){
         
         $this->session->newQuery();
-        $sql = "SELECT logText
+        $sql = SqlQuery::make('SELECT logText
                 FROM log_edit
-                WHERE id = '".$logID."'
-                LIMIT 1";
+                WHERE id = ?
+                LIMIT 1', [$logID]);
         return $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->logtext;
         
     }
@@ -6841,14 +6794,16 @@ class Virus extends Player {
     public function alreadyInstalled($victimIP, $virusType = '') {
 
         $hackerID = $_SESSION['id'];
-        $where = "installedBy = $hackerID AND installedIP = $victimIP";
+        $where = 'installedBy = ? AND installedIP = ?';
+        $params = [SqlQuery::num($hackerID), SqlQuery::num($victimIP)];
         
         if($virusType != ''){
-            $where .= " AND virusType = '".$virusType."'";
+            $where .= ' AND virusType = ?';
+            $params[] = $virusType;
         }
         
         $this->session->newQuery();
-        $sqlSelect = "SELECT virusID FROM virus WHERE ".$where." LIMIT 1";
+        $sqlSelect = SqlQuery::make('SELECT virusID FROM virus WHERE '.$where.' LIMIT 1', $params);
         $data = $this->pdo->query($sqlSelect)->fetchAll();
 
         if (count($data) == '1') {
@@ -6951,7 +6906,7 @@ class Virus extends Player {
     public function DDoS_count() {
 
         $this->session->newQuery();
-        $sql = "SELECT virusID FROM virus WHERE installedBy = '" . $_SESSION['id'] . "' AND virusType = 3 AND active = 1";
+        $sql = SqlQuery::make('SELECT virusID FROM virus WHERE installedBy = ? AND virusType = 3 AND active = 1', [$_SESSION['id']]);
         $data = $this->pdo->query($sql)->fetchAll();
         
         return count($this->pdo->query($sql)->fetchAll());
@@ -7095,15 +7050,15 @@ class Virus extends Player {
         }
         
         $this->session->newQuery();
-        $sql = "INSERT INTO round_ddos (id, attID, attUser, vicID, power, servers, date, vicNPC)
-                VALUES ('', '".$_SESSION['id']."', '".$attUser."', '".$victimID."', '".$power."', '".$servers."', NOW(), '".$npc."')";
+        $sql = SqlQuery::make('INSERT INTO round_ddos (id, attID, attUser, vicID, power, servers, date, vicNPC)
+                VALUES (\'\', ?, ?, ?, ?, ?, NOW(), ?)', [$_SESSION['id'], $attUser, $victimID, $power, $servers, $npc]);
         $this->pdo->query($sql);
         
         if($npc == 0){
         
             $this->session->newQuery();
-            $sql = "INSERT INTO ranking_ddos (ddosID)
-                    VALUES ('".$this->pdo->lastInsertId()."')";
+            $sql = SqlQuery::make('INSERT INTO ranking_ddos (ddosID)
+                    VALUES (?)', [$this->pdo->lastInsertId()]);
             $this->pdo->query($sql);
 
         }
@@ -7116,7 +7071,7 @@ class Virus extends Player {
             $ddosPower = round($ddosPower / 5);
         }
         
-        require_once '/var/www/classes/Clan.class.php';
+        require_once __DIR__.'/Clan.class.php';
         $clan = new Clan();
 
         $myClanID = NULL;
@@ -7162,7 +7117,7 @@ class Virus extends Player {
 
             } else {
 
-                require_once '/var/www/classes/NPC.class.php';
+                require_once __DIR__.'/NPC.class.php';
                 $npc = new NPC();
 
                 $npcInfo = $npc->getNPCInfo($victimInfo['0']['id']);
@@ -7170,7 +7125,7 @@ class Virus extends Player {
                 if($npcInfo->npctype == 10){
 
                     $this->session->newQuery();
-                    $sql = "SELECT clanID FROM clan WHERE clanIP = '".$npcInfo->npcip."' LIMIT 1";
+                    $sql = SqlQuery::make('SELECT clanID FROM clan WHERE clanIP = ? LIMIT 1', [$npcInfo->npcip]);
                     $vicClanID = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->clanid;
 
                     if($vicClanID != $myClanID){
@@ -7264,7 +7219,7 @@ class Virus extends Player {
                     $ddoserHardware = $this->hardware->getHardwareInfo($_SESSION['id'], 'VPC');
                     
                     $this->session->newQuery();
-                    $sql = "SELECT ip, ddosName, ddosVersion, cpu FROM virus_ddos WHERE userID = '".$_SESSION['id']."' AND active = 1";
+                    $sql = SqlQuery::make('SELECT ip, ddosName, ddosVersion, cpu FROM virus_ddos WHERE userID = ? AND active = 1', [$_SESSION['id']]);
                     $tmp = $this->pdo->query($sql);
 
                     $total = '0';
@@ -7453,27 +7408,27 @@ class Virus extends Player {
                                         $down = 1;
 
                                         $this->session->newQuery();
-                                        $sqlSelect = "SELECT COUNT(*) AS total FROM npc_down WHERE npcID = '".$victimInfo['0']['id']."' LIMIT 1";
+                                        $sqlSelect = SqlQuery::make('SELECT COUNT(*) AS total FROM npc_down WHERE npcID = ? LIMIT 1', [$victimInfo['0']['id']]);
                                         $total = $this->pdo->query($sqlSelect)->fetch(PDO::FETCH_OBJ)->total;
 
                                         if($total == 1){
                                             $report .= '<br/>This server is already down! You probably added some downtime.<br/>';
                                             
                                             $this->session->newQuery();
-                                            $sql = 'UPDATE npc_down SET downUntil = DATE_ADD(downUntil, INTERVAL 1 HOUR) WHERE npcID = \''.$victimInfo['0']['id'].'\' LIMIT 1';
+                                            $sql = SqlQuery::make('UPDATE npc_down SET downUntil = DATE_ADD(downUntil, INTERVAL 1 HOUR) WHERE npcID = ? LIMIT 1', [$victimInfo['0']['id']]);
                                             //$this->pdo->query($sql);
                                             
                                         } else {
                                             $report .= '<br/>Due to recurrence, this server is down!<br/>';
                                             
                                             $this->session->newQuery();
-                                            $sql = 'INSERT INTO npc_down (npcID, downUntil) VALUES (\''.$victimInfo['0']['id'].'\', DATE_ADD(NOW(), INTERVAL 2 HOUR))';
+                                            $sql = SqlQuery::make('INSERT INTO npc_down (npcID, downUntil) VALUES (?, DATE_ADD(NOW(), INTERVAL 2 HOUR))', [$victimInfo['0']['id']]);
                                             //$this->pdo->query($sql);
                                             
                                         }
                                         
                                         $this->session->newQuery();
-                                        $sql = 'DELETE FROM internet_connections WHERE ip = \''.$ip.'\' LIMIT 1';
+                                        $sql = SqlQuery::make('DELETE FROM internet_connections WHERE ip = ? LIMIT 1', [$ip]);
                                         $this->pdo->query($sql);
                                         
                                         if($this->session->issetInternetSession()){
@@ -7490,7 +7445,7 @@ class Virus extends Player {
 
                                 }
 
-                                require_once '/var/www/classes/Storyline.class.php';
+                                require_once __DIR__.'/Storyline.class.php';
                                 $storyline = new Storyline();
 
                                 if($storyline->fbi_isset($ip)){
@@ -7510,7 +7465,7 @@ class Virus extends Player {
 
                         } else {
 
-                            require_once '/var/www/classes/Process.class.php';
+                            require_once __DIR__.'/Process.class.php';
                             $process = new Process();
           
                             // 2019: TODO: Verify whether that line \/ is working. You really should!
@@ -7594,7 +7549,7 @@ class Virus extends Player {
 
                             if($seizedAfter == 1){
 
-                                require_once '/var/www/classes/Storyline.class.php';
+                                require_once __DIR__.'/Storyline.class.php';
                                 $storyline = new Storyline();
 
                                 if($storyline->fbi_isset($ip)){
@@ -7613,7 +7568,7 @@ class Virus extends Player {
                             $report .= self::DDoS_studyClanExp($victimInfo, $ddosPower);
                             
                             //add badge
-                            require_once '/var/www/classes/Social.class.php';
+                            require_once __DIR__.'/Social.class.php';
                             $social = new Social();
                             
                             $social->badge_add(13, $_SESSION['id']);
@@ -7652,7 +7607,7 @@ class Virus extends Player {
 
                             if($_SESSION['MISSION_TYPE'] == '5'){
 
-                                require_once '/var/www/classes/Mission.class.php';
+                                require_once __DIR__.'/Mission.class.php';
                                 $mission = new Mission();
 
                                 if($mission->missionVictim($_SESSION['MISSION_ID']) == $ip){
@@ -7678,16 +7633,16 @@ class Virus extends Player {
                         $name = 'DDoS_'.long2ip($ip);
                         
                         $this->session->newQuery();
-                        $sql = "INSERT INTO software (id, userID, softName, softVersion, softSize, softRam, softType, softLastEdit, softHidden, softHiddenWith, isNPC, licensedTo)
-                                VALUES ('', '".$_SESSION['id']."', '".$name."', '0', '1', '0', '30', NOW(), '0', '0', '0', '0')";
+                        $sql = SqlQuery::make('INSERT INTO software (id, userID, softName, softVersion, softSize, softRam, softType, softLastEdit, softHidden, softHiddenWith, isNPC, licensedTo)
+                                VALUES (\'\', ?, ?, \'0\', \'1\', \'0\', \'30\', NOW(), \'0\', \'0\', \'0\', \'0\')', [$_SESSION['id'], $name]);
                         $this->pdo->query($sql);
                         
                         $txtID = $this->pdo->lastInsertID();
 
                         $this->session->newQuery();
-                        $sqlQuery = "INSERT INTO software_texts (id, userID, isNPC, text, lastEdit, ddos) VALUES ('".$txtID."', '".$_SESSION['id']."', '0', ?, NOW(), 1)";
+                        $sqlQuery = "INSERT INTO software_texts (id, userID, isNPC, text, lastEdit, ddos) VALUES (?, ?, '0', ?, NOW(), 1)";
                         $sqlReg = $this->pdo->prepare($sqlQuery);
-                        $sqlReg->execute(array($report));
+                        $sqlReg->execute(array($txtID, $_SESSION['id'], $report));
                         
                     } else {
                         $error = 'The virus installed on the victim doesnt count, and so you dont have 3 viruses running.';
@@ -7729,12 +7684,12 @@ class Virus extends Player {
         $brief = 'Hacker <a href="profile?id='.$_SESSION['id'].'">'.$hackerInfo->login.'</a> managed to DDoS and seize the FBI suspect known as <a href="profile?id='.$victimInfo['0']['id'].'">'.$victimName.'</a>.<br/>
                 '.$hackerInfo->login.' received a total bounty of <font color="green">$<b>'.$formatedBounty.'</b></font> for doing this brave act.';
 
-        require '/var/www/classes/News.class.php';
+        require __DIR__.'/News.class.php';
         $news = new News();
 
         $news->news_add(-2, $title, $brief, Array($_SESSION['id'], $bounty, ''));
 
-        require_once '/var/www/classes/Mail.class.php';
+        require_once __DIR__.'/Mail.class.php';
         $mail = new Mail();
 
         $title = _('Congratulations.');
@@ -7894,9 +7849,9 @@ class Virus extends Player {
     public function doom_haveInstalled($id, $npc){
         
         $this->session->newQuery();
-        $sql = "SELECT software.softtype, software.id
+        $sql = SqlQuery::make('SELECT software.softtype, software.id
                 FROM software
-                WHERE software.userID = '".$id."' AND software.isNPC = '".$npc."' AND softType = 96";
+                WHERE software.userID = ? AND software.isNPC = ? AND softType = 96', [$id, $npc]);
         $data = $this->pdo->query($sql)->fetchAll();
         
         if(sizeof($data) > 0){
@@ -7908,7 +7863,7 @@ class Virus extends Player {
                 if($data[$i]['softtype'] == 29){
 
                     $this->session->newQuery();
-                    $sql = "SELECT softID FROM software_running WHERE softID = '".$data[$i]['id']."' LIMIT 1";
+                    $sql = SqlQuery::make('SELECT softID FROM software_running WHERE softID = ? LIMIT 1', [$data[$i]['id']]);
                     $result = $this->pdo->query($sql)->fetchAll();
 
                     if(sizeof($result) == 1){
@@ -7966,9 +7921,9 @@ class Virus extends Player {
              */
 
             $this->session->newQuery();
-            $sql = "INSERT INTO software (userID, softName, softVersion, softSize, softRam, softType, softLastEdit, softHidden, isNPC, originalFrom, licensedTo, isFolder)
-                    VALUES ('".$vid."', '".$doomDB->softname."', '".$doomDB->softversion."', '100', '".$doomDB->softram."', '90',
-                    NOW(), 0, $vnpc, $doomDB->originalfrom, '', 0)";
+            $sql = SqlQuery::make('INSERT INTO software (userID, softName, softVersion, softSize, softRam, softType, softLastEdit, softHidden, isNPC, originalFrom, licensedTo, isFolder)
+                    VALUES (?, ?, ?, \'100\', ?, \'90\',
+                    NOW(), 0, ?, ?, \'\', 0)', [$vid, $doomDB->softname, $doomDB->softversion, $doomDB->softram, SqlQuery::num($vnpc), SqlQuery::num($doomDB->originalfrom)]);
             $this->pdo->query($sql);
         
         }
@@ -7988,13 +7943,13 @@ class Virus extends Player {
         
         if(!$mission->doom_haveMission($id)){
             
-            require '/var/www/classes/Clan.class.php';
-            require '/var/www/classes/Mail.class.php';
+            require __DIR__.'/Clan.class.php';
+            require __DIR__.'/Mail.class.php';
             
             $mail = new Mail();
             $finances = new Finances();
             
-            require '/var/www/classes/Storyline.class.php';
+            require __DIR__.'/Storyline.class.php';
             $storyline = new Storyline();
             
             $user = parent::getPlayerInfo($id)->login;
@@ -8086,9 +8041,9 @@ class Virus extends Player {
         }
 
         $this->session->newQuery();
-        $sql = "SELECT software.id, software.licensedTo
+        $sql = SqlQuery::make('SELECT software.id, software.licensedTo
                 FROM software
-                WHERE software.userID = '".$uid."' AND software.isNPC = $npc AND softType = 29";
+                WHERE software.userID = ? AND software.isNPC = ? AND softType = 29', [$uid, SqlQuery::num($npc)]);
         $data = $this->pdo->query($sql)->fetchAll();
         
         if(sizeof($data) > 0){
@@ -8132,9 +8087,9 @@ class Virus extends Player {
         
         if($valid == 1){
 
-            require_once '/var/www/classes/Clan.class.php';
-            require '/var/www/classes/Storyline.class.php';
-            require '/var/www/classes/Social.class.php';
+            require_once __DIR__.'/Clan.class.php';
+            require __DIR__.'/Storyline.class.php';
+            require __DIR__.'/Social.class.php';
             
             $storyline = new Storyline();
             $clan = new Clan();
@@ -8167,31 +8122,31 @@ class Virus extends Player {
             if($hddInfo['AVAILABLE'] >= $newSize){
 
                 $this->session->newQuery();
-                $sql = "UPDATE software SET originalFrom = '".$doomID."', softSize = '".$newSize."' WHERE id = '".$doomID."'";
+                $sql = SqlQuery::make('UPDATE software SET originalFrom = ?, softSize = ? WHERE id = ?', [$doomID, $newSize, $doomID]);
                 $this->pdo->query($sql);
 
                 $this->session->newQuery();
-                $sql = "INSERT INTO virus_doom (doomID, doomIP, creatorID, clanID, releaseDate, doomDate, status)
-                        VALUES ($doomID, $doomIP, '".$_SESSION['id']."', '".$clanID."', NOW(), DATE_ADD(NOW(), INTERVAL '".$durTime."' SECOND), '1')";
+                $sql = SqlQuery::make('INSERT INTO virus_doom (doomID, doomIP, creatorID, clanID, releaseDate, doomDate, status)
+                        VALUES (?, ?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL ? SECOND), \'1\')', [SqlQuery::num($doomID), SqlQuery::num($doomIP), $_SESSION['id'], $clanID, $durTime]);
                 $this->pdo->query($sql);
 
                 $this->session->newQuery();
-                $sql = "INSERT INTO software_running (softID, userID, ramUsage, isNPC)
-                        VALUES ('".$doomID."', $id, 0, $isClan)";
+                $sql = SqlQuery::make('INSERT INTO software_running (softID, userID, ramUsage, isNPC)
+                        VALUES (?, ?, 0, ?)', [$doomID, SqlQuery::num($id), SqlQuery::num($isClan)]);
                 $this->pdo->query($sql);
 
                 $this->session->newQuery();
-                $sql = "INSERT INTO software (userID, softName, softVersion, softSize, softRam, softType, softLastEdit, softHidden, isNPC, originalFrom, licensedTo, isFolder)
-                        VALUES ('".$_SESSION['id']."', '".$doomInfo->softname."', '".$doomInfo->softversion."', '100', '".$doomInfo->softram."', '90',
-                        NOW(), 0, 0, $doomID, '', 0)";
+                $sql = SqlQuery::make('INSERT INTO software (userID, softName, softVersion, softSize, softRam, softType, softLastEdit, softHidden, isNPC, originalFrom, licensedTo, isFolder)
+                        VALUES (?, ?, ?, \'100\', ?, \'90\',
+                        NOW(), 0, 0, ?, \'\', 0)', [$_SESSION['id'], $doomInfo->softname, $doomInfo->softversion, $doomInfo->softram, SqlQuery::num($doomID)]);
                 $this->pdo->query($sql);
                 
                 if($isClan == 1){
                     
                     $this->session->newQuery();
-                    $sql = "INSERT INTO software (userID, softName, softVersion, softSize, softRam, softType, softLastEdit, softHidden, isNPC, originalFrom, licensedTo, isFolder)
-                            VALUES ('".$id."', '".$doomInfo->softname."', '".$doomInfo->softversion."', '100', '".$doomInfo->softram."', '90',
-                            NOW(), 0, 1, $doomID, '', 0)";
+                    $sql = SqlQuery::make('INSERT INTO software (userID, softName, softVersion, softSize, softRam, softType, softLastEdit, softHidden, isNPC, originalFrom, licensedTo, isFolder)
+                            VALUES (?, ?, ?, \'100\', ?, \'90\',
+                            NOW(), 0, 1, ?, \'\', 0)', [$id, $doomInfo->softname, $doomInfo->softversion, $doomInfo->softram, SqlQuery::num($doomID)]);
                     $this->pdo->query($sql);                    
                     
                     $userIP = $playerInfo->gameip;
@@ -8247,7 +8202,7 @@ class Virus extends Player {
                 $doomNewsText .= 'There are reasons to believe this attack is being supported by '.$evilCorp.'. ';
                 $doomNewsText .= 'NSA director is afraid that this is not the only doom virus since forensics team found more attack logs at their mainframe.';
 
-                require '/var/www/classes/News.class.php';
+                require __DIR__.'/News.class.php';
                 $news = New News();
                 $news->news_add(-1, $doomNewsTitle, $doomNewsText, Array('ip', 'lol', '+6'));
                                 
@@ -8279,7 +8234,7 @@ class Virus extends Player {
     private function doom_getID($vid, $isClan){
         
         $this->session->newQuery();
-        $sql = "SELECT id FROM software WHERE userID = $vid AND isNPC = $isClan AND licensedTo = '".$_SESSION['id']."' AND softType = 29";
+        $sql = SqlQuery::make('SELECT id FROM software WHERE userID = ? AND isNPC = ? AND licensedTo = ? AND softType = 29', [SqlQuery::num($vid), SqlQuery::num($isClan), $_SESSION['id']]);
         return $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
         
     }
@@ -8289,9 +8244,9 @@ class Virus extends Player {
         $this->session->newQuery();
         
         if($vID == ''){
-            $sql = "SELECT doomID FROM virus_doom WHERE creatorID = '".$crID."' AND status = 1 LIMIT 1";
+            $sql = SqlQuery::make('SELECT doomID FROM virus_doom WHERE creatorID = ? AND status = 1 LIMIT 1', [$crID]);
         } else {
-            $sql = "SELECT doomID FROM virus_doom WHERE doomID = '".$vID."' AND status = 1 LIMIT 1";
+            $sql = SqlQuery::make('SELECT doomID FROM virus_doom WHERE doomID = ? AND status = 1 LIMIT 1', [$vID]);
         }
         $data = $this->pdo->query($sql)->fetchAll();
         
@@ -8307,16 +8262,16 @@ class Virus extends Player {
         
         if($npc2clan){
             $this->session->newQuery();
-            $sql = "SELECT clan.clanID
+            $sql = SqlQuery::make('SELECT clan.clanID
                     FROM npc
                     INNER JOIN clan
                     ON clan.clanIP = npc.npcIP
-                    WHERE npc.id = '".$clanID."' LIMIT 1";
+                    WHERE npc.id = ? LIMIT 1', [$clanID]);
             $clanID = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->clanid;
         }
         
         $this->session->newQuery();
-        $sql = "SELECT doomID FROM virus_doom WHERE clanID = '".$clanID."' AND status = 1 LIMIT 1";
+        $sql = SqlQuery::make('SELECT doomID FROM virus_doom WHERE clanID = ? AND status = 1 LIMIT 1', [$clanID]);
         $data = $this->pdo->query($sql)->fetchAll();
         
         if(sizeof($data) == 1){
@@ -8330,7 +8285,7 @@ class Virus extends Player {
     public function doom_specificIsset($doomID, $userID, $npc){
 
         $this->session->newQuery();
-        $sql = "SELECT id FROM software WHERE userID = $userID AND isNPC = $npc AND softType = 90 AND originalFrom = '".$doomID."' LIMIT 1";
+        $sql = SqlQuery::make('SELECT id FROM software WHERE userID = ? AND isNPC = ? AND softType = 90 AND originalFrom = ? LIMIT 1', [SqlQuery::num($userID), SqlQuery::num($npc), $doomID]);
         $data = $this->pdo->query($sql)->fetchAll();
         
         if(sizeof($data) == 1){
@@ -8344,39 +8299,39 @@ class Virus extends Player {
     public function doom_disable($doomID, $uid){
         
         $this->session->newQuery();
-        $sql = "SELECT COUNT(*) AS total FROM virus_doom WHERE doomID = '".$doomID."' LIMIT 1";
+        $sql = SqlQuery::make('SELECT COUNT(*) AS total FROM virus_doom WHERE doomID = ? LIMIT 1', [$doomID]);
         $running = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->total;
         
         if($running == 1){ //esse doom que será deletado está rodando, vou desabilitá-lo
 
             $this->session->newQuery();
-            $sql = "SELECT id, softSize FROM software WHERE softType = 90 AND originalFrom = '".$doomID."'";
+            $sql = SqlQuery::make('SELECT id, softSize FROM software WHERE softType = 90 AND originalFrom = ?', [$doomID]);
             $data = $this->pdo->query($sql)->fetchAll();
 
             for($i=0;$i<sizeof($data);$i++){
 
                 $this->session->newQuery();
-                $sql = "DELETE FROM software WHERE id = '".$data[$i]['id']."' LIMIT 1";
+                $sql = SqlQuery::make('DELETE FROM software WHERE id = ? LIMIT 1', [$data[$i]['id']]);
                 $this->pdo->query($sql);
 
             }
 
             $this->session->newQuery();
-            $sql = "UPDATE virus_doom SET status = 2 WHERE doomID = '".$doomID."'";
+            $sql = SqlQuery::make('UPDATE virus_doom SET status = 2 WHERE doomID = ?', [$doomID]);
             $this->pdo->query($sql);
             
             $this->session->newQuery();
-            $sql = "DELETE FROM software_running WHERE softID = '".$doomID."' LIMIT 1";
+            $sql = SqlQuery::make('DELETE FROM software_running WHERE softID = ? LIMIT 1', [$doomID]);
             $this->pdo->query($sql);
 
             $this->session->newQuery();
-            $sql = "INSERT INTO doom_abort (doomID, abortedBy, abortDate) 
-                    VALUES ('".$doomID."', '".$_SESSION['id']."', NOW())";
+            $sql = SqlQuery::make('INSERT INTO doom_abort (doomID, abortedBy, abortDate) 
+                    VALUES (?, ?, NOW())', [$doomID, $_SESSION['id']]);
             $this->pdo->query($sql);            
             
-            require '/var/www/classes/Social.class.php';
-            require '/var/www/classes/News.class.php';
-            require '/var/www/classes/Clan.class.php';
+            require __DIR__.'/Social.class.php';
+            require __DIR__.'/News.class.php';
+            require __DIR__.'/Clan.class.php';
             
             $social = new Social();
             $news = New News();
@@ -8395,7 +8350,7 @@ class Virus extends Player {
             $finances->addMoney($reward, $finances->getWealthiestBankAcc());
             
             $this->session->newQuery();
-            $sql = "SELECT creatorID, clanID, doomIP, releaseDate, TIMESTAMPDIFF(SECOND, NOW(), doomDate) AS timeLeft FROM virus_doom WHERE doomID = '".$doomID."' LIMIT 1";
+            $sql = SqlQuery::make('SELECT creatorID, clanID, doomIP, releaseDate, TIMESTAMPDIFF(SECOND, NOW(), doomDate) AS timeLeft FROM virus_doom WHERE doomID = ? LIMIT 1', [$doomID]);
             $doomInfo = $this->pdo->query($sql)->fetch(PDO::FETCH_OBJ);
 
             $doomIP = long2ip($doomInfo->doomip);
@@ -8444,7 +8399,7 @@ class Virus extends Player {
             
             $news->news_add(-1, $disableNewsTitle, $disableNewsContent, Array($_SESSION['id'], $reward, ''));
             
-            require_once '/var/www/classes/Mission.class.php';
+            require_once __DIR__.'/Mission.class.php';
             $mission = new Mission();
 
             if($mission->playerOnMission($idToDisable)){
@@ -8463,7 +8418,7 @@ class Virus extends Player {
     public function totalVirus($ip){
         
         $this->session->newQuery();
-        $sql = "SELECT virusID FROM virus WHERE installedIp = '".$ip."' AND installedBy = '".$_SESSION['id']."' AND active = 1";
+        $sql = SqlQuery::make('SELECT virusID FROM virus WHERE installedIp = ? AND installedBy = ? AND active = 1', [$ip, $_SESSION['id']]);
         
         return sizeof($this->pdo->query($sql)->fetchAll());
         
@@ -8477,21 +8432,21 @@ class Virus extends Player {
     public function activateViruses($ip){
         
         $this->session->newQuery();
-        $sql = "SELECT virusID FROM virus WHERE installedBy = '".$_SESSION['id']."' AND installedIp = '".$ip."' AND active = 0";
+        $sql = SqlQuery::make('SELECT virusID FROM virus WHERE installedBy = ? AND installedIp = ? AND active = 0', [$_SESSION['id'], $ip]);
         $data = $this->pdo->query($sql)->fetchAll();
         
         if(sizeof($data) > 0){
             
             $this->session->newQuery();
-            $sql = "UPDATE lists SET virusID = '".$data['0']['virusid']."' WHERE userID = '".$_SESSION['id']."' AND ip = '".$ip."'";
+            $sql = SqlQuery::make('UPDATE lists SET virusID = ? WHERE userID = ? AND ip = ?', [$data['0']['virusid'], $_SESSION['id'], $ip]);
             $this->pdo->query($sql);
 
             $this->session->newQuery();
-            $sql = "UPDATE virus SET active = 1, lastCollect = NOW() WHERE installedBy = '".$_SESSION['id']."' AND installedIp = '".$ip."'";
+            $sql = SqlQuery::make('UPDATE virus SET active = 1, lastCollect = NOW() WHERE installedBy = ? AND installedIp = ?', [$_SESSION['id'], $ip]);
             $this->pdo->query($sql);
             
             $this->session->newQuery();
-            $sql = "UPDATE virus_ddos SET active = 1 WHERE userID = '".$_SESSION['id']."' AND ip = '".$ip."'";
+            $sql = SqlQuery::make('UPDATE virus_ddos SET active = 1 WHERE userID = ? AND ip = ?', [$_SESSION['id'], $ip]);
             $this->pdo->query($sql);
             
         }
@@ -8500,7 +8455,7 @@ class Virus extends Player {
     
     public function DDoS_consequences($ddosPower, $ddoserIP, $victimIP, $seizedFBI){
         
-        require_once '/var/www/classes/Storyline.class.php';
+        require_once __DIR__.'/Storyline.class.php';
         $storyline = new Storyline();
 
         if($storyline->fbi_isset($victimIP) || $seizedFBI){
@@ -8576,17 +8531,17 @@ class Virus extends Player {
     public function delete_ddos_reports(){
         
         $this->session->newQuery();
-        $sql = "SELECT id FROM software_texts WHERE userID = ".$_SESSION['id']." AND isNPC = 0 AND ddos = 1";
+        $sql = SqlQuery::make('SELECT id FROM software_texts WHERE userID = ? AND isNPC = 0 AND ddos = 1', [SqlQuery::num($_SESSION['id'])]);
         $data = $this->pdo->query($sql);
         
         while($textInfo = $data->fetch(PDO::FETCH_OBJ)){
             
             $this->session->newQuery();
-            $sql = "DELETE FROM software_texts WHERE id = ".$textInfo->id;
+            $sql = SqlQuery::make('DELETE FROM software_texts WHERE id = ?', [SqlQuery::num($textInfo->id)]);
             $this->pdo->query($sql);
             
             $this->session->newQuery();
-            $sql = "DELETE FROM software WHERE id = ".$textInfo->id;
+            $sql = SqlQuery::make('DELETE FROM software WHERE id = ?', [SqlQuery::num($textInfo->id)]);
             $this->pdo->query($sql);
             
         }

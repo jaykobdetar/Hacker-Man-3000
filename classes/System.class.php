@@ -11,12 +11,15 @@ class System {
 
     }
     
+    /** Replaces the text of the element with the given id (the content is treated as plain text). */
     public function changeHTML($id, $content){
+
+        $flags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE;
         
         ?>
         
         <script>
-        document.getElementById("<?php echo $id; ?>").innerHTML="<?php echo $content; ?>";
+        (function(e){ if(e){ e.textContent=<?php echo json_encode((string) $content, $flags); ?>; } })(document.getElementById(<?php echo json_encode((string) $id, $flags); ?>));
         </script>
 
         <?php

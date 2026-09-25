@@ -22,6 +22,9 @@
 
 2019: This is like life: mostly useless. Kept for hysterical reasons.
 
+2026: Outdated. The Facebook, forum (phpBB) and Piwik notes below no longer apply; see README.md
+for the current setup.
+
 MySQL:
 
 SET innodb_flush_log_at_trx_commit to 0. (@VIDALOK)

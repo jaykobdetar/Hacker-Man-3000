@@ -14,7 +14,8 @@ class EmailVerification {
     }
     
     private function generateKey(){        
-        return uniqid('he', true);        
+        // 25 characters, as expected by welcome.php and the email_verification table
+        return 'he' . substr(bin2hex(random_bytes(12)), 0, 23);
     }
     
     private function saveKey($userID, $email){
@@ -26,7 +27,7 @@ class EmailVerification {
         $stmt->execute(array(':userID' => $userID, ':email' => $email, ':code' => $this->code));
                 
         $this->session->newQuery();
-        $sql = 'SELECT COUNT(*) AS total FROM email_verification WHERE userID = '.$userID.' LIMIT 1';
+        $sql = SqlQuery::make('SELECT COUNT(*) AS total FROM email_verification WHERE userID = ? LIMIT 1', [SqlQuery::num($userID)]);
         if($this->pdo->query($sql)->fetch(PDO::FETCH_OBJ)->total == 1){
             return TRUE;
         } else {
@@ -43,9 +44,9 @@ class EmailVerification {
             return FALSE;
         }        
         
-        require '/var/www/classes/SES.class.php';            
-        $ses = new SES();
-        return $ses->send('verify', Array('to' => $email, 'user' => $username, 'key' => $this->code));        
+        require_once __DIR__.'/Mailer.class.php';
+        $mailer = new Mailer();
+        return $mailer->send('verify', Array('to' => $email, 'user' => $username, 'key' => $this->code), $this->session->l);        
     }
     
     private function issetCode($userID){
@@ -84,12 +85,12 @@ class EmailVerification {
         $stmt->execute(array(':userID' => $userID));
         $userInfo = $stmt->fetch(PDO::FETCH_OBJ);
         
-        require '/var/www/classes/SES.class.php';            
-        $ses = new SES();
-        $ses->send('welcome', Array('to' => $userInfo->email, 'user' => $userInfo->login));
+        require_once __DIR__.'/Mailer.class.php';
+        $mailer = new Mailer();
+        $mailer->send('welcome', Array('to' => $userInfo->email, 'user' => $userInfo->login), $this->session->l);
         
         $this->session->newQuery();
-        $sql = 'DELETE FROM email_verification WHERE userID = '.$userID;
+        $sql = SqlQuery::make('DELETE FROM email_verification WHERE userID = ?', [SqlQuery::num($userID)]);
         $this->pdo->query($sql);
         
     }
@@ -107,7 +108,7 @@ class EmailVerification {
             return TRUE;
         }
         
-        if(self::getCode($userID) == $code){
+        if(is_string($code) && hash_equals((string) self::getCode($userID), $code)){
             self::removeKey($userID);
             return TRUE;
         } else {

@@ -1,5 +1,6 @@
 <?php
 
+require_once __DIR__.'/bootstrap.php';
 // 2019: If you host your own public game server, please update the Privacy Policy and TOS accordingly.
 
 $l = 'en_US';
@@ -88,24 +89,15 @@ ul {
 <ul>3.2 - <?php echo _('we do not spam.'); ?></ul>
 <ul>3.3 - <?php echo _('we do not sell or rent your data to anyone. (See <a target="__blank" href="privacy">Privacy Policy</a>)'); ?></ul>
 
-<li>4 - <?php echo _('When purchasing premium membership, you agree that'); ?></li>
+<li>4 - <?php echo _('Account termination'); ?></li>
 
-<ul>4.1 - <?php echo _('a valid credit card, which you have the right to use, is required for any paying account.'); ?></ul>
-<ul>4.2 - <?php echo _('the payments you make are non-refundable and are billed in advance. There will be no refunds of any sort or future credits for partial months usage of the service.'); ?></ul>
-<ul>4.3 - <?php echo _('all fees are exclusive of any kind of taxes, levies or duties imposed by taxing authorities.'); ?></ul>
-<ul>4.4 - <?php echo _('you will not be billed again if you wish to downgrade to the Basic account.'); ?></ul>
-<ul>4.5 - <?php echo _('price changes to the Premium Membership will affect only new upgrades from Basic to Premium plan. Current paying customers will keep the old price.'); ?> </ul>
+<ul>4.1 - <?php echo _('Currently, the only way to cancel your account is by requesting it manually to contact@hackerexperience.com.'); ?></ul>
+<ul>4.2 - <?php echo _('NeoArt Labs has the right to terminate your account. This will result in the deactivation or deletion of your account and you will be prevented from any access to the game.'); ?></ul>
+<ul><strong>4.3 - <?php echo _('Due to limited personnel, deleting an account might take several days.'); ?></strong></ul>
 
-<li>5 - <?php echo _('Account termination'); ?></li>
+<li>5 - <?php echo _('Unenforceable provisions'); ?></li>
 
-<ul>5.1 - <?php echo _('Currently, the only way to cancel your account is by requesting it manually to contact@hackerexperience.com.'); ?></ul>
-<ul>5.2 - <?php echo _('If you are a recurring-paying premium member, you will not be billed after your account is terminated.'); ?></ul>
-<ul>5.3 - <?php echo _('NeoArt Labs has the right to terminate your account. This will result in the deactivation or deletion of your account and you will be prevented from any access to the game.'); ?></ul>
-<ul><strong>5.4 - <?php echo _('Due to limited personnel, deleting an account might take several days.'); ?></strong></ul>
-
-<li>6 - <?php echo _('Unenforceable provisions'); ?></li>
-
-<ul>6.1 <?php echo _('If any provision of this website disclaimer is, or is found to be, unenforceable under applicable law, that will not affect the enforceability of the other provisions of this website disclaimer.'); ?></ul>
+<ul>5.1 <?php echo _('If any provision of this website disclaimer is, or is found to be, unenforceable under applicable law, that will not affect the enforceability of the other provisions of this website disclaimer.'); ?></ul>
 
 <li>7 - <?php echo _('Applicable law and competent court'); ?></li>
 
